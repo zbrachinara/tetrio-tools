@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use itertools::Itertools;
 use proc_macro::TokenStream;
-use proc_macro2::{Ident, Span, TokenStream as TokenStream2, TokenTree};
+use proc_macro2::{Ident, TokenStream as TokenStream2, TokenTree};
 use quote::{quote, ToTokens};
 use syn::{Data, DeriveInput, Fields, FieldsNamed};
 use tap::{Pipe, Tap};
@@ -34,11 +34,15 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
         let tag = args.get("tag").unwrap().to_token_stream();
         let tagged_type_variants = tagged_enum.variants;
         let name = tagged_type.ident;
+
         let module_name = Ident::new(
             &format!("{}_data", name.to_string().to_lowercase()),
             name.span(),
         );
-        let raw_name = Ident::new(&format!("Raw{name}"), name.span());
+
+        let raw_name_str =format!("Raw{name}") ;
+        let raw_name = Ident::new(&raw_name_str, name.span());
+
         let data_enum_name = Ident::new(&format!("{name}Data"), name.span());
         let original_attrs = tagged_type.attrs;
 
@@ -64,6 +68,7 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
         let public_struct = if common_fields_inner.trailing_punct() {
             quote!(
                 #[derive(Serialize, Deserialize)]
+                #[serde(from = #raw_name_str, into = #raw_name_str)]
                 struct #name {
                     #common_fields_inner
                     data: #data_enum_name,
@@ -78,6 +83,22 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
             )
         };
 
+        
+
+        let convert_impls = quote!(
+            impl From<#raw_name> for #name {
+                fn from(s: #raw_name) -> Self {
+
+                }
+            }
+
+            impl From<#name> for <#raw_name> {
+                fn from(s: #name) -> Self {
+
+                }
+            }
+        );
+
         let data_enum = quote!(
             enum #data_enum_name {
                 #tagged_type_variants
@@ -90,6 +111,8 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
                 pub #public_struct
                 #raw_enum
                 #data_enum
+
+                #convert_impls
             }
         )
     };

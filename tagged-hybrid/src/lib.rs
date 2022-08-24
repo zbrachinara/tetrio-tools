@@ -24,14 +24,14 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
         panic!("hybrid_tagged is meant to be invoked on an enum")
     };
 
-    let ls = attr_list(attr);
-    let common_fields = ls
+    let args = attr_args(attr);
+    let common_fields = args
         .get("fields")
         .expect("Argument `fields` was not provided to the proc macro")
         .pipe(|tokens| syn::parse2::<FieldsNamed>(tokens.to_token_stream()).unwrap());
 
     let ret = {
-        let tag = ls.get("tag").unwrap().to_token_stream();
+        let tag = args.get("tag").unwrap().to_token_stream();
         let tagged_type_variants = tagged_enum.variants;
         let name = tagged_type.ident;
         let raw_name = Ident::new(&format!("Raw{name}"), Span::call_site());
@@ -71,7 +71,7 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
     ret
 }
 
-fn attr_list(attr: TokenStream2) -> HashMap<String, TokenTree> {
+fn attr_args(attr: TokenStream2) -> HashMap<String, TokenTree> {
     attr.into_iter()
         .group_by(|tk| !matches!(tk, TokenTree::Punct(p) if p.as_char() == ','))
         .into_iter()

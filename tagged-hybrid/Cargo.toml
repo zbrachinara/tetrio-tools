@@ -9,7 +9,8 @@ proc-macro = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-venial = "0.4"
+syn = "1.0"
 quote = "1.0"
 proc-macro2 = "1.0"
 itertools = "0.10"
+tap = "1.0"

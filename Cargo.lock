@@ -96,8 +96,15 @@ dependencies = [
  "itertools",
  "proc-macro2",
  "quote",
- "venial",
+ "syn",
+ "tap",
 ]
+
+[[package]]
+name = "tap"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "55937e1799185b12863d447f42597ed69d9928686b8d88a1df17376a097d8369"
 
 [[package]]
 name = "tetrio-replay"
@@ -113,13 +120,3 @@ name = "unicode-ident"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c4f5b37a154999a8f3f98cc23a628d850e154479cd94decf3414696e12e31aaf"
-
-[[package]]
-name = "venial"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f3d723d4b0ebf523971bc63776095798272df2873910f16d53bb680aa2f4d609"
-dependencies = [
- "proc-macro2",
- "quote",
-]

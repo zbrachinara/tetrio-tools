@@ -4,37 +4,70 @@ use std::collections::HashMap;
 
 use itertools::Itertools;
 use proc_macro::TokenStream;
-use proc_macro2::{Literal, TokenStream as TokenStream2, TokenTree};
+use proc_macro2::{Ident, Span, TokenStream as TokenStream2, TokenTree};
 use quote::{quote, ToTokens};
-use venial::Declaration;
+use syn::{Data, DeriveInput, Fields, FieldsNamed};
+use tap::{Pipe, Tap};
+// use venial::{Declaration, StructFields, NamedStructFields};
 
 #[proc_macro_attribute]
 pub fn hybrid_tagged(attr: TokenStream, item: TokenStream) -> TokenStream {
     println!("{attr}");
     println!("{item}");
 
-    hybrid_tagged_impl(attr.into(), item.into())
+    hybrid_tagged_impl(attr.into(), item.into()).into()
 }
 
-fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream {
-    let decl = venial::parse_declaration(item);
-
-    let Ok(Declaration::Enum(tagged_data)) = decl else {
+fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
+    let tagged_type: DeriveInput = syn::parse2(item).unwrap();
+    let Data::Enum(tagged_enum) = tagged_type.data else {
         panic!("hybrid_tagged is meant to be invoked on an enum")
     };
 
     let ls = attr_list(attr);
+    let common_fields = ls
+        .get("fields")
+        .expect("Argument `fields` was not provided to the proc macro")
+        .pipe(|tokens| syn::parse2::<FieldsNamed>(tokens.to_token_stream()).unwrap())
+        .named;
 
     let ret = {
-        let tag = ls.get("tag").to_token_stream();
-        let str = tagged_data.to_token_stream();
-        quote!(#[serde(tag=#tag)] #str)
+        let tag = ls.get("tag").unwrap().to_token_stream();
+        let tagged_type_variants = tagged_enum.variants;
+        let name = tagged_type.ident;
+        let raw_name = Ident::new(&format!("Raw{name}"), Span::call_site());
+
+        let raw_variants = tagged_type_variants.clone().tap_mut(|variants| {
+            variants
+                .iter_mut()
+                .for_each(|variant| match variant.fields {
+                    Fields::Named(ref mut f) => common_fields
+                        .iter()
+                        .cloned()
+                        .for_each(|field| f.named.push(field)),
+                    _ => (),
+                })
+        });
+        let raw_enum = quote!(
+            #[serde(tag=#tag)] enum #raw_name {
+                #raw_variants
+            }
+
+        );
+
+        println!("{raw_enum}");
+
+        quote!(
+            #[serde(tag=#tag)] enum #raw_name {
+                #tagged_type_variants
+            }
+        )
     };
 
-    println!("{ls:?}");
-    println!("{ret}");
+    // println!("{ls:?}");
 
-    todo!()
+    // todo!()
+    ret
 }
 
 fn attr_list(attr: TokenStream2) -> HashMap<String, TokenTree> {
@@ -52,9 +85,7 @@ fn attr_list(attr: TokenStream2) -> HashMap<String, TokenTree> {
             }
 
             match (ident, value) {
-                (Some(TokenTree::Ident(ident)), Some(value)) => {
-                    (ident.to_string(), value)
-                }
+                (Some(TokenTree::Ident(ident)), Some(value)) => (ident.to_string(), value),
                 _ => panic!(r#"Attribute arguments should be in the form of `key = "value"`"#),
             }
         })
@@ -69,14 +100,12 @@ mod test {
     #[test]
     fn test_hybrid_tagged_impl() {
         hybrid_tagged_impl(
-            quote!(tag = "type", fields = [
-                    frame: Number,
-                    slack: Swick,
-            ]),
+            quote!(tag = "type", fields = {frame: Number, slack: Swick}),
             quote!(
                 #[serde(some_other_thing)]
                 enum Variations {
-                    A, B
+                    A { task: T, time: U },
+                    B { hours: H, intervals: I },
                 }
             ),
         );

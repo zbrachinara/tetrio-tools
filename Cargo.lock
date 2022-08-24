@@ -78,6 +78,7 @@ dependencies = [
 name = "tagged-hybrid"
 version = "0.1.0"
 dependencies = [
+ "proc-macro2",
  "quote",
  "venial",
 ]
@@ -88,6 +89,7 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
+ "tagged-hybrid",
 ]
 
 [[package]]

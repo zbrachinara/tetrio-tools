@@ -63,6 +63,7 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
         let common_fields_inner = common_fields.named;
         let public_struct = if common_fields_inner.trailing_punct() {
             quote!(
+                #[derive(Serialize, Deserialize)]
                 struct #name {
                     #common_fields_inner
                     data: #data_enum_name,
@@ -92,8 +93,6 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
             }
         )
     };
-
-    println!("{ret}");
 
     ret
 }
@@ -127,7 +126,7 @@ mod test {
 
     #[test]
     fn test_hybrid_tagged_impl() {
-        hybrid_tagged_impl(
+        let macro_out = hybrid_tagged_impl(
             quote!(tag = "type", fields = {frame: Number, slack: Swick,}),
             quote!(
                 #[Derive(Serialize, Deserialize)]
@@ -140,5 +139,7 @@ mod test {
                 }
             ),
         );
+
+        println!("{}", macro_out)
     }
 }

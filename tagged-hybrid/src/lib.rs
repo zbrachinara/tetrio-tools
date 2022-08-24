@@ -28,8 +28,7 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
     let common_fields = ls
         .get("fields")
         .expect("Argument `fields` was not provided to the proc macro")
-        .pipe(|tokens| syn::parse2::<FieldsNamed>(tokens.to_token_stream()).unwrap())
-        .named;
+        .pipe(|tokens| syn::parse2::<FieldsNamed>(tokens.to_token_stream()).unwrap());
 
     let ret = {
         let tag = ls.get("tag").unwrap().to_token_stream();
@@ -42,10 +41,12 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
                 .iter_mut()
                 .for_each(|variant| match variant.fields {
                     Fields::Named(ref mut f) => common_fields
+                        .named
                         .iter()
                         .cloned()
                         .for_each(|field| f.named.push(field)),
-                    _ => (),
+                    Fields::Unit => variant.fields = Fields::Named(common_fields.clone()),
+                    _ => panic!("Fields of this enum must be named"),
                 })
         });
         let raw_enum = quote!(
@@ -106,6 +107,8 @@ mod test {
                 enum Variations {
                     A { task: T, time: U },
                     B { hours: H, intervals: I },
+                    C,
+                    D(Wrong)
                 }
             ),
         );

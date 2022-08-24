@@ -34,7 +34,14 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
         let tag = args.get("tag").unwrap().to_token_stream();
         let tagged_type_variants = tagged_enum.variants;
         let name = tagged_type.ident;
-        let raw_name = Ident::new(&format!("Raw{name}"), Span::call_site());
+        let module_name = Ident::new(
+            &name
+                .to_string()
+                .to_lowercase()
+                .tap_mut(|s| s.push_str("_data")),
+            name.span(),
+        );
+        let raw_name = Ident::new(&format!("Raw{name}"), name.span());
         let original_attrs = tagged_type.attrs;
 
         let raw_variants = tagged_type_variants.clone().tap_mut(|variants| {
@@ -54,21 +61,24 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
             #[serde(tag=#tag)] #(#original_attrs)* enum #raw_name {
                 #raw_variants
             }
-
+        );
+        let public_struct = quote!(
+            struct F {
+                u: U,
+            }
         );
 
-        println!("{raw_enum}");
-
         quote!(
-            #[serde(tag=#tag)] enum #raw_name {
-                #tagged_type_variants
+            pub #public_struct
+
+            mod #module_name {
+                #raw_enum
             }
         )
     };
 
-    // println!("{ls:?}");
+    println!("{ret}");
 
-    // todo!()
     ret
 }
 
@@ -104,6 +114,7 @@ mod test {
         hybrid_tagged_impl(
             quote!(tag = "type", fields = {frame: Number, slack: Swick}),
             quote!(
+                #[Derive(Serialize, Deserialize)]
                 #[serde(some_other_thing)]
                 enum Variations {
                     A { task: T, time: U },

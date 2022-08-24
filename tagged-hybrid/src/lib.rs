@@ -35,13 +35,11 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
         let tagged_type_variants = tagged_enum.variants;
         let name = tagged_type.ident;
         let module_name = Ident::new(
-            &name
-                .to_string()
-                .to_lowercase()
-                .tap_mut(|s| s.push_str("_data")),
+            &format!("{}_data", name.to_string().to_lowercase()),
             name.span(),
         );
         let raw_name = Ident::new(&format!("Raw{name}"), name.span());
+        let data_enum_name = Ident::new(&format!("{name}Data"), name.span());
         let original_attrs = tagged_type.attrs;
 
         let raw_variants = tagged_type_variants.clone().tap_mut(|variants| {
@@ -62,17 +60,35 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
                 #raw_variants
             }
         );
-        let public_struct = quote!(
-            struct F {
-                u: U,
+        let common_fields_inner = common_fields.named;
+        let public_struct = if common_fields_inner.trailing_punct() {
+            quote!(
+                struct #name {
+                    #common_fields_inner
+                    data: #data_enum_name,
+                }
+            )
+        } else {
+            quote!(
+                struct #name {
+                    #common_fields_inner,
+                    data: #data_enum_name,
+                }
+            )
+        };
+
+        let data_enum = quote!(
+            enum #data_enum_name {
+                #tagged_type_variants
             }
         );
 
         quote!(
-            pub #public_struct
-
+            pub use #module_name::#public_struct
             mod #module_name {
+                pub #public_struct
                 #raw_enum
+                #data_enum
             }
         )
     };
@@ -112,7 +128,7 @@ mod test {
     #[test]
     fn test_hybrid_tagged_impl() {
         hybrid_tagged_impl(
-            quote!(tag = "type", fields = {frame: Number, slack: Swick}),
+            quote!(tag = "type", fields = {frame: Number, slack: Swick,}),
             quote!(
                 #[Derive(Serialize, Deserialize)]
                 #[serde(some_other_thing)]

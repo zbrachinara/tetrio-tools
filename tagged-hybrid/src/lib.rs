@@ -35,6 +35,7 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
         let tagged_type_variants = tagged_enum.variants;
         let name = tagged_type.ident;
         let raw_name = Ident::new(&format!("Raw{name}"), Span::call_site());
+        let original_attrs = tagged_type.attrs;
 
         let raw_variants = tagged_type_variants.clone().tap_mut(|variants| {
             variants
@@ -50,7 +51,7 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
                 })
         });
         let raw_enum = quote!(
-            #[serde(tag=#tag)] enum #raw_name {
+            #[serde(tag=#tag)] #(#original_attrs)* enum #raw_name {
                 #raw_variants
             }
 
@@ -108,7 +109,7 @@ mod test {
                     A { task: T, time: U },
                     B { hours: H, intervals: I },
                     C,
-                    D(Wrong)
+                    // D(Wrong)
                 }
             ),
         );

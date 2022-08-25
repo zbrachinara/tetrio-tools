@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use itertools::{izip, Itertools};
 use proc_macro::TokenStream;
-use proc_macro2::{Ident, TokenStream as TokenStream2, TokenTree};
+use proc_macro2::{Group, Ident, TokenStream as TokenStream2, TokenTree};
 use quote::{quote, ToTokens};
 use syn::{Data, DeriveInput, Fields, FieldsNamed};
 use tap::{Pipe, Tap};
@@ -64,9 +64,18 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
                 })
         });
 
+        let struct_attrs = args.get("struct_attrs").map(|tokens| {
+            syn::parse2::<Group>(tokens.into_token_stream())
+                .unwrap()
+                .stream()
+        });
+
         // raw enum which serde directly translates from json
         let raw_enum = quote!(
-            #[serde(tag=#tag)] #(#original_attrs)* enum #raw_name {
+            #[derive(Serialize, Deserialize)]
+            #[serde(tag=#tag)]
+            #(#original_attrs)*
+            enum #raw_name {
                 #raw_variants
             }
         );
@@ -75,6 +84,7 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
         let public_struct = quote!(
             #[derive(Serialize, Deserialize)]
             #[serde(from = #raw_name_str, into = #raw_name_str)]
+            #struct_attrs
             pub struct #name {
                 data: #data_enum_name,
                 #common_fields_inner
@@ -208,9 +218,12 @@ mod test {
     #[test]
     fn test_hybrid_tagged_impl() {
         let macro_out = hybrid_tagged_impl(
-            quote!(tag = "type", fields = {frame: Number, slack: Slack,}),
+            quote!(tag = "type", fields = {frame: Number, slack: Slack,}, struct_attrs = {
+                #[derive(Debug)]
+                #[serde(rename = "UPPERCASE")]
+            }),
             quote!(
-                #[Derive(Serialize, Deserialize)]
+                #[derive(Debug)]
                 #[serde(some_other_thing)]
                 pub(super) enum Variations {
                     A { task: T, time: U },

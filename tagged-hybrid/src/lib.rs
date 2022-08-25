@@ -102,6 +102,7 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
         // data enum containing the specific data for each variant
         let data_enum = quote!(
             #[derive(Clone)]
+            #struct_attrs
             enum #data_enum_name {
                 #data_variants
             }

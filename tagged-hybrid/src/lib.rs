@@ -12,9 +12,6 @@ use tap::{Pipe, Tap};
 
 #[proc_macro_attribute]
 pub fn hybrid_tagged(attr: TokenStream, item: TokenStream) -> TokenStream {
-    println!("{attr}");
-    println!("{item}");
-
     hybrid_tagged_impl(attr.into(), item.into()).into()
 }
 
@@ -57,17 +54,16 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
 
         // takes the variants of the annotated enum and adds the common fields to each one
         let raw_variants = variants.clone().tap_mut(|variants| {
-            variants
-                .iter_mut()
-                .for_each(|variant| match variant.fields {
-                    Fields::Named(ref mut f) => common_fields
-                        .named
-                        .iter()
-                        .cloned()
-                        .for_each(|field| f.named.push(field)),
-                    Fields::Unit => variant.fields = Fields::Named(common_fields.clone()),
-                    _ => panic!("Fields of this enum must be named"),
-                })
+            variants.iter_mut().for_each(|variant| {
+                let name = &variant.ident;
+                let common_fields = common_fields_inner.iter();
+                *variant = syn::parse_quote!(
+                    #name {
+                        data: #name,
+                        #(#common_fields),*
+                    }
+                );
+            })
         });
 
         let data_variants = variants.clone().tap_mut(|variants| {
@@ -145,25 +141,48 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
             })
             .collect_vec();
 
-        let variant_names = variants.iter().cloned().map(|variant| variant.ident);
+        let variant_names = variants
+            .iter()
+            .cloned()
+            .map(|variant| variant.ident)
+            .collect_vec();
+
+        let variant_structs = variants.iter().map(|variant| {
+            let name = &variant.ident;
+            let fields = &variant.fields;
+
+            if fields.len() == 0 {
+                quote!( #[derive(serde::Serialize, serde::Deserialize)] #struct_attrs struct #name; )
+            } else {
+                quote!( #[derive(serde::Serialize, serde::Deserialize)] #struct_attrs struct #name #fields )
+            }
+        });
 
         let (convert_from_raw, convert_to_raw): (Vec<_>, Vec<_>) =
             izip!(variant_fields_names, raw_fields_names)
                 .zip(variant_names)
-                .map(|((variant, raw), branch_name)| {
+                .map(|((variant, _), variant_name)| {
                     let from_raw = quote!(
-                        #raw_name :: #branch_name { #(#raw),* } => Self {
-                            data: #data_enum_name :: #branch_name {
+                        #raw_name :: #variant_name {
+                            data: #variant_name {
+                                #(#variant),*
+                            },
+                            #(#common_fields_names),*
+                        } => Self {
+                            data: #data_enum_name :: #variant_name {
                                 #(#variant),*
                             }, #(#common_fields_names),*
                         }
                     );
 
                     let to_raw = quote!(
-                        #data_enum_name :: #branch_name {
+                        #data_enum_name :: #variant_name {
                             #(#variant),*
-                        } => Self :: #branch_name {
-                            #(#raw),*
+                        } => Self :: #variant_name {
+                            data: #variant_name {
+                                #(#variant),*
+                            },
+                            #(#common_fields_names)*,
                         }
                     );
 
@@ -200,10 +219,14 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
                 #raw_enum
                 #data_enum
 
+                #(#variant_structs)*
+
                 #convert_impls
             }
         )
     };
+
+    println!("{ret}");
 
     ret
 }

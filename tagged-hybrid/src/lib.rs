@@ -47,6 +47,8 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
         let data_enum_name = Ident::new(&format!("{name}Data"), name.span());
         let original_attrs = tagged_type.attrs;
 
+        let visibility = tagged_type.vis;
+
         // takes the variants of the annotated enum and adds the common fields to each one
         let raw_variants = variants.clone().tap_mut(|variants| {
             variants
@@ -162,7 +164,7 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
 
         // all put together
         quote!(
-            pub use #module_name::#name;
+            #visibility use #module_name::#name;
             mod #module_name {
                 #public_struct
                 #raw_enum
@@ -206,11 +208,11 @@ mod test {
     #[test]
     fn test_hybrid_tagged_impl() {
         let macro_out = hybrid_tagged_impl(
-            quote!(tag = "type", fields = {frame: Number, slack: Swick,}),
+            quote!(tag = "type", fields = {frame: Number, slack: Slack,}),
             quote!(
                 #[Derive(Serialize, Deserialize)]
                 #[serde(some_other_thing)]
-                enum Variations {
+                pub(super) enum Variations {
                     A { task: T, time: U },
                     B { hours: H, intervals: I },
                     C,

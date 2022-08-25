@@ -44,13 +44,57 @@ pub struct User {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Replay {
     // pub events: Vec<Value>,
-    pub events: Vec<event::Event>,
+    pub events: Vec<event::EventNew>,
     pub frames: Number,
 }
+
+
 
 pub mod event {
     use serde::{Deserialize, Serialize};
     use serde_json::{Map, Number, Value};
+    use tagged_hybrid::hybrid_tagged;
+
+    #[hybrid_tagged(
+        fields = {frame: Number},
+        tag = "type",
+        struct_attrs = { #[derive(Debug)]}
+    )]
+    #[serde(rename_all = "lowercase")]
+    pub enum EventNew {
+        Start,
+        Full {
+            #[serde(rename = "aggregatestats")]
+            aggregate_stats: AggregateStats,
+            assumptions: Map<String, Value>,
+            fire: Number,
+            game: Game,
+            #[serde(rename = "gameoverreason")]
+            game_over_reason: Option<String>,
+            killer: Killer,
+            options: GameOptions,
+            replay: Value, //TODO: gonna have to see what these structs mean
+            source: Value,
+            stats: Value,
+            successful: bool,
+            targets: Vec<Value>, // TODO: probably string, but have to check
+        },
+        Targets,
+        KeyDown {
+            key: String,
+            subframe: Number,
+            hoisted: Option<bool>, //TODO: Figure out what this means
+        },
+        KeyUp {
+            key: String,
+            subframe: Number,
+            hoisted: Option<bool>, //TODO: Figure out what this means
+        },
+        #[serde(rename = "ige")]
+        InGameEvent,
+        End,
+    }
+
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[serde(from = "EventRaw", into = "EventRaw")]

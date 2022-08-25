@@ -2,7 +2,7 @@
 
 use std::{fs::read_to_string, path::Path};
 
-use data::{TTRM, event::Event};
+use data::TTRM;
 
 mod data;
 

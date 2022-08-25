@@ -6,7 +6,7 @@ use itertools::{izip, Itertools};
 use proc_macro::TokenStream;
 use proc_macro2::{Group, Ident, TokenStream as TokenStream2, TokenTree};
 use quote::{quote, ToTokens};
-use syn::{punctuated::Punctuated, token::Comma, Data, DeriveInput, Fields, FieldsNamed};
+use syn::{Data, DeriveInput, Fields, FieldsNamed};
 use tap::{Pipe, Tap};
 // use venial::{Declaration, StructFields, NamedStructFields};
 

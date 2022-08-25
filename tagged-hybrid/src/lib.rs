@@ -112,11 +112,11 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
                 .zip(variant_names)
                 .map(|((variant, raw), branch_name)| {
                     let from_raw = quote!(
-                        #raw_name :: #branch_name { #(#raw),* } => Self (
+                        #raw_name :: #branch_name { #(#raw),* } => Self {
                             data: #data_enum_name :: #branch_name {
                                 #(#variant),*
                             }, #(#common_fields_names),*
-                        )
+                        }
                     );
 
                     let to_raw = quote!(
@@ -142,7 +142,7 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
                 }
             }
 
-            impl From<#name> for <#raw_name> {
+            impl From<#name> for #raw_name {
                 fn from(f: #name) -> Self {
                     match f {
                         #(#convert_to_raw),*

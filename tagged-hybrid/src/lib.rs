@@ -23,131 +23,130 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
 
     let args = attr_args(attr);
 
-    let ret = {
-        let common_fields = args
+    let common_fields = args
             .get("fields")
             .expect("Argument `fields` was not provided")
             .pipe(|tokens| {
                 syn::parse2::<FieldsNamed>(tokens.to_token_stream())
                     .expect("Fields should be written with the same notation as a struct declaration, inside curly braces")
             });
-        let common_fields_inner = &common_fields.named;
-        let tag = args
-            .get("tag")
-            .expect("Argument `tag` was not provided")
-            .to_token_stream();
-        let variants = tagged_enum.variants;
-        let name = tagged_type.ident;
+    let common_fields_inner = &common_fields.named;
+    let tag = args
+        .get("tag")
+        .expect("Argument `tag` was not provided")
+        .to_token_stream();
+    let variants = tagged_enum.variants;
+    let name = tagged_type.ident;
 
-        let module_name = Ident::new(
-            &format!("{}_data", name.to_string().to_lowercase()),
-            name.span(),
-        );
+    let module_name = Ident::new(
+        &format!("{}_data", name.to_string().to_lowercase()),
+        name.span(),
+    );
 
-        let raw_name_str = format!("Raw{name}");
-        let raw_name = Ident::new(&raw_name_str, name.span());
+    let raw_name_str = format!("Raw{name}");
+    let raw_name = Ident::new(&raw_name_str, name.span());
 
-        let data_enum_name = Ident::new(&format!("{name}Data"), name.span());
-        let original_attrs = tagged_type.attrs;
+    let data_enum_name = Ident::new(&format!("{name}Data"), name.span());
+    let original_attrs = tagged_type.attrs;
 
-        let visibility = tagged_type.vis;
+    let visibility = tagged_type.vis;
 
-        // takes the variants of the annotated enum and adds the common fields to each one
-        let raw_variants = variants.clone().tap_mut(|variants| {
-            variants.iter_mut().for_each(|variant| {
-                let name = &variant.ident;
-                let common_fields = common_fields_inner.iter();
-                *variant = syn::parse_quote!(
-                    #name {
-                        data: #name,
-                        #(#common_fields),*
+    // takes the variants of the annotated enum and adds the common fields to each one
+    let raw_variants = variants.clone().tap_mut(|variants| {
+        variants.iter_mut().for_each(|variant| {
+            let name = &variant.ident;
+            let common_fields = common_fields_inner.iter();
+            *variant = syn::parse_quote!(
+                #name {
+                    data: #name,
+                    #(#common_fields),*
+                }
+            );
+        })
+    });
+
+    let data_variants = variants.clone().tap_mut(|variants| {
+        variants
+            .iter_mut()
+            .for_each(|variant| match variant.fields {
+                Fields::Named(ref mut f) => {
+                    for field in &mut f.named {
+                        field.attrs.clear();
                     }
-                );
+                }
+                _ => (),
             })
-        });
+    });
 
-        let data_variants = variants.clone().tap_mut(|variants| {
-            variants
-                .iter_mut()
-                .for_each(|variant| match variant.fields {
-                    Fields::Named(ref mut f) => {
-                        for field in &mut f.named {
-                            field.attrs.clear();
-                        }
-                    }
-                    _ => (),
-                })
-        });
+    let struct_attrs = args.get("struct_attrs").map(|tokens| {
+        syn::parse2::<Group>(tokens.into_token_stream())
+            .unwrap()
+            .stream()
+    });
 
-        let struct_attrs = args.get("struct_attrs").map(|tokens| {
-            syn::parse2::<Group>(tokens.into_token_stream())
-                .unwrap()
-                .stream()
-        });
+    // raw enum which serde directly translates from json
+    let raw_enum = quote!(
+        #[derive(serde::Serialize, serde::Deserialize)]
+        #[serde(tag=#tag)]
+        #(#original_attrs)*
+        enum #raw_name {
+            #raw_variants
+        }
+    );
 
-        // raw enum which serde directly translates from json
-        let raw_enum = quote!(
-            #[derive(serde::Serialize, serde::Deserialize)]
-            #[serde(tag=#tag)]
-            #(#original_attrs)*
-            enum #raw_name {
-                #raw_variants
-            }
-        );
+    // data enum containing the specific data for each variant
+    let data_enum = quote!(
+        #[derive(Clone)]
+        #struct_attrs
+        enum #data_enum_name {
+            #data_variants
+        }
+    );
 
-        // data enum containing the specific data for each variant
-        let data_enum = quote!(
-            #[derive(Clone)]
-            #struct_attrs
-            enum #data_enum_name {
-                #data_variants
-            }
-        );
+    // public-facing struct which takes the place of the annotated enum
+    let public_struct = quote!(
+        #[derive(serde::Serialize, serde::Deserialize, Clone)]
+        #[serde(from = #raw_name_str, into = #raw_name_str)]
+        #struct_attrs
+        pub struct #name {
+            data: #data_enum_name,
+            #common_fields_inner
+        }
+    );
 
-        // public-facing struct which takes the place of the annotated enum
-        let public_struct = quote!(
-            #[derive(serde::Serialize, serde::Deserialize, Clone)]
-            #[serde(from = #raw_name_str, into = #raw_name_str)]
-            #struct_attrs
-            pub struct #name {
-                data: #data_enum_name,
-                #common_fields_inner
-            }
-        );
+    let common_fields_names = common_fields_inner
+        .iter()
+        .cloned()
+        .map(|field| field.ident.expect("Fields of this enum must be named"))
+        .collect_vec();
+    let variant_fields_names = variants
+        .iter()
+        .map(|variant| {
+            variant
+                .fields
+                .iter()
+                .map(|field| field.ident.clone().unwrap())
+                .collect_vec()
+        })
+        .collect_vec();
+    let raw_fields_names = raw_variants
+        .iter()
+        .map(|variant| {
+            variant
+                .fields
+                .iter()
+                .map(|field| field.ident.clone().unwrap())
+                .collect_vec()
+        })
+        .collect_vec();
 
-        let common_fields_names = common_fields_inner
-            .iter()
-            .cloned()
-            .map(|field| field.ident.expect("Fields of this enum must be named"))
-            .collect_vec();
-        let variant_fields_names = variants
-            .iter()
-            .map(|variant| {
-                variant
-                    .fields
-                    .iter()
-                    .map(|field| field.ident.clone().unwrap())
-                    .collect_vec()
-            })
-            .collect_vec();
-        let raw_fields_names = raw_variants
-            .iter()
-            .map(|variant| {
-                variant
-                    .fields
-                    .iter()
-                    .map(|field| field.ident.clone().unwrap())
-                    .collect_vec()
-            })
-            .collect_vec();
+    let variant_names = variants
+        .iter()
+        .cloned()
+        .map(|variant| variant.ident)
+        .collect_vec();
 
-        let variant_names = variants
-            .iter()
-            .cloned()
-            .map(|variant| variant.ident)
-            .collect_vec();
-
-        let variant_structs = variants.iter().map(|variant| {
+    let variant_structs = variants.iter().map(|variant| {
             let name = &variant.ident;
             let fields = &variant.fields;
 
@@ -158,77 +157,72 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
             }
         });
 
-        let (convert_from_raw, convert_to_raw): (Vec<_>, Vec<_>) =
-            izip!(variant_fields_names, raw_fields_names)
-                .zip(variant_names)
-                .map(|((variant, _), variant_name)| {
-                    let from_raw = quote!(
-                        #raw_name :: #variant_name {
-                            data: #variant_name {
-                                #(#variant),*
-                            },
-                            #(#common_fields_names),*
-                        } => Self {
-                            data: #data_enum_name :: #variant_name {
-                                #(#variant),*
-                            }, #(#common_fields_names),*
-                        }
-                    );
-
-                    let to_raw = quote!(
-                        #data_enum_name :: #variant_name {
+    let (convert_from_raw, convert_to_raw): (Vec<_>, Vec<_>) =
+        izip!(variant_fields_names, raw_fields_names)
+            .zip(variant_names)
+            .map(|((variant, _), variant_name)| {
+                let from_raw = quote!(
+                    #raw_name :: #variant_name {
+                        data: #variant_name {
                             #(#variant),*
-                        } => Self :: #variant_name {
-                            data: #variant_name {
-                                #(#variant),*
-                            },
-                            #(#common_fields_names)*,
-                        }
-                    );
-
-                    (from_raw, to_raw)
-                })
-                .unzip();
-
-        // From impls for converting to and from the public struct and private type
-        let convert_impls = quote!(
-            impl From<#raw_name> for #name {
-                fn from(f: #raw_name) -> Self {
-                    match f {
-                        #(#convert_from_raw),*
+                        },
+                        #(#common_fields_names),*
+                    } => Self {
+                        data: #data_enum_name :: #variant_name {
+                            #(#variant),*
+                        }, #(#common_fields_names),*
                     }
+                );
+
+                let to_raw = quote!(
+                    #data_enum_name :: #variant_name {
+                        #(#variant),*
+                    } => Self :: #variant_name {
+                        data: #variant_name {
+                            #(#variant),*
+                        },
+                        #(#common_fields_names)*,
+                    }
+                );
+
+                (from_raw, to_raw)
+            })
+            .unzip();
+
+    // From impls for converting to and from the public struct and private type
+    let convert_impls = quote!(
+        impl From<#raw_name> for #name {
+            fn from(f: #raw_name) -> Self {
+                match f {
+                    #(#convert_from_raw),*
                 }
             }
+        }
 
-            impl From<#name> for #raw_name {
-                fn from(f: #name) -> Self {
-                    #(let #common_fields_names = f.#common_fields_names;)*
-                    match f.data {
-                        #(#convert_to_raw),*
-                    }
+        impl From<#name> for #raw_name {
+            fn from(f: #name) -> Self {
+                #(let #common_fields_names = f.#common_fields_names;)*
+                match f.data {
+                    #(#convert_to_raw),*
                 }
             }
-        );
+        }
+    );
 
-        // all put together
-        quote!(
-            #visibility use #module_name::#name;
-            mod #module_name {
-                use super::*;
-                #public_struct
-                #raw_enum
-                #data_enum
+    // all put together
+    quote!(
+        #visibility use #module_name::#name;
+        mod #module_name {
+            use super::*;
+            #public_struct
+            #raw_enum
+            #data_enum
 
-                #(#variant_structs)*
+            #(#variant_structs)*
 
-                #convert_impls
-            }
-        )
-    };
-
-    println!("{ret}");
-
-    ret
+            #convert_impls
+        }
+    )
 }
 
 fn attr_args(attr: TokenStream2) -> HashMap<String, TokenTree> {

@@ -70,6 +70,19 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
                 })
         });
 
+        let data_variants = variants.clone().tap_mut(|variants| {
+            variants
+                .iter_mut()
+                .for_each(|variant| match variant.fields {
+                    Fields::Named(ref mut f) => {
+                        for field in &mut f.named {
+                            field.attrs.clear();
+                        }
+                    }
+                    _ => (),
+                })
+        });
+
         let struct_attrs = args.get("struct_attrs").map(|tokens| {
             syn::parse2::<Group>(tokens.into_token_stream())
                 .unwrap()
@@ -83,6 +96,14 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
             #(#original_attrs)*
             enum #raw_name {
                 #raw_variants
+            }
+        );
+
+        // data enum containing the specific data for each variant
+        let data_enum = quote!(
+            #[derive(Clone)]
+            enum #data_enum_name {
+                #data_variants
             }
         );
 
@@ -138,9 +159,8 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
                     );
 
                     let to_raw = quote!(
-                        #name :: #branch_name {
-                            data: #data_enum_name :: #branch_name { #(#variant),*},
-                            #(#common_fields_names),*
+                        #data_enum_name :: #branch_name {
+                            #(#variant),*
                         } => Self :: #branch_name {
                             #(#raw),*
                         }
@@ -170,18 +190,11 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
             }
         );
 
-        // data enum containing the specific data for each variant
-        let data_enum = quote!(
-            #[derive(Clone)]
-            enum #data_enum_name {
-                #variants
-            }
-        );
-
         // all put together
         quote!(
             #visibility use #module_name::#name;
             mod #module_name {
+                use super::*;
                 #public_struct
                 #raw_enum
                 #data_enum
@@ -232,8 +245,15 @@ mod test {
                 #[derive(Debug)]
                 #[serde(some_other_thing)]
                 pub(super) enum Variations {
-                    A { task: T, time: U },
-                    B { hours: H, intervals: I },
+                    A {
+                        #[field_attribute]
+                        task: T,
+                        time: U,
+                    },
+                    B {
+                        hours: H,
+                        intervals: I,
+                    },
                     C,
                     // D(Wrong)
                 }

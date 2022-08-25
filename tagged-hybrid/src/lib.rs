@@ -162,14 +162,13 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
 
             impl From<#name> for #raw_name {
                 fn from(f: #name) -> Self {
-                    match f {
+                    #(let #common_fields_names = f.#common_fields_names;)*
+                    match f.data {
                         #(#convert_to_raw),*
                     }
                 }
             }
         );
-
-        // println!("{}", convert_impls);
 
         // data enum containing the specific data for each variant
         let data_enum = quote!(

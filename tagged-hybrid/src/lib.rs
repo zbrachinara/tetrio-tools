@@ -29,10 +29,16 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
     let ret = {
         let common_fields = args
             .get("fields")
-            .expect("Argument `fields` was not provided to the proc macro")
-            .pipe(|tokens| syn::parse2::<FieldsNamed>(tokens.to_token_stream()).unwrap());
+            .expect("Argument `fields` was not provided")
+            .pipe(|tokens| {
+                syn::parse2::<FieldsNamed>(tokens.to_token_stream())
+                    .expect("Fields should be written with the same notation as a struct declaration, inside curly braces")
+            });
         let common_fields_inner = &common_fields.named;
-        let tag = args.get("tag").unwrap().to_token_stream();
+        let tag = args
+            .get("tag")
+            .expect("Argument `tag` was not provided")
+            .to_token_stream();
         let variants = tagged_enum.variants;
         let name = tagged_type.ident;
 

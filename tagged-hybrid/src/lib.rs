@@ -12,12 +12,7 @@ use tap::{Pipe, Tap};
 
 #[proc_macro_attribute]
 pub fn hybrid_tagged(attr: TokenStream, item: TokenStream) -> TokenStream {
-    // hybrid_tagged_impl(attr.into(), item.into()).into()
-    let ret = hybrid_tagged_impl(attr.into(), item.into()).into();
-
-    println!("{ret}");
-
-    ret
+    hybrid_tagged_impl(attr.into(), item.into()).into()
 }
 
 fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
@@ -56,8 +51,6 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
         .map(|variant| variant.ident)
         .collect::<HashSet<_>>();
 
-    println!("{empty_variants:?}");
-
     let raw_name_str = format!("Raw{name}");
     let raw_name = Ident::new(&raw_name_str, name.span());
 
@@ -74,7 +67,6 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
             let common_fields = common_fields_inner.iter();
 
             *variant = if empty_variants.contains(&variant.ident) {
-                println!("neutering {}", variant.ident);
                 syn::parse_quote!(
                     #(#attrs)*
                     #name {

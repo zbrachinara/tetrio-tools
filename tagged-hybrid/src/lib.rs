@@ -127,7 +127,7 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
     let data_enum = quote!(
         #[derive(Clone)]
         #struct_attrs
-        enum #data_enum_name {
+        #visibility enum #data_enum_name {
             #data_variants
         }
     );
@@ -259,7 +259,7 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
 
     // all put together
     quote!(
-        #visibility use #module_name::#name;
+        #visibility use #module_name::{#name, #data_enum_name};
         mod #module_name {
             use super::*;
             #public_struct

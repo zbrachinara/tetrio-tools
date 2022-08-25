@@ -69,18 +69,21 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
     // takes the variants of the annotated enum and adds the common fields to each one
     let raw_variants = variants.clone().tap_mut(|variants| {
         variants.iter_mut().for_each(|variant| {
+            let attrs = &variant.attrs;
             let name = &variant.ident;
             let common_fields = common_fields_inner.iter();
 
             *variant = if empty_variants.contains(&variant.ident) {
                 println!("neutering {}", variant.ident);
                 syn::parse_quote!(
+                    #(#attrs)*
                     #name {
                         #(#common_fields),*
                     }
                 )
             } else {
                 syn::parse_quote!(
+                    #(#attrs)*
                     #name {
                         data: #name,
                         #(#common_fields),*
@@ -91,16 +94,17 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
     });
 
     let data_variants = variants.clone().tap_mut(|variants| {
-        variants
-            .iter_mut()
-            .for_each(|variant| match variant.fields {
+        variants.iter_mut().for_each(|variant| {
+            variant.attrs.clear();
+            match variant.fields {
                 Fields::Named(ref mut f) => {
                     for field in &mut f.named {
                         field.attrs.clear();
                     }
                 }
                 _ => (),
-            })
+            }
+        })
     });
 
     let struct_attrs = args.get("struct_attrs").map(|tokens| {

@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use itertools::Itertools;
+use itertools::{izip, Itertools};
 use proc_macro::TokenStream;
 use proc_macro2::{Ident, TokenStream as TokenStream2, TokenTree};
 use quote::{quote, ToTokens};
@@ -25,14 +25,15 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
     };
 
     let args = attr_args(attr);
-    let common_fields = args
-        .get("fields")
-        .expect("Argument `fields` was not provided to the proc macro")
-        .pipe(|tokens| syn::parse2::<FieldsNamed>(tokens.to_token_stream()).unwrap());
 
     let ret = {
+        let common_fields = args
+            .get("fields")
+            .expect("Argument `fields` was not provided to the proc macro")
+            .pipe(|tokens| syn::parse2::<FieldsNamed>(tokens.to_token_stream()).unwrap());
+        let common_fields_inner = &common_fields.named;
         let tag = args.get("tag").unwrap().to_token_stream();
-        let tagged_type_variants = tagged_enum.variants;
+        let variants = tagged_enum.variants;
         let name = tagged_type.ident;
 
         let module_name = Ident::new(
@@ -47,7 +48,7 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
         let original_attrs = tagged_type.attrs;
 
         // takes the variants of the annotated enum and adds the common fields to each one
-        let raw_variants = tagged_type_variants.clone().tap_mut(|variants| {
+        let raw_variants = variants.clone().tap_mut(|variants| {
             variants
                 .iter_mut()
                 .for_each(|variant| match variant.fields {
@@ -68,44 +69,102 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
             }
         );
 
-        let common_fields_inner = common_fields.named;
         // public-facing struct which takes the place of the annotated enum
         let public_struct = quote!(
             #[derive(Serialize, Deserialize)]
             #[serde(from = #raw_name_str, into = #raw_name_str)]
-            struct #name {
+            pub struct #name {
                 data: #data_enum_name,
                 #common_fields_inner
             }
         );
 
+        let common_fields_names = common_fields_inner
+            .iter()
+            .cloned()
+            .map(|field| field.ident.expect("Fields of this enum must be named"))
+            .collect_vec();
+        let variant_fields_names = variants
+            .iter()
+            .map(|variant| {
+                variant
+                    .fields
+                    .iter()
+                    .map(|field| field.ident.clone().unwrap())
+                    .collect_vec()
+            })
+            .collect_vec();
+        let raw_fields_names = raw_variants
+            .iter()
+            .map(|variant| {
+                variant
+                    .fields
+                    .iter()
+                    .map(|field| field.ident.clone().unwrap())
+                    .collect_vec()
+            })
+            .collect_vec();
+
+        let variant_names = variants.iter().cloned().map(|variant| variant.ident);
+
+        let (convert_from_raw, convert_to_raw): (Vec<_>, Vec<_>) =
+            izip!(variant_fields_names, raw_fields_names)
+                .zip(variant_names)
+                .map(|((variant, raw), branch_name)| {
+                    let from_raw = quote!(
+                        #raw_name :: #branch_name { #(#raw),* } => Self (
+                            data: #data_enum_name :: #branch_name {
+                                #(#variant),*
+                            }, #(#common_fields_names),*
+                        )
+                    );
+
+                    let to_raw = quote!(
+                        #name :: #branch_name {
+                            data: #data_enum_name :: #branch_name { #(#variant),*},
+                            #(#common_fields_names),*
+                        } => Self :: #branch_name {
+                            #(#raw),*
+                        }
+                    );
+
+                    (from_raw, to_raw)
+                })
+                .unzip();
+
         // From impls for converting to and from the public struct and private type
         let convert_impls = quote!(
             impl From<#raw_name> for #name {
-                fn from(s: #raw_name) -> Self {
-
+                fn from(f: #raw_name) -> Self {
+                    match f {
+                        #(#convert_from_raw),*
+                    }
                 }
             }
 
             impl From<#name> for <#raw_name> {
-                fn from(s: #name) -> Self {
-
+                fn from(f: #name) -> Self {
+                    match f {
+                        #(#convert_to_raw),*
+                    }
                 }
             }
         );
 
+        // println!("{}", convert_impls);
+
         // data enum containing the specific data for each variant
         let data_enum = quote!(
             enum #data_enum_name {
-                #tagged_type_variants
+                #variants
             }
         );
 
         // all put together
         quote!(
-            pub use #module_name::#public_struct
+            pub use #module_name::#name;
             mod #module_name {
-                pub #public_struct
+                #public_struct
                 #raw_enum
                 #data_enum
 

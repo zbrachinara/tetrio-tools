@@ -46,6 +46,7 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
         let data_enum_name = Ident::new(&format!("{name}Data"), name.span());
         let original_attrs = tagged_type.attrs;
 
+        // takes the variants of the annotated enum and adds the common fields to each one
         let raw_variants = tagged_type_variants.clone().tap_mut(|variants| {
             variants
                 .iter_mut()
@@ -59,12 +60,16 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
                     _ => panic!("Fields of this enum must be named"),
                 })
         });
+
+        // raw enum which serde directly translates from json
         let raw_enum = quote!(
             #[serde(tag=#tag)] #(#original_attrs)* enum #raw_name {
                 #raw_variants
             }
         );
+
         let common_fields_inner = common_fields.named;
+        // public-facing struct which takes the place of the annotated enum
         let public_struct = quote!(
             #[derive(Serialize, Deserialize)]
             #[serde(from = #raw_name_str, into = #raw_name_str)]
@@ -74,6 +79,7 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
             }
         );
 
+        // From impls for converting to and from the public struct and private type
         let convert_impls = quote!(
             impl From<#raw_name> for #name {
                 fn from(s: #raw_name) -> Self {
@@ -88,12 +94,14 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
             }
         );
 
+        // data enum containing the specific data for each variant
         let data_enum = quote!(
             enum #data_enum_name {
                 #tagged_type_variants
             }
         );
 
+        // all put together
         quote!(
             pub use #module_name::#public_struct
             mod #module_name {

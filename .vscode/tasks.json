@@ -16,6 +16,22 @@
 			},
 			"group": "test",
 			"label": "rust: test tagged-hybrid"
+		},
+		{
+			"type": "cargo",
+			"command": "test",
+			"args": [
+				"--",
+				"--nocapture"
+			],
+			"problemMatcher": [
+				"$rustc"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}/tetrio-replay"
+			},
+			"group": "test",
+			"label": "rust: test tetrio-replay"
 		}
 	]
 }

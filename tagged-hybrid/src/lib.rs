@@ -1,18 +1,23 @@
 #![feature(let_else)]
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use itertools::{izip, Itertools};
 use proc_macro::TokenStream;
 use proc_macro2::{Group, Ident, TokenStream as TokenStream2, TokenTree};
 use quote::{quote, ToTokens};
-use syn::{Data, DeriveInput, Fields, FieldsNamed};
+use syn::{punctuated::Punctuated, token::Comma, Data, DeriveInput, Fields, FieldsNamed};
 use tap::{Pipe, Tap};
 // use venial::{Declaration, StructFields, NamedStructFields};
 
 #[proc_macro_attribute]
 pub fn hybrid_tagged(attr: TokenStream, item: TokenStream) -> TokenStream {
-    hybrid_tagged_impl(attr.into(), item.into()).into()
+    // hybrid_tagged_impl(attr.into(), item.into()).into()
+    let ret = hybrid_tagged_impl(attr.into(), item.into()).into();
+
+    println!("{ret}");
+
+    ret
 }
 
 fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
@@ -43,6 +48,16 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
         name.span(),
     );
 
+    // whichever variants we do not have object data to collect for
+    let empty_variants = variants
+        .iter()
+        .cloned()
+        .filter(|variant| matches!(variant.fields, Fields::Unit))
+        .map(|variant| variant.ident)
+        .collect::<HashSet<_>>();
+
+    println!("{empty_variants:?}");
+
     let raw_name_str = format!("Raw{name}");
     let raw_name = Ident::new(&raw_name_str, name.span());
 
@@ -56,12 +71,22 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
         variants.iter_mut().for_each(|variant| {
             let name = &variant.ident;
             let common_fields = common_fields_inner.iter();
-            *variant = syn::parse_quote!(
-                #name {
-                    data: #name,
-                    #(#common_fields),*
-                }
-            );
+
+            *variant = if empty_variants.contains(&variant.ident) {
+                println!("neutering {}", variant.ident);
+                syn::parse_quote!(
+                    #name {
+                        #(#common_fields),*
+                    }
+                )
+            } else {
+                syn::parse_quote!(
+                    #name {
+                        data: #name,
+                        #(#common_fields),*
+                    }
+                )
+            };
         })
     });
 
@@ -150,7 +175,7 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
             let name = &variant.ident;
             let fields = &variant.fields;
 
-            if fields.len() == 0 {
+            if empty_variants.contains(&variant.ident) {
                 quote!( #[derive(serde::Serialize, serde::Deserialize)] #struct_attrs struct #name; )
             } else {
                 quote!( #[derive(serde::Serialize, serde::Deserialize)] #struct_attrs struct #name #fields )
@@ -161,31 +186,50 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
         izip!(variant_fields_names, raw_fields_names)
             .zip(variant_names)
             .map(|((variant, _), variant_name)| {
-                let from_raw = quote!(
-                    #raw_name :: #variant_name {
-                        data: #variant_name {
-                            #(#variant),*
-                        },
-                        #(#common_fields_names),*
-                    } => Self {
-                        data: #data_enum_name :: #variant_name {
-                            #(#variant),*
-                        }, #(#common_fields_names),*
-                    }
-                );
+                if empty_variants.contains(&variant_name) {
+                    let from_raw = quote!(
+                        #raw_name :: #variant_name {
+                            #(#common_fields_names),*, ..
+                        } => Self {
+                            data: #data_enum_name :: #variant_name ,
+                            #(#common_fields_names),*
+                        }
+                    );
 
-                let to_raw = quote!(
-                    #data_enum_name :: #variant_name {
-                        #(#variant),*
-                    } => Self :: #variant_name {
-                        data: #variant_name {
-                            #(#variant),*
-                        },
-                        #(#common_fields_names)*,
-                    }
-                );
+                    let to_raw = quote!(
+                        #data_enum_name :: #variant_name => Self :: #variant_name {
+                            #(#common_fields_names)*,
+                        }
+                    );
 
-                (from_raw, to_raw)
+                    (from_raw, to_raw)
+                } else {
+                    let from_raw = quote!(
+                        #raw_name :: #variant_name {
+                            data: #variant_name {
+                                #(#variant),*
+                            },
+                            #(#common_fields_names),*
+                        } => Self {
+                            data: #data_enum_name :: #variant_name {
+                                #(#variant),*
+                            }, #(#common_fields_names),*
+                        }
+                    );
+
+                    let to_raw = quote!(
+                        #data_enum_name :: #variant_name {
+                            #(#variant),*
+                        } => Self :: #variant_name {
+                            data: #variant_name {
+                                #(#variant),*
+                            },
+                            #(#common_fields_names)*,
+                        }
+                    );
+
+                    (from_raw, to_raw)
+                }
             })
             .unzip();
 

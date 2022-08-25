@@ -78,7 +78,7 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
 
         // raw enum which serde directly translates from json
         let raw_enum = quote!(
-            #[derive(Serialize, Deserialize)]
+            #[derive(serde::Serialize, serde::Deserialize)]
             #[serde(tag=#tag)]
             #(#original_attrs)*
             enum #raw_name {
@@ -88,7 +88,7 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
 
         // public-facing struct which takes the place of the annotated enum
         let public_struct = quote!(
-            #[derive(Serialize, Deserialize)]
+            #[derive(serde::Serialize, serde::Deserialize, Clone)]
             #[serde(from = #raw_name_str, into = #raw_name_str)]
             #struct_attrs
             pub struct #name {
@@ -173,6 +173,7 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
 
         // data enum containing the specific data for each variant
         let data_enum = quote!(
+            #[derive(Clone)]
             enum #data_enum_name {
                 #variants
             }

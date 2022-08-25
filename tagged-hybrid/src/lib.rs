@@ -40,7 +40,7 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
             name.span(),
         );
 
-        let raw_name_str =format!("Raw{name}") ;
+        let raw_name_str = format!("Raw{name}");
         let raw_name = Ident::new(&raw_name_str, name.span());
 
         let data_enum_name = Ident::new(&format!("{name}Data"), name.span());
@@ -65,25 +65,14 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
             }
         );
         let common_fields_inner = common_fields.named;
-        let public_struct = if common_fields_inner.trailing_punct() {
-            quote!(
-                #[derive(Serialize, Deserialize)]
-                #[serde(from = #raw_name_str, into = #raw_name_str)]
-                struct #name {
-                    #common_fields_inner
-                    data: #data_enum_name,
-                }
-            )
-        } else {
-            quote!(
-                struct #name {
-                    #common_fields_inner,
-                    data: #data_enum_name,
-                }
-            )
-        };
-
-        
+        let public_struct = quote!(
+            #[derive(Serialize, Deserialize)]
+            #[serde(from = #raw_name_str, into = #raw_name_str)]
+            struct #name {
+                data: #data_enum_name,
+                #common_fields_inner
+            }
+        );
 
         let convert_impls = quote!(
             impl From<#raw_name> for #name {

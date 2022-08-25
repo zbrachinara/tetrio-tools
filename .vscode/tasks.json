@@ -1,0 +1,21 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "cargo",
+			"command": "test",
+			"args": [
+				"--",
+				"--nocapture"
+			],
+			"problemMatcher": [
+				"$rustc"
+			],
+			"options": {
+				"cwd": "${workspaceFolder}/tagged-hybrid"
+			},
+			"group": "test",
+			"label": "rust: test tagged-hybrid"
+		}
+	]
+}

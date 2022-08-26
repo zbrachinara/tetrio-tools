@@ -8,11 +8,14 @@ use proc_macro2::{Group, Ident, TokenStream as TokenStream2, TokenTree};
 use quote::{quote, ToTokens};
 use syn::{Data, DeriveInput, Fields, FieldsNamed};
 use tap::{Pipe, Tap};
-// use venial::{Declaration, StructFields, NamedStructFields};
+use heck::ToSnakeCase;
 
 #[proc_macro_attribute]
 pub fn hybrid_tagged(attr: TokenStream, item: TokenStream) -> TokenStream {
     hybrid_tagged_impl(attr.into(), item.into()).into()
+    // let ret = hybrid_tagged_impl(attr.into(), item.into()).into();
+    // println!("{ret}");
+    // ret
 }
 
 fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
@@ -36,13 +39,6 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
         .expect("Argument `tag` was not provided")
         .to_token_stream();
     let variants = tagged_enum.variants;
-    let name = tagged_type.ident;
-
-    let module_name = Ident::new(
-        &format!("{}_data", name.to_string().to_lowercase()),
-        name.span(),
-    );
-
     // whichever variants we do not have object data to collect for
     let empty_variants = variants
         .iter()
@@ -51,10 +47,6 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
         .map(|variant| variant.ident)
         .collect::<HashSet<_>>();
 
-    let raw_name_str = format!("Raw{name}");
-    let raw_name = Ident::new(&raw_name_str, name.span());
-
-    let data_enum_name = Ident::new(&format!("{name}Data"), name.span());
     let original_attrs = tagged_type.attrs;
 
     let visibility = tagged_type.vis;
@@ -110,7 +102,7 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
         #[derive(serde::Serialize, serde::Deserialize)]
         #[serde(tag=#tag)]
         #(#original_attrs)*
-        enum #raw_name {
+        enum Raw {
             #raw_variants
         }
     );
@@ -119,7 +111,7 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
     let data_enum = quote!(
         #[derive(Clone)]
         #struct_attrs
-        #visibility enum #data_enum_name {
+        #visibility enum Variant {
             #data_variants
         }
     );
@@ -127,10 +119,10 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
     // public-facing struct which takes the place of the annotated enum
     let public_struct = quote!(
         #[derive(serde::Serialize, serde::Deserialize, Clone)]
-        #[serde(from = #raw_name_str, into = #raw_name_str)]
+        #[serde(from = "Raw", into = "Raw")]
         #struct_attrs
-        pub struct #name {
-            data: #data_enum_name,
+        pub struct Container {
+            data: Variant,
             #common_fields_inner
         }
     );
@@ -140,6 +132,9 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
         .cloned()
         .map(|field| field.ident.expect("Fields of this enum must be named"))
         .collect_vec();
+    let common_fields_renamed = common_fields_names.iter().cloned().map(|name| {
+        syn::parse_str::<Ident>(&format!("c_{name}")).unwrap()
+    }).collect_vec(); // TODO: Make these names hygienic
     let variant_fields_names = variants
         .iter()
         .map(|variant| {
@@ -184,43 +179,43 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
             .map(|((variant, _), variant_name)| {
                 if empty_variants.contains(&variant_name) {
                     let from_raw = quote!(
-                        #raw_name :: #variant_name {
-                            #(#common_fields_names),*, ..
+                        Raw :: #variant_name {
+                            #(#common_fields_names: #common_fields_renamed),*, ..
                         } => Self {
-                            data: #data_enum_name :: #variant_name ,
-                            #(#common_fields_names),*
+                            data: Variant:: #variant_name ,
+                            #(#common_fields_names: #common_fields_renamed),*
                         }
                     );
 
                     let to_raw = quote!(
-                        #data_enum_name :: #variant_name => Self :: #variant_name {
-                            #(#common_fields_names)*,
+                        Variant :: #variant_name => Self :: #variant_name {
+                            #(#common_fields_names: f. #common_fields_names)*,
                         }
                     );
 
                     (from_raw, to_raw)
                 } else {
                     let from_raw = quote!(
-                        #raw_name :: #variant_name {
+                        Raw :: #variant_name {
                             data: #variant_name {
                                 #(#variant),*
                             },
-                            #(#common_fields_names),*
+                            #(#common_fields_names: #common_fields_renamed),*
                         } => Self {
-                            data: #data_enum_name :: #variant_name {
+                            data: Variant :: #variant_name {
                                 #(#variant),*
-                            }, #(#common_fields_names),*
+                            }, #(#common_fields_names: #common_fields_renamed),*
                         }
                     );
 
                     let to_raw = quote!(
-                        #data_enum_name :: #variant_name {
+                        Variant :: #variant_name {
                             #(#variant),*
                         } => Self :: #variant_name {
                             data: #variant_name {
                                 #(#variant),*
                             },
-                            #(#common_fields_names)*,
+                            #(#common_fields_names: f. #common_fields_names),*
                         }
                     );
 
@@ -231,17 +226,16 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
 
     // From impls for converting to and from the public struct and private type
     let convert_impls = quote!(
-        impl From<#raw_name> for #name {
-            fn from(f: #raw_name) -> Self {
+        impl From<Raw> for Container {
+            fn from(f: Raw) -> Self {
                 match f {
                     #(#convert_from_raw),*
                 }
             }
         }
 
-        impl From<#name> for #raw_name {
-            fn from(f: #name) -> Self {
-                #(let #common_fields_names = f.#common_fields_names;)*
+        impl From<Container> for Raw {
+            fn from(f: Container) -> Self {
                 match f.data {
                     #(#convert_to_raw),*
                 }
@@ -249,9 +243,19 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
         }
     );
 
+    let container_name = tagged_type.ident;
+    let module_name = Ident::new(
+        &format!("{}_data", container_name.to_string().to_snake_case()),
+        container_name.span(),
+    );
+    let data_enum_name = Ident::new(&format!("{container_name}Data"), container_name.span());
+
     // all put together
     quote!(
-        #visibility use #module_name::{#name, #data_enum_name};
+        #visibility use #module_name::{
+            Container as #container_name,
+            Variant as #data_enum_name
+        };
         mod #module_name {
             use super::*;
             #public_struct
@@ -311,6 +315,9 @@ mod test {
                     B {
                         hours: H,
                         intervals: I,
+                    },
+                    HasFrame {
+                        frame: F,
                     },
                     C,
                     // D(Wrong)

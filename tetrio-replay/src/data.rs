@@ -87,7 +87,9 @@ pub mod event {
             key_event: KeyEvent,
         },
         #[serde(rename = "ige")]
-        InGameEvent,
+        InGameEvent {
+            frame: Number,
+        },
         End,
     }
 

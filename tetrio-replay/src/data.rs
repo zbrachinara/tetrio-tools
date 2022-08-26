@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use serde_json::{Number};
+use serde_json::Number;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TTRM {
@@ -44,7 +44,7 @@ pub struct User {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Replay {
     // pub events: Vec<Value>,
-    pub events: Vec<event::EventNew>,
+    pub events: Vec<event::Event>,
     pub frames: Number,
 }
 
@@ -59,7 +59,7 @@ pub mod event {
         struct_attrs = { #[derive(Debug)]}
     )]
     #[serde(rename_all = "lowercase")]
-    pub enum EventNew {
+    pub enum Event {
         Start,
         Full {
             #[serde(rename = "aggregatestats")]
@@ -79,18 +79,23 @@ pub mod event {
         },
         Targets,
         KeyDown {
-            key: String,
-            subframe: Number,
-            hoisted: Option<bool>, //TODO: Figure out what this means
+            #[serde(flatten)]
+            key_event: KeyEvent,
         },
         KeyUp {
-            key: String,
-            subframe: Number,
-            hoisted: Option<bool>, //TODO: Figure out what this means
+            #[serde(flatten)]
+            key_event: KeyEvent,
         },
         #[serde(rename = "ige")]
         InGameEvent,
         End,
+    }
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct KeyEvent {
+        key: String,
+        subframe: Number,
+        hoisted: Option<bool>, //TODO: Figure out what this means
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]

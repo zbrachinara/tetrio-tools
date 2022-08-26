@@ -88,9 +88,19 @@ pub mod event {
         },
         #[serde(rename = "ige")]
         InGameEvent {
-            frame: Number,
+            #[serde(flatten)]
+            event: InGameEventData,
         },
         End,
+    }
+
+    #[hybrid_tagged(
+        fields = {id: Number, frame: Number},
+        tag = "type",
+        struct_attrs = { #[derive(Debug)]}
+    )]
+    #[serde(rename_all = "lowercase")]
+    pub enum InGameEventData {
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]

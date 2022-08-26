@@ -13,9 +13,6 @@ use heck::ToSnakeCase;
 #[proc_macro_attribute]
 pub fn hybrid_tagged(attr: TokenStream, item: TokenStream) -> TokenStream {
     hybrid_tagged_impl(attr.into(), item.into()).into()
-    // let ret = hybrid_tagged_impl(attr.into(), item.into()).into();
-    // println!("{ret}");
-    // ret
 }
 
 fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {

@@ -48,8 +48,6 @@ pub struct Replay {
     pub frames: Number,
 }
 
-
-
 pub mod event {
     use serde::{Deserialize, Serialize};
     use serde_json::{Map, Number, Value};

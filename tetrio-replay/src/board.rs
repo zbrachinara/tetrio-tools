@@ -14,3 +14,8 @@ pub enum CellColor {
 pub struct Board {
     cells: Grid<Option<CellColor>>,
 }
+
+pub struct Change {
+    location: (usize, usize),
+    to: Option<CellColor>,
+}

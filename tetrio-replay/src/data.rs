@@ -89,18 +89,45 @@ pub mod event {
         #[serde(rename = "ige")]
         InGameEvent {
             #[serde(flatten)]
-            event: InGameEventData,
+            event: InteractionContainer,
         },
         End,
     }
 
+    #[derive(Serialize, Deserialize, Clone, Debug)]
+    pub struct InteractionContainer {
+        pub id: Number,
+        pub frame: Number,
+        pub data: Interaction,
+    }
+
     #[hybrid_tagged(
-        fields = {id: Number, frame: Number},
+        fields = {
+            sender: String,
+            sent_frame: Number,
+            cid: Number,
+        },
         tag = "type",
         struct_attrs = { #[derive(Debug)]}
     )]
-    #[serde(rename_all = "lowercase")]
-    pub enum InGameEventData {
+    #[serde(rename_all = "snake_case")]
+    pub enum Interaction {
+        Interaction {
+            #[serde(flatten)]
+            data: Garbage,
+        },
+        InteractionConfirm {
+            #[serde(flatten)]
+            data: Garbage,
+        },
+    }
+
+    #[derive(Serialize, Deserialize, Clone, Debug)]
+    pub struct Garbage {
+        pub amt: Number,
+        pub x: Number,
+        pub y: Number,
+        pub column: Number,
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]

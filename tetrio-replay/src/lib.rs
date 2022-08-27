@@ -17,6 +17,6 @@ mod tests {
 
     #[test]
     fn parse_replay_test() {
-        println!("{:?}", parse_replay("src/HBSQabUhSS.ttrm"));
+        println!("{:#?}", parse_replay("src/HBSQabUhSS.ttrm").unwrap());
     }
 }

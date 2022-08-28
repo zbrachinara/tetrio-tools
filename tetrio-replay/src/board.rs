@@ -18,6 +18,7 @@ pub enum RotationState {
 pub struct Tetromino {
     variant: TetrominoVariant,
     rotation_state: RotationState,
+    position: (usize, usize),
 }
 
 #[rustfmt::skip]
@@ -27,6 +28,7 @@ pub enum TetrominoVariant {
 
 pub struct Board {
     cells: Grid<Option<CellColor>>,
+    active: Tetromino,
 }
 
 pub struct Change {

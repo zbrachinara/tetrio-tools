@@ -8,6 +8,7 @@ use anyhow::Result;
 pub mod data;
 mod reconstruct;
 mod board;
+mod mechanics;
 
 pub fn parse_replay(path: impl AsRef<Path>) -> Result<TTRM> {
     Ok(serde_json::from_str(&read_to_string(path)?)?)

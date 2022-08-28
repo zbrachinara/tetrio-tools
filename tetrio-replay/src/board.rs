@@ -6,14 +6,24 @@ pub enum CellColor {
     Tetromino(TetrominoVariant),
     Garbage,
 }
+ 
+#[derive(PartialEq, Eq, Hash)]
+pub struct Rotation {
+    pub piece: TetrominoVariant,
+    pub from: RotationState,
+    pub to: RotationState,
+}
 
 #[repr(i8)]
 pub enum Direction {
     CW = 1,
-    CCW = -1,
+    CCW = 3,
+    /// Represents a 180 degree rotation
+    Flip = 2,
 }
 
 #[repr(i8)]
+#[derive(PartialEq, Eq, Hash)]
 pub enum RotationState {
     Up = 0,
     Left = 1,
@@ -28,6 +38,7 @@ pub struct Tetromino {
 }
 
 #[rustfmt::skip]
+#[derive(PartialEq, Eq, Hash, Clone, Copy)]
 pub enum TetrominoVariant {
     L, J, T, Z, S, O, I
 }

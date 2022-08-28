@@ -7,7 +7,13 @@ pub enum CellColor {
     Garbage,
 }
 
-#[repr(u8)]
+#[repr(i8)]
+pub enum Direction {
+    CW = 1,
+    CCW = -1,
+}
+
+#[repr(i8)]
 pub enum RotationState {
     Up = 0,
     Left = 1,

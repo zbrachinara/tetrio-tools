@@ -1,14 +1,13 @@
 use grid::Grid;
 
 pub enum CellColor {
-    L,
-    J,
-    T,
-    Z,
-    S,
-    O,
-    I,
+    Tetromino(Tetromino),
     Garbage,
+}
+
+#[rustfmt::skip]
+pub enum Tetromino {
+    L, J, T, Z, S, O, I
 }
 
 pub struct Board {

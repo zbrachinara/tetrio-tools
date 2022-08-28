@@ -2,12 +2,16 @@ use std::collections::HashMap;
 
 use once_cell::sync::Lazy;
 
-use crate::board::{TetrominoVariant, RotationState, Rotation};
-
+use crate::board::{Rotation, RotationState, TetrominoVariant};
 
 macro_rules! kick_table {
-    () => {
-        
+    ($piece:ident:$from:literal>>$to:literal => $list:tt) => {
+        {
+            (
+                Rotation { piece: $piece, from: $from.try_into().unwrap(), to: $to.try_into().unwrap()},
+                vec!$list
+            )
+        }
     };
 }
 
@@ -20,11 +24,7 @@ static SRS_KICK_TABLE: Lazy<KickTable> = Lazy::new(|| {
 
     [J, L, T, S, Z].into_iter().map(|variant| {
         [
-            (Rotation {
-                piece: variant,
-                from: Up, 
-                to: Right,
-            }, vec![(-1, 0), (-1, 1), (0, -2), (-1, -2)]),
+            kick_table!(variant:0>>1 => [(-1, 0), (-1, 1), (0, -2), (-1, -2)]),
             (Rotation {
                 piece: variant,
                 from: Right,

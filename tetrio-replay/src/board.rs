@@ -1,12 +1,13 @@
 #![allow(dead_code)]
 
+use anyhow::anyhow;
 use grid::Grid;
 
 pub enum CellColor {
     Tetromino(TetrominoVariant),
     Garbage,
 }
- 
+
 #[derive(PartialEq, Eq, Hash)]
 pub struct Rotation {
     pub piece: TetrominoVariant,
@@ -28,7 +29,19 @@ pub enum RotationState {
     Up = 0,
     Left = 1,
     Down = 2,
-    Right = 3,   
+    Right = 3,
+}
+
+impl TryFrom<i8> for RotationState {
+    type Error = anyhow::Error;
+
+    fn try_from(n: i8) -> Result<Self, Self::Error> {
+        if n < 4 && n > -1 {
+            Ok(unsafe { std::mem::transmute(n) })
+        } else {
+            Err(anyhow!("Invalid number for rotation state"))
+        }
+    }
 }
 
 pub struct Tetromino {

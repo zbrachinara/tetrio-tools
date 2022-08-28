@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use grid::Grid;
 
 pub enum CellColor {

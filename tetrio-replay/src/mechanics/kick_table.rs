@@ -36,5 +36,21 @@ static SRS_PLUS_KICK_TABLE: Lazy<KickTable> = Lazy::new(|| {
             ]
         })
         .flatten()
+        .chain([
+            // I CW/CCW rotation kick table (specific to SRS+)
+            kick_table!(I:0>>1 => [(1, 0), (-2, 0), (1, -2), (-2, 1)]),
+            kick_table!(I:1>>0 => [(-1, 0), (2, 0), (-1, 2), (2, -1)]),
+            kick_table!(I:1>>2 => [(-1, 0), (2, 0), (-1, -2), (2, 1)]),
+            kick_table!(I:2>>1 => [(-2, 0), (1, 0), (-2, -1), (1, 2)]),
+            kick_table!(I:2>>3 => [(2, 0), (-1, 0), (2, -1), (-1, 2)]),
+            kick_table!(I:3>>2 => [(1, 0), (-2, 0), (1, -2), (-2, 1)]),
+            kick_table!(I:3>>0 => [(1, 0), (-2, 0), (1, 2), (-2, -1)]),
+            kick_table!(I:0>>3 => [(-1, 0), (2, 0), (-1, -2), (2, 1)]),
+            // I 180 kick table
+            kick_table!(I:0>>2 => [(0, -1)]),
+            kick_table!(I:1>>3 => [(1, 0)]),
+            kick_table!(I:2>>0 => [(0, 1)]),
+            kick_table!(I:3>>1 => [(-1, 0)]),
+        ])
         .collect()
 });

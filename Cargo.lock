@@ -146,6 +146,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "grid",
+ "itertools",
  "once_cell",
  "serde",
  "serde_json",

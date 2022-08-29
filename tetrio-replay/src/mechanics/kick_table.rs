@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use once_cell::sync::Lazy;
 
-use crate::board::{Rotation, RotationState, TetrominoVariant};
+use crate::board::{Rotation, TetrominoVariant};
 
 macro_rules! kick_table {
     ($piece:ident:$from:literal>>$to:literal => $list:tt) => {
@@ -17,29 +17,24 @@ macro_rules! kick_table {
 
 type KickTable = HashMap<Rotation, Vec<(i8, i8)>>;
 
-#[rustfmt::skip]
-static SRS_KICK_TABLE: Lazy<KickTable> = Lazy::new(|| {
+static SRS_PLUS_KICK_TABLE: Lazy<KickTable> = Lazy::new(|| {
     use TetrominoVariant::*;
-    use RotationState::*;
 
-    [J, L, T, S, Z].into_iter().map(|variant| {
-        [
-            kick_table!(variant:0>>1 => [(-1, 0), (-1, 1), (0, -2), (-1, -2)]),
-            (Rotation {
-                piece: variant,
-                from: Right,
-                to: Up,
-            }, vec![(1, 0), (1, -1), (0, 2), (1, 2)]),
-            (Rotation {
-                piece: variant,
-                from: Right,
-                to: Down,
-            }, vec![(1, 0), (1, -1), (0, 2), (1, 2)]),
-            (Rotation {
-                piece: variant,
-                from: Down,
-                to: Right,
-            }, vec![])
-        ]
-    }).flatten().collect()
+    [J, L, T, S, Z]
+        .into_iter()
+        .map(|variant| {
+            // srs standard kicks
+            [
+                kick_table!(variant:0>>1 => [(-1, 0), (-1, 1), (0, -2), (-1, -2)]),
+                kick_table!(variant:1>>0 => [(1, 0), (1, -1), (0, 2), (1, 2)]),
+                kick_table!(variant:1>>2 => [(1, 0), (1, -1), (0, 2), (1, 2)]),
+                kick_table!(variant:2>>1 => [(-1, 0), (-1, 1), (0, 2), (-1, -2)]),
+                kick_table!(variant:2>>3 => [(1, 0), (1, 1), (0, -2), (1, -2)]),
+                kick_table!(variant:3>>2 => [(-1, 0), (-1, -1), (0, 2), (-1, 2)]),
+                kick_table!(variant:3>>0 => [(-1, 0), (-1, -1), (0, 2), (-1, 2)]),
+                kick_table!(variant:0>>3 => [(1, 0), (1, 1), (0, -2), (1, -2)]),
+            ]
+        })
+        .flatten()
+        .collect()
 });

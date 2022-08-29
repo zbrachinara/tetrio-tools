@@ -12,3 +12,4 @@ tagged-hybrid = { path = "../tagged-hybrid" }
 anyhow = "1.0"
 grid = "0.8"
 once_cell = "1.13"
+itertools = "0.10"

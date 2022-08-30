@@ -18,7 +18,7 @@ macro_rules! kick_table {
 
 macro_rules! rotation_table {
     ($piece:ident:$rot:literal => $list:tt) => {{
-        (($piece, RotationState::from($rot)), $list)
+        (($piece, $rot.into()), $list)
     }};
 }
 
@@ -46,8 +46,7 @@ fn center_of_mass_rotation(
                 .iter_mut().for_each(|coords| *coords = (-coords.1, coords.0))
             })
         }),
-    ];
-    todo!()
+    ]
 }
 
 fn static_rotation(

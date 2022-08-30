@@ -1,5 +1,7 @@
 #![allow(dead_code)]
 
+use std::ops::Add;
+
 use anyhow::anyhow;
 use grid::Grid;
 
@@ -24,7 +26,7 @@ pub enum Direction {
 }
 
 #[repr(i8)]
-#[derive(PartialEq, Eq, Hash)]
+#[derive(PartialEq, Eq, Hash, Copy, Clone)]
 pub enum RotationState {
     Up = 0,
     Left = 1,
@@ -38,10 +40,28 @@ impl From<i8> for RotationState {
     }
 }
 
+impl Add<Direction> for RotationState {
+    type Output = RotationState;
+
+    fn add(self, rhs: Direction) -> Self::Output {
+        (self as i8 + rhs as i8).into()
+    }
+}
+
 pub struct Tetromino {
     variant: TetrominoVariant,
     rotation_state: RotationState,
     position: (usize, usize),
+}
+
+impl Tetromino {
+    pub fn rotation(&self, at: Direction) -> Rotation {
+        Rotation {
+            piece: self.variant,
+            from: self.rotation_state,
+            to: self.rotation_state + at,
+        }
+    }
 }
 
 #[rustfmt::skip]

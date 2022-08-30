@@ -9,7 +9,7 @@ macro_rules! kick_table {
     ($piece:ident:$from:literal>>$to:literal => $list:tt) => {
         {
             (
-                Rotation { piece: $piece, from: $from.try_into().unwrap(), to: $to.try_into().unwrap()},
+                Rotation { piece: $piece, from: $from.into(), to: $to.try_into().unwrap()},
                 vec!$list
             )
         }
@@ -18,7 +18,7 @@ macro_rules! kick_table {
 
 macro_rules! rotation_table {
     ($piece:ident:$rot:literal => $list:tt) => {{
-        (($piece, RotationState::try_from($rot).unwrap()), $list)
+        (($piece, RotationState::from($rot)), $list)
     }};
 }
 

@@ -32,15 +32,9 @@ pub enum RotationState {
     Right = 3,
 }
 
-impl TryFrom<i8> for RotationState {
-    type Error = anyhow::Error;
-
-    fn try_from(n: i8) -> Result<Self, Self::Error> {
-        if n < 4 && n > -1 {
-            Ok(unsafe { std::mem::transmute(n) })
-        } else {
-            Err(anyhow!("Invalid number for rotation state"))
-        }
+impl From<i8> for RotationState {
+    fn from(n: i8) -> Self {
+        unsafe { std::mem::transmute(n % 4) }
     }
 }
 

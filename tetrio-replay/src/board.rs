@@ -1,11 +1,13 @@
 #![allow(dead_code)]
 
+mod kick_table;
+
 use std::ops::Add;
 
-use anyhow::anyhow;
 use grid::Grid;
 
-pub enum CellColor {
+#[derive(Clone)]
+pub enum Cell {
     Tetromino(TetrominoVariant),
     Garbage,
 }
@@ -71,11 +73,51 @@ pub enum TetrominoVariant {
 }
 
 pub struct Board {
-    cells: Grid<Option<CellColor>>,
+    cells: Grid<Option<Cell>>,
     active: Tetromino,
 }
 
 pub struct Change {
     location: (usize, usize),
-    to: Option<CellColor>,
+    to: Option<Cell>,
+}
+
+impl Board {
+    /// Attempts to rotate the active tetromino on the board. Returns true if successful,
+    /// false otherwise.
+    ///
+    /// For now, assumes SRS+
+    fn rotate_active(&mut self, direction: Direction) -> bool {
+        let rotation = self.active.rotation(direction);
+
+        println!(
+            "{:?}",
+            kick_table::ROTATION_TABLE.get(&(rotation.piece, rotation.to))
+        );
+
+        todo!()
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use grid::Grid;
+
+    use super::{Board, Direction};
+
+    #[test]
+    fn test_rotations() {
+        let mut board = Board {
+            active: super::Tetromino {
+                variant: super::TetrominoVariant::T,
+                rotation_state: super::RotationState::Down,
+                position: (5, 20),
+            },
+            cells: Grid::init(20, 10, None)
+        };
+
+        board.rotate_active(Direction::CW);
+    }
+
+
 }

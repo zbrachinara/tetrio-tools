@@ -61,7 +61,7 @@ fn static_rotation(
     ]
 }
 
-static ROTATION_TABLE: Lazy<HashMap<TetrominoState, [(i8, i8); 4]>> = Lazy::new(|| {
+pub static ROTATION_TABLE: Lazy<HashMap<TetrominoState, [(i8, i8); 4]>> = Lazy::new(|| {
     use TetrominoVariant::*;
 
     [
@@ -83,7 +83,7 @@ static ROTATION_TABLE: Lazy<HashMap<TetrominoState, [(i8, i8); 4]>> = Lazy::new(
     .collect()
 });
 
-static SRS_PLUS_KICK_TABLE: Lazy<KickTable> = Lazy::new(|| {
+pub static SRS_PLUS_KICK_TABLE: Lazy<KickTable> = Lazy::new(|| {
     use TetrominoVariant::*;
 
     [J, L, T, S, Z]

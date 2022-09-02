@@ -2,9 +2,12 @@
 
 mod kick_table;
 
-use std::{ops::Add, iter};
+use std::{iter, ops::Add};
 
 use grid::Grid;
+use tap::Tap;
+
+use crate::board::kick_table::Positions;
 
 #[derive(Clone)]
 pub enum Cell {
@@ -19,6 +22,7 @@ pub struct Rotation {
     pub to: RotationState,
 }
 
+#[derive(Copy, Clone)]
 #[repr(i8)]
 pub enum Direction {
     CW = 1,
@@ -50,6 +54,7 @@ impl Add<Direction> for RotationState {
     }
 }
 
+#[derive(Clone)]
 pub struct Tetromino {
     variant: TetrominoVariant,
     rotation_state: RotationState,
@@ -63,6 +68,12 @@ impl Tetromino {
             from: self.rotation_state,
             to: self.rotation_state + at,
         }
+    }
+
+    pub fn rotate(&self, at: Direction) -> Self {
+        self.clone().tap_mut(|tet| {
+            tet.rotation_state = tet.rotation_state + at;
+        })
     }
 }
 
@@ -88,12 +99,15 @@ impl Board {
     ///
     /// For now, assumes SRS+
     fn rotate_active(&mut self, direction: Direction) -> bool {
+        let rotated = self.active.rotate(direction);
         let rotation = self.active.rotation(direction);
 
-        let true_rotation = kick_table::ROTATION_TABLE.get(&(rotation.piece, rotation.to));
+        let true_rotation = Positions::tetromino(rotated);
         let kicks = kick_table::SRS_PLUS_KICK_TABLE.get(&rotation).unwrap();
 
-        let accepted_rotation = iter::once(&(0, 0)).chain(kicks.iter());
+        let accepted_kick = iter::once(&(0, 0))
+            .chain(kicks.iter())
+            .find(|offset| todo!());
 
         println!(
             "{:?}",
@@ -105,9 +119,15 @@ impl Board {
 
     /// Tests whether or not the positions passed in are empty (i.e. they are available for a
     /// tetromino to rotate into)
-    fn test_empty(&self, positions: &[(usize, usize)]) -> bool {
-        positions.into_iter().all(|(x, y)| {
-            self.cells.get(*y, *x).is_none()
+    /// 
+    /// Keep in mind that this also tests for the buffer which exists above the region in which
+    /// it it legal to place tetrominos
+    fn test_empty<const N: usize>(&self, positions: &Positions<N>) -> bool {
+        positions.iter().all(|(x, y)| {
+            // check the position is within the bounds of the board
+            (*x > 0 && *x < self.cells.cols() as isize && *y > 0 && *y < self.cells.rows() as isize)
+            // and that the cell at that position is empty on the board
+                && self.cells.get(*y as usize, *x as usize).is_none()
         });
         todo!()
     }
@@ -127,7 +147,7 @@ mod test {
                 rotation_state: super::RotationState::Down,
                 position: (5, 20),
             },
-            cells: Grid::init(20, 10, None),
+            cells: Grid::init(40, 10, None),
         };
 
         board.rotate_active(Direction::CW);

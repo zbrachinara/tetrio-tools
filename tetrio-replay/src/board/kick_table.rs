@@ -1,9 +1,65 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, ops::Add};
 
 use once_cell::sync::Lazy;
 use tap::Tap;
 
 use crate::board::{Rotation, RotationState, TetrominoVariant};
+
+use super::Tetromino;
+
+#[derive(Debug, Clone)]
+pub struct Positions<const N: usize>([(isize, isize); N]);
+
+impl<const N: usize> Add<(i8, i8)> for Positions<N> {
+    type Output = Positions<N>;
+
+    fn add(self, (rhs_x, rhs_y): (i8, i8)) -> Self::Output {
+        self.tap_mut(|arr| {
+            arr.0.iter_mut().for_each(|(x, y)| {
+                *x += rhs_x as isize;
+                *y += rhs_y as isize;
+            })
+        })
+    }
+}
+
+impl<const N: usize> Add<(usize, usize)> for Positions<N> {
+    type Output = Positions<N>;
+
+    fn add(self, (rhs_x, rhs_y): (usize, usize)) -> Self::Output {
+        self.tap_mut(|arr| {
+            arr.0.iter_mut().for_each(|(x, y)| {
+                *x += rhs_x as isize;
+                *y += rhs_y as isize;
+            })
+        })
+    }
+}
+
+impl<const N: usize> Positions<N> {
+    pub fn iter(&self) -> impl Iterator<Item = &(isize, isize)> {
+        self.0.iter()
+    }
+}
+
+impl Positions<4> {
+    pub fn tetromino(tet: Tetromino) -> Self {
+        let mut cells = [(0, 0); 4];
+        cells
+            .iter_mut()
+            .zip(
+                ROTATION_TABLE
+                    .get(&(tet.variant, tet.rotation_state))
+                    .unwrap(),
+            )
+            .for_each(|((fin_x, fin_y), (init_x, init_y))| {
+                *fin_x = *init_x as isize;
+                *fin_y = *init_y as isize;
+            });
+
+        Self(cells) + tet.position
+    }
+}
 
 macro_rules! kick_table {
     ($piece:ident:$from:literal>>$to:literal => $list:tt) => {
@@ -74,9 +130,15 @@ pub static ROTATION_TABLE: Lazy<HashMap<TetrominoState, [(i8, i8); 4]>> = Lazy::
         [
             ((I, RotationState::Up), [(-2, 0), (-1, 0), (0, 0), (1, 0)]),
             ((I, RotationState::Left), [(0, 1), (0, 0), (0, -1), (0, -2)]),
-            ((I, RotationState::Down), [(-2, -1), (-1, -1), (0, -1), (1, -1)]),
-            ((I, RotationState::Right), [(-1, 1), (-1, 0), (-1, -1), (-1, -2)]),
-        ]
+            (
+                (I, RotationState::Down),
+                [(-2, -1), (-1, -1), (0, -1), (1, -1)],
+            ),
+            (
+                (I, RotationState::Right),
+                [(-1, 1), (-1, 0), (-1, -1), (-1, -2)],
+            ),
+        ],
     ]
     .into_iter()
     .flatten()

@@ -2,7 +2,7 @@
 
 mod kick_table;
 
-use std::ops::Add;
+use std::{ops::Add, iter};
 
 use grid::Grid;
 
@@ -90,11 +90,25 @@ impl Board {
     fn rotate_active(&mut self, direction: Direction) -> bool {
         let rotation = self.active.rotation(direction);
 
+        let true_rotation = kick_table::ROTATION_TABLE.get(&(rotation.piece, rotation.to));
+        let kicks = kick_table::SRS_PLUS_KICK_TABLE.get(&rotation).unwrap();
+
+        let accepted_rotation = iter::once(&(0, 0)).chain(kicks.iter());
+
         println!(
             "{:?}",
             kick_table::ROTATION_TABLE.get(&(rotation.piece, rotation.to))
         );
 
+        todo!()
+    }
+
+    /// Tests whether or not the positions passed in are empty (i.e. they are available for a
+    /// tetromino to rotate into)
+    fn test_empty(&self, positions: &[(usize, usize)]) -> bool {
+        positions.into_iter().all(|(x, y)| {
+            self.cells.get(*y, *x).is_none()
+        });
         todo!()
     }
 }
@@ -113,11 +127,9 @@ mod test {
                 rotation_state: super::RotationState::Down,
                 position: (5, 20),
             },
-            cells: Grid::init(20, 10, None)
+            cells: Grid::init(20, 10, None),
         };
 
         board.rotate_active(Direction::CW);
     }
-
-
 }

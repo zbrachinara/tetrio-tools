@@ -197,8 +197,7 @@ mod test {
             ],
         };
 
-        dbg!(tki_board.cells.get(0, 4));
-
         tki_board.rotate_active(Direction::CW);
+        assert_eq!(tki_board.active.position, (2, 1));
     }
 }

@@ -1,4 +1,6 @@
 #![feature(let_else)]
+#![feature(result_option_inspect)]
+#![feature(mixed_integer_ops)]
 
 use std::{fs::read_to_string, path::Path};
 

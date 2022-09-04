@@ -103,33 +103,34 @@ impl Board {
         let rotated = self.active.rotate(direction);
         let rotation = self.active.rotation(direction);
 
-        let true_rotation = Positions::tetromino(rotated);
+        let true_rotation = Positions::tetromino(rotated.clone());
         let kicks = kick_table::SRS_PLUS_KICK_TABLE.get(&rotation).unwrap();
 
-        dbg!(kicks);
+        let accepted_kick = iter::once(&(0, 0)).chain(kicks.iter()).find(|offset| {
+            let testing = true_rotation.clone() + **offset;
+            self.test_empty(&testing)
+        });
 
-        let accepted_kick = iter::once(&(0, 0))
-            .chain(kicks.iter())
-            .inspect(|tup| println!("considering kick to {tup:?}"))
-            .find_map(|offset| {
-                let testing = true_rotation.clone() + *offset;
-                self.test_empty(&testing).then(|| testing)
-            });
+        accepted_kick
+            .inspect(|(x, y)| {
+                self.active = rotated.tap_mut(
+                    |Tetromino {
+                         position: (tet_x, tet_y),
+                         ..
+                     }| {
+                        *tet_x = tet_x.wrapping_add_signed(*x as isize);
+                        *tet_y = tet_y.wrapping_add_signed(*y as isize);
+                    },
+                )
+            })
+            .is_some()
+        // self.active = rotated.tap_mut(|r| {
+        //     r.position  + accepted_kick
+        // });
 
-        println!(
-            "initially {:?}: {:?}",
-            rotation.from,
-            kick_table::ROTATION_TABLE.get(&(rotation.piece, rotation.from))
-        );
+        // dbg!(accepted_kick);
 
-        println!(
-            "at {:?}: {:?}",
-            rotation.to,
-            kick_table::ROTATION_TABLE.get(&(rotation.piece, rotation.to))
-        );
-        dbg!(accepted_kick);
-
-        todo!()
+        // todo!()
     }
 
     /// Tests whether or not the positions passed in are empty (i.e. they are available for a
@@ -138,12 +139,11 @@ impl Board {
     /// Keep in mind that this also tests for the buffer which exists above the region in which
     /// it it legal to place tetrominos
     fn test_empty<const N: usize>(&self, positions: &Positions<N>) -> bool {
-        println!("considering position {positions:?}");
         positions.iter().all(|(x, y)| {
             // check the position is within the bounds of the board
             (*x >= 0 && *y >= 0) &&
             // and that the cell at that position is empty on the board
-                dbg!(self.cell(*x as usize, *y as usize))
+                self.cell(*x as usize, *y as usize)
                     .map(|u| u.is_none())
                     == Some(true)
         })
@@ -158,7 +158,7 @@ impl Board {
 mod test {
     use grid::{grid, Grid};
 
-    use crate::board::{kick_table, Cell};
+    use crate::board::Cell;
 
     use super::{Board, Direction, RotationState, Tetromino, TetrominoVariant};
 
@@ -179,7 +179,6 @@ mod test {
     #[test]
     fn test_t_kicks() {
         const GB: Option<Cell> = Some(Cell::Garbage);
-        println!("{:?}", &*kick_table::SRS_PLUS_KICK_TABLE);
 
         let mut tki_board = Board {
             active: Tetromino {

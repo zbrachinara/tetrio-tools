@@ -9,13 +9,13 @@ use tap::Tap;
 
 use crate::board::kick_table::Positions;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Cell {
     Tetromino(TetrominoVariant),
     Garbage,
 }
 
-#[derive(PartialEq, Eq, Hash)]
+#[derive(PartialEq, Eq, Hash, Debug)]
 pub struct Rotation {
     pub piece: TetrominoVariant,
     pub from: RotationState,
@@ -32,12 +32,13 @@ pub enum Direction {
 }
 
 #[repr(i8)]
-#[derive(PartialEq, Eq, Hash, Copy, Clone)]
+#[derive(PartialEq, Eq, Hash, Copy, Clone, Debug)]
 pub enum RotationState {
+    //TODO: Check that directions are actually correct
     Up = 0,
-    Left = 1,
+    Right = 1,
     Down = 2,
-    Right = 3,
+    Left = 3,
 }
 
 impl From<i8> for RotationState {
@@ -78,7 +79,7 @@ impl Tetromino {
 }
 
 #[rustfmt::skip]
-#[derive(PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
 pub enum TetrominoVariant {
     L, J, T, Z, S, O, I
 }
@@ -105,44 +106,66 @@ impl Board {
         let true_rotation = Positions::tetromino(rotated);
         let kicks = kick_table::SRS_PLUS_KICK_TABLE.get(&rotation).unwrap();
 
+        dbg!(kicks);
+
         let accepted_kick = iter::once(&(0, 0))
             .chain(kicks.iter())
-            .find(|offset| todo!());
+            .inspect(|tup| println!("considering kick to {tup:?}"))
+            .find_map(|offset| {
+                let testing = true_rotation.clone() + *offset;
+                self.test_empty(&testing).then(|| testing)
+            });
 
         println!(
-            "{:?}",
+            "initially {:?}: {:?}",
+            rotation.from,
+            kick_table::ROTATION_TABLE.get(&(rotation.piece, rotation.from))
+        );
+
+        println!(
+            "at {:?}: {:?}",
+            rotation.to,
             kick_table::ROTATION_TABLE.get(&(rotation.piece, rotation.to))
         );
+        dbg!(accepted_kick);
 
         todo!()
     }
 
     /// Tests whether or not the positions passed in are empty (i.e. they are available for a
     /// tetromino to rotate into)
-    /// 
+    ///
     /// Keep in mind that this also tests for the buffer which exists above the region in which
     /// it it legal to place tetrominos
     fn test_empty<const N: usize>(&self, positions: &Positions<N>) -> bool {
+        println!("considering position {positions:?}");
         positions.iter().all(|(x, y)| {
             // check the position is within the bounds of the board
-            (*x > 0 && *x < self.cells.cols() as isize && *y > 0 && *y < self.cells.rows() as isize)
+            (*x >= 0 && *y >= 0) &&
             // and that the cell at that position is empty on the board
-                && self.cells.get(*y as usize, *x as usize).is_none()
-        });
-        todo!()
+                dbg!(self.cell(*x as usize, *y as usize))
+                    .map(|u| u.is_none())
+                    == Some(true)
+        })
+    }
+
+    fn cell(&self, x: usize, y: usize) -> Option<&Option<Cell>> {
+        self.cells.get(y, x)
     }
 }
 
 #[cfg(test)]
 mod test {
-    use grid::Grid;
+    use grid::{grid, Grid};
 
-    use super::{Board, Direction};
+    use crate::board::{kick_table, Cell};
+
+    use super::{Board, Direction, RotationState, Tetromino, TetrominoVariant};
 
     #[test]
     fn test_rotations() {
         let mut board = Board {
-            active: super::Tetromino {
+            active: Tetromino {
                 variant: super::TetrominoVariant::T,
                 rotation_state: super::RotationState::Down,
                 position: (5, 20),
@@ -151,5 +174,32 @@ mod test {
         };
 
         board.rotate_active(Direction::CW);
+    }
+
+    #[test]
+    fn test_t_kicks() {
+        const GB: Option<Cell> = Some(Cell::Garbage);
+        println!("{:?}", &*kick_table::SRS_PLUS_KICK_TABLE);
+
+        let mut tki_board = Board {
+            active: Tetromino {
+                variant: TetrominoVariant::T,
+                rotation_state: RotationState::Right,
+                position: (1, 2),
+            },
+            cells: grid![
+                [GB, GB, None, GB, GB, GB, GB, GB, GB, GB]
+                [GB, None, None, None, GB, GB, GB, GB, GB, GB]
+                [GB, None, None, GB, GB, GB, GB, None, None, None]
+                [None, None, None, GB, GB, GB, None, None, None, None]
+                [None, None, None, None, None, None, None, None, None, None]
+                [None, None, None, None, None, None, None, None, None, None]
+                [None, None, None, None, None, None, None, None, None, None]
+            ],
+        };
+
+        dbg!(tki_board.cells.get(0, 4));
+
+        tki_board.rotate_active(Direction::CW);
     }
 }

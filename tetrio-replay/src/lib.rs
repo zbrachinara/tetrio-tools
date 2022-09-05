@@ -2,25 +2,27 @@
 #![feature(result_option_inspect)]
 #![feature(mixed_integer_ops)]
 
-use std::{fs::read_to_string, path::Path};
-
-pub use data::TTRM;
 use anyhow::Result;
+pub use data::TTRM;
 
+mod board;
 pub mod data;
 mod reconstruct;
-mod board;
 
-pub fn parse_replay(path: impl AsRef<Path>) -> Result<TTRM> {
-    Ok(serde_json::from_str(&read_to_string(path)?)?)
+pub fn parse_replay<'a>(content: &'a str) -> Result<TTRM<'a>> {
+    Ok(serde_json::from_str(content)?)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs::read_to_string;
 
     #[test]
     fn parse_replay_test() {
-        println!("{:#?}", parse_replay("src/HBSQabUhSS.ttrm").unwrap());
+        println!(
+            "{:#?}",
+            parse_replay(&read_to_string("src/HBSQabUhSS.ttrm").unwrap()).unwrap()
+        );
     }
 }

@@ -2,43 +2,44 @@ use serde::{Deserialize, Serialize};
 use serde_json::Number;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct TTRM {
+pub struct TTRM<'a> {
     #[serde(rename = "_id")]
-    pub id: String,
-    pub back: String,
-    pub data: Vec<ReplaySet>,
+    pub id: &'a str,
+    pub back: &'a str,
+    pub data: Vec<ReplaySet<'a>>,
     #[serde(rename = "forcestyle")]
-    pub force_style: String,
-    pub gametype: String,
+    pub force_style: &'a str,
+    pub gametype: &'a str,
     #[serde(rename = "ismulti")]
     pub is_multi: bool,
     #[serde(rename = "shortid")]
-    pub short_id: String,
+    pub short_id: &'a str,
     #[serde(rename = "ts")]
-    pub timestamp: String,
+    pub timestamp: &'a str,
     pub verified: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ReplaySet {
-    #[serde(rename = "board")]
-    pub boards: Vec<Board>,
+pub struct ReplaySet<'a> {
+    #[serde(rename = "board", borrow)]
+    pub boards: Vec<Board<'a>>,
     pub replays: Vec<Replay>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Board {
+pub struct Board<'a> {
     pub active: bool,
     pub success: bool,
-    pub user: User,
+    #[serde(borrow)]
+    pub user: User<'a>,
     pub winning: Number,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct User {
+pub struct User<'a> {
     #[serde(rename = "_id")]
-    pub user_id: String,
-    pub username: String,
+    pub user_id: &'a str,
+    pub username: &'a str,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -59,7 +60,7 @@ pub mod event {
         struct_attrs = { #[derive(Debug)]}
     )]
     #[serde(rename_all = "lowercase")]
-    pub enum Event {
+    pub enum Event<'a> {
         Start,
         Full {
             #[serde(rename = "aggregatestats")]

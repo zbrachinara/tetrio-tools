@@ -7,6 +7,7 @@ use itertools::{izip, Itertools};
 use proc_macro::TokenStream;
 use proc_macro2::{Group, Ident, TokenStream as TokenStream2, TokenTree};
 use quote::{quote, ToTokens};
+use smallvec::{SmallVec, smallvec};
 use syn::{
     Data, DeriveInput, Fields, FieldsNamed, GenericArgument, Lifetime, Path, PathArguments,
     Type, TypeParamBound,
@@ -315,7 +316,7 @@ fn attr_args(attr: TokenStream2) -> HashMap<String, TokenTree> {
 }
 
 /// This function *will* produce duplicate items! Don't forget to dedup before using!
-fn type_lifetimes(ty: &Type) -> Vec<Lifetime> {
+fn type_lifetimes(ty: &Type) -> SmallVec<[Lifetime; 8]> {
     match ty {
         Type::Array(a) => type_lifetimes(&*a.elem),
         Type::Group(g) => type_lifetimes(&*g.elem),
@@ -331,12 +332,12 @@ fn type_lifetimes(ty: &Type) -> Vec<Lifetime> {
             .elems
             .iter()
             .flat_map(type_lifetimes)
-            .collect_vec(),
-        _ => Vec::new(),
+            .collect::<SmallVec<_>>(),
+        _ => smallvec![],
     }
 }
 
-fn path_lifetimes(path: &Path) -> Vec<Lifetime> {
+fn path_lifetimes(path: &Path) -> SmallVec<[Lifetime; 8]> {
     path.segments
         .iter()
         .flat_map(|segment| {
@@ -352,16 +353,16 @@ fn path_lifetimes(path: &Path) -> Vec<Lifetime> {
                 Vec::new()
             }
         })
-        .collect_vec()
+        .collect::<SmallVec<_>>()
 }
 
-fn type_param_lifetimes<'a>(it: impl IntoIterator<Item = &'a TypeParamBound>) -> Vec<Lifetime> {
+fn type_param_lifetimes<'a>(it: impl IntoIterator<Item = &'a TypeParamBound>) -> SmallVec<[Lifetime; 8]> {
     it.into_iter()
         .flat_map(|bound| match bound {
-            TypeParamBound::Lifetime(lt) => vec![lt.clone()],
+            TypeParamBound::Lifetime(lt) => smallvec![lt.clone()],
             TypeParamBound::Trait(trt) => path_lifetimes(&trt.path),
         })
-        .collect_vec()
+        .collect::<SmallVec<_>>()
 }
 
 #[cfg(test)]

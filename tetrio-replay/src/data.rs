@@ -69,7 +69,7 @@ pub mod event {
             fire: Number,
             game: Game,
             #[serde(rename = "gameoverreason")]
-            game_over_reason: Option<String>,
+            game_over_reason: Option<&'a str>,
             killer: Killer,
             options: GameOptions,
             replay: Value, //TODO: gonna have to see what these structs mean

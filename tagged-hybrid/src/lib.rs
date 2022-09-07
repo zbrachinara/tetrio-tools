@@ -7,21 +7,19 @@ use itertools::{izip, Itertools};
 use proc_macro::TokenStream;
 use proc_macro2::{Group, Ident, TokenStream as TokenStream2, TokenTree};
 use quote::{quote, ToTokens};
-use smallvec::{SmallVec, smallvec};
+use smallvec::{smallvec, SmallVec};
 use syn::{
-    Data, DeriveInput, Fields, FieldsNamed, GenericArgument, Lifetime, Path, PathArguments,
-    Type, TypeParamBound,
+    Data, DeriveInput, Fields, FieldsNamed, GenericArgument, Lifetime, Path, PathArguments, Type,
+    TypeParamBound,
 };
 use tap::{Pipe, Tap};
 
 macro_rules! dsp {
-    ($arg:expr) => {
-        {
-            let result = $arg;
-            println!("{result}");
-            result
-        }
-    };
+    ($arg:expr) => {{
+        let result = $arg;
+        println!("{result}");
+        result
+    }};
 }
 
 #[proc_macro_attribute]
@@ -50,6 +48,7 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
         .expect("Argument `tag` was not provided")
         .to_token_stream();
     let variants = tagged_enum.variants;
+    let generics = tagged_type.generics;
     // whichever variants we do not have object data to collect for
     let empty_variants = variants
         .iter()
@@ -113,7 +112,7 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
         #[derive(serde::Serialize, serde::Deserialize)]
         #[serde(tag=#tag)]
         #(#original_attrs)*
-        enum Raw {
+        enum Raw #generics {
             #raw_variants
         }
     );
@@ -356,7 +355,9 @@ fn path_lifetimes(path: &Path) -> SmallVec<[Lifetime; 8]> {
         .collect::<SmallVec<_>>()
 }
 
-fn type_param_lifetimes<'a>(it: impl IntoIterator<Item = &'a TypeParamBound>) -> SmallVec<[Lifetime; 8]> {
+fn type_param_lifetimes<'a>(
+    it: impl IntoIterator<Item = &'a TypeParamBound>,
+) -> SmallVec<[Lifetime; 8]> {
     it.into_iter()
         .flat_map(|bound| match bound {
             TypeParamBound::Lifetime(lt) => smallvec![lt.clone()],

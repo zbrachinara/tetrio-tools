@@ -2,13 +2,16 @@
 
 use std::collections::{HashMap, HashSet};
 
+use heck::ToSnakeCase;
 use itertools::{izip, Itertools};
 use proc_macro::TokenStream;
 use proc_macro2::{Group, Ident, TokenStream as TokenStream2, TokenTree};
 use quote::{quote, ToTokens};
-use syn::{Data, DeriveInput, Fields, FieldsNamed};
+use syn::{
+    Data, DeriveInput, Field, Fields, FieldsNamed, GenericArgument, Lifetime, Path, PathArguments,
+    Type, TypeParamBound,
+};
 use tap::{Pipe, Tap};
-use heck::ToSnakeCase;
 
 #[proc_macro_attribute]
 pub fn hybrid_tagged(attr: TokenStream, item: TokenStream) -> TokenStream {
@@ -129,9 +132,11 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
         .cloned()
         .map(|field| field.ident.expect("Fields of this enum must be named"))
         .collect_vec();
-    let common_fields_renamed = common_fields_names.iter().cloned().map(|name| {
-        syn::parse_str::<Ident>(&format!("c_{name}")).unwrap()
-    }).collect_vec(); // TODO: Make these names hygienic
+    let common_fields_renamed = common_fields_names
+        .iter()
+        .cloned()
+        .map(|name| syn::parse_str::<Ident>(&format!("c_{name}")).unwrap())
+        .collect_vec(); // TODO: Make these names hygienic
     let variant_fields_names = variants
         .iter()
         .map(|variant| {
@@ -162,6 +167,8 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
     let variant_structs = variants.iter().map(|variant| {
             let name = &variant.ident;
             let fields = &variant.fields;
+
+            let lifetimes = fields.iter().map(|fld| type_lifetimes(&fld.ty));
 
             if empty_variants.contains(&variant.ident) {
                 quote!( #[derive(serde::Serialize, serde::Deserialize)] #struct_attrs struct #name; )
@@ -288,10 +295,61 @@ fn attr_args(attr: TokenStream2) -> HashMap<String, TokenTree> {
         .collect()
 }
 
+fn type_lifetimes(ty: &Type) -> Vec<Lifetime> {
+    match ty {
+        syn::Type::Array(a) => type_lifetimes(&*a.elem),
+        // syn::Type::BareFn(_) => todo!(),
+        Type::Group(g) => type_lifetimes(&*g.elem),
+        Type::ImplTrait(t) => type_param_lifetimes(t.bounds.iter()),
+        // Type::Macro(_) => todo!(),
+        Type::Paren(p) => type_lifetimes(&*p.elem),
+        syn::Type::Path(p) => path_lifetimes(&p.path),
+        // syn::Type::Ptr(_) => todo!(),
+        Type::Reference(r) => {
+            type_lifetimes(&*r.elem).tap_mut(|vec| vec.extend(r.lifetime.clone()))
+        }
+        Type::Slice(s) => type_lifetimes(&*s.elem),
+        Type::TraitObject(t) => type_param_lifetimes(t.bounds.iter()),
+        Type::Tuple(tup) => tup.elems.iter().flat_map(type_lifetimes).collect_vec(),
+        // syn::Type::Verbatim(_) => todo!(),
+        _ => Vec::new(),
+    }
+}
+
+fn path_lifetimes(path: &Path) -> Vec<Lifetime> {
+    path.segments
+        .iter()
+        .flat_map(|segment| {
+            if let PathArguments::AngleBracketed(ref args) = segment.arguments {
+                args.args
+                    .iter()
+                    .filter_map(|arg| match arg {
+                        GenericArgument::Lifetime(l) => Some(l.clone()),
+                        _ => None,
+                    })
+                    .collect_vec()
+            } else {
+                Vec::new()
+            }
+        })
+        .collect_vec()
+}
+
+fn type_param_lifetimes<'a>(it: impl IntoIterator<Item = &'a TypeParamBound>) -> Vec<Lifetime> {
+    it.into_iter()
+        .flat_map(|bound| match bound {
+            TypeParamBound::Lifetime(lt) => vec![lt.clone()],
+            TypeParamBound::Trait(trt) => path_lifetimes(&trt.path),
+        })
+        .collect_vec()
+}
+
 #[cfg(test)]
 mod test {
-    use crate::hybrid_tagged_impl;
+    use crate::{hybrid_tagged_impl, type_lifetimes};
     use quote::quote;
+    use syn::parse_quote;
+    use tap::Tap;
 
     #[test]
     fn test_hybrid_tagged_impl() {
@@ -303,11 +361,12 @@ mod test {
             quote!(
                 #[derive(Debug)]
                 #[serde(some_other_thing)]
-                pub(super) enum Variations {
+                pub(super) enum Variations<'a> {
                     A {
                         #[field_attribute]
                         task: T,
-                        time: U,
+                        #[serde(borrow)]
+                        time: U<'a>,
                     },
                     B {
                         hours: H,
@@ -323,5 +382,20 @@ mod test {
         );
 
         println!("{}", macro_out)
+    }
+
+    #[test]
+    fn extract_lifetimes() {
+        type_lifetimes(&parse_quote!(&'a Str<'b>)).tap(|vec| {
+            assert!(vec.iter().find(|x| x.ident.to_string() == "a").is_some());
+            assert!(vec.iter().find(|x| x.ident.to_string() == "b").is_some());
+        });
+
+        type_lifetimes(&parse_quote!(impl Derive + Debug + Struct<'a> + 'b)).tap(|vec| {
+            assert!(vec.iter().find(|x| x.ident.to_string() == "a").is_some());
+            assert!(vec.iter().find(|x| x.ident.to_string() == "b").is_some());
+        });
+
+        assert_eq!(type_lifetimes(&parse_quote!(&'a Str<'a>)).len(), 1);
     }
 }

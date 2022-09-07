@@ -8,14 +8,24 @@ use proc_macro::TokenStream;
 use proc_macro2::{Group, Ident, TokenStream as TokenStream2, TokenTree};
 use quote::{quote, ToTokens};
 use syn::{
-    Data, DeriveInput, Field, Fields, FieldsNamed, GenericArgument, Lifetime, Path, PathArguments,
+    Data, DeriveInput, Fields, FieldsNamed, GenericArgument, Lifetime, Path, PathArguments,
     Type, TypeParamBound,
 };
 use tap::{Pipe, Tap};
 
+macro_rules! dsp {
+    ($arg:expr) => {
+        {
+            let result = $arg;
+            println!("{result}");
+            result
+        }
+    };
+}
+
 #[proc_macro_attribute]
 pub fn hybrid_tagged(attr: TokenStream, item: TokenStream) -> TokenStream {
-    hybrid_tagged_impl(attr.into(), item.into()).into()
+    dsp!(hybrid_tagged_impl(attr.into(), item.into()).into())
 }
 
 fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
@@ -168,12 +178,21 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
             let name = &variant.ident;
             let fields = &variant.fields;
 
-            let lifetimes = fields.iter().map(|fld| type_lifetimes(&fld.ty));
+            let lifetimes = fields.iter().flat_map(|fld| {
+                type_lifetimes(&fld.ty)
+            }).collect::<HashSet<_>>().pipe(|lifetimes| {
+                if lifetimes.len() > 0 {
+                    let it = lifetimes.iter();
+                    quote!(<#(#it),*>)
+                } else {
+                    quote!()
+                }
+            });
 
             if empty_variants.contains(&variant.ident) {
                 quote!( #[derive(serde::Serialize, serde::Deserialize)] #struct_attrs struct #name; )
             } else {
-                quote!( #[derive(serde::Serialize, serde::Deserialize)] #struct_attrs struct #name #fields )
+                quote!( #[derive(serde::Serialize, serde::Deserialize)] #struct_attrs struct #name #lifetimes #fields )
             }
         });
 
@@ -295,26 +314,24 @@ fn attr_args(attr: TokenStream2) -> HashMap<String, TokenTree> {
         .collect()
 }
 
+/// This function *will* produce duplicate items! Don't forget to dedup before using!
 fn type_lifetimes(ty: &Type) -> Vec<Lifetime> {
-    type_lifetimes_inner(ty).tap_mut(|slf| {
-        slf.sort_unstable();
-        slf.dedup();
-    })
-}
-
-fn type_lifetimes_inner(ty: &Type) -> Vec<Lifetime> {
     match ty {
-        Type::Array(a) => type_lifetimes_inner(&*a.elem),
-        Type::Group(g) => type_lifetimes_inner(&*g.elem),
+        Type::Array(a) => type_lifetimes(&*a.elem),
+        Type::Group(g) => type_lifetimes(&*g.elem),
         Type::ImplTrait(t) => type_param_lifetimes(t.bounds.iter()),
-        Type::Paren(p) => type_lifetimes_inner(&*p.elem),
+        Type::Paren(p) => type_lifetimes(&*p.elem),
         Type::Path(p) => path_lifetimes(&p.path),
         Type::Reference(r) => {
-            type_lifetimes_inner(&*r.elem).tap_mut(|vec| vec.extend(r.lifetime.clone()))
+            type_lifetimes(&*r.elem).tap_mut(|vec| vec.extend(r.lifetime.clone()))
         }
-        Type::Slice(s) => type_lifetimes_inner(&*s.elem),
+        Type::Slice(s) => type_lifetimes(&*s.elem),
         Type::TraitObject(t) => type_param_lifetimes(t.bounds.iter()),
-        Type::Tuple(tup) => tup.elems.iter().flat_map(type_lifetimes_inner).collect_vec(),
+        Type::Tuple(tup) => tup
+            .elems
+            .iter()
+            .flat_map(type_lifetimes)
+            .collect_vec(),
         _ => Vec::new(),
     }
 }
@@ -398,8 +415,5 @@ mod test {
             assert!(vec.iter().find(|x| x.ident.to_string() == "a").is_some());
             assert!(vec.iter().find(|x| x.ident.to_string() == "b").is_some());
         });
-
-        assert_eq!(type_lifetimes(&parse_quote!(&'a Str<'b, 'a>)).len(), 2);
-        assert_eq!(type_lifetimes(&parse_quote!(&'a Str<'a, 'a>)).len(), 1);
     }
 }

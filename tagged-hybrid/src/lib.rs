@@ -343,9 +343,11 @@ fn path_lifetimes(path: &Path) -> SmallVec<[Lifetime; 8]> {
             if let PathArguments::AngleBracketed(ref args) = segment.arguments {
                 args.args
                     .iter()
-                    .filter_map(|arg| match arg {
-                        GenericArgument::Lifetime(l) => Some(l.clone()),
-                        _ => None,
+                    .flat_map(|arg| match arg {
+                        GenericArgument::Lifetime(l) => smallvec![l.clone()],
+                        GenericArgument::Type(ty) => type_lifetimes(ty),
+                        GenericArgument::Constraint(con) => type_param_lifetimes(con.bounds.iter()),
+                        _ => smallvec![],
                     })
                     .collect_vec()
             } else {

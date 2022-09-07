@@ -296,22 +296,25 @@ fn attr_args(attr: TokenStream2) -> HashMap<String, TokenTree> {
 }
 
 fn type_lifetimes(ty: &Type) -> Vec<Lifetime> {
+    type_lifetimes_inner(ty).tap_mut(|slf| {
+        slf.sort_unstable();
+        slf.dedup();
+    })
+}
+
+fn type_lifetimes_inner(ty: &Type) -> Vec<Lifetime> {
     match ty {
-        syn::Type::Array(a) => type_lifetimes(&*a.elem),
-        // syn::Type::BareFn(_) => todo!(),
-        Type::Group(g) => type_lifetimes(&*g.elem),
+        Type::Array(a) => type_lifetimes_inner(&*a.elem),
+        Type::Group(g) => type_lifetimes_inner(&*g.elem),
         Type::ImplTrait(t) => type_param_lifetimes(t.bounds.iter()),
-        // Type::Macro(_) => todo!(),
-        Type::Paren(p) => type_lifetimes(&*p.elem),
-        syn::Type::Path(p) => path_lifetimes(&p.path),
-        // syn::Type::Ptr(_) => todo!(),
+        Type::Paren(p) => type_lifetimes_inner(&*p.elem),
+        Type::Path(p) => path_lifetimes(&p.path),
         Type::Reference(r) => {
-            type_lifetimes(&*r.elem).tap_mut(|vec| vec.extend(r.lifetime.clone()))
+            type_lifetimes_inner(&*r.elem).tap_mut(|vec| vec.extend(r.lifetime.clone()))
         }
-        Type::Slice(s) => type_lifetimes(&*s.elem),
+        Type::Slice(s) => type_lifetimes_inner(&*s.elem),
         Type::TraitObject(t) => type_param_lifetimes(t.bounds.iter()),
-        Type::Tuple(tup) => tup.elems.iter().flat_map(type_lifetimes).collect_vec(),
-        // syn::Type::Verbatim(_) => todo!(),
+        Type::Tuple(tup) => tup.elems.iter().flat_map(type_lifetimes_inner).collect_vec(),
         _ => Vec::new(),
     }
 }
@@ -396,6 +399,7 @@ mod test {
             assert!(vec.iter().find(|x| x.ident.to_string() == "b").is_some());
         });
 
-        assert_eq!(type_lifetimes(&parse_quote!(&'a Str<'a>)).len(), 1);
+        assert_eq!(type_lifetimes(&parse_quote!(&'a Str<'b, 'a>)).len(), 2);
+        assert_eq!(type_lifetimes(&parse_quote!(&'a Str<'a, 'a>)).len(), 1);
     }
 }

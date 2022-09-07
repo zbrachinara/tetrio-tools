@@ -174,25 +174,33 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
         .map(|variant| variant.ident)
         .collect_vec();
 
-    let variant_structs = variants.iter().map(|variant| {
+    let variant_lifetimes = variants
+        .iter()
+        .map(|variant| {
+            variant
+                .fields
+                .iter()
+                .flat_map(|fld| type_lifetimes(&fld.ty))
+                .collect::<HashSet<_>>()
+                .pipe(|lifetimes| {
+                    if lifetimes.len() > 0 {
+                        let it = lifetimes.iter();
+                        quote!(<#(#it),*>)
+                    } else {
+                        quote!()
+                    }
+                })
+        })
+        .collect_vec();
+
+    let variant_structs = variants.iter().zip(variant_lifetimes.iter()).map(|(variant, lft)| {
             let name = &variant.ident;
             let fields = &variant.fields;
-
-            let lifetimes = fields.iter().flat_map(|fld| {
-                type_lifetimes(&fld.ty)
-            }).collect::<HashSet<_>>().pipe(|lifetimes| {
-                if lifetimes.len() > 0 {
-                    let it = lifetimes.iter();
-                    quote!(<#(#it),*>)
-                } else {
-                    quote!()
-                }
-            });
 
             if empty_variants.contains(&variant.ident) {
                 quote!( #[derive(serde::Serialize, serde::Deserialize)] #struct_attrs struct #name; )
             } else {
-                quote!( #[derive(serde::Serialize, serde::Deserialize)] #struct_attrs struct #name #lifetimes #fields )
+                quote!( #[derive(serde::Serialize, serde::Deserialize)] #struct_attrs struct #name #lft #fields )
             }
         });
 

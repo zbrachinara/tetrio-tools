@@ -14,6 +14,7 @@ use syn::{
 };
 use tap::{Pipe, Tap};
 
+#[allow(unused)]
 macro_rules! dsp {
     ($arg:expr) => {{
         let result = $arg;
@@ -24,7 +25,7 @@ macro_rules! dsp {
 
 #[proc_macro_attribute]
 pub fn hybrid_tagged(attr: TokenStream, item: TokenStream) -> TokenStream {
-    dsp!(hybrid_tagged_impl(attr.into(), item.into()).into())
+    hybrid_tagged_impl(attr.into(), item.into()).into()
 }
 
 fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
@@ -61,30 +62,51 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
 
     let visibility = tagged_type.vis;
 
+    let variant_lifetimes = variants
+        .iter()
+        .map(|variant| {
+            variant
+                .fields
+                .iter()
+                .flat_map(|fld| type_lifetimes(&fld.ty))
+                .collect::<HashSet<_>>()
+                .pipe(|lifetimes| {
+                    (lifetimes.len() > 0).then(|| {
+                        let it = lifetimes.iter();
+                        Some(quote!(<#(#it),*>))
+                    })
+                })
+        })
+        .collect_vec();
+
     // takes the variants of the annotated enum and adds the common fields to each one
     let raw_variants = variants.clone().tap_mut(|variants| {
-        variants.iter_mut().for_each(|variant| {
-            let attrs = &variant.attrs;
-            let name = &variant.ident;
-            let common_fields = common_fields_inner.iter();
+        variants
+            .iter_mut()
+            .zip(variant_lifetimes.iter())
+            .for_each(|(variant, lft)| {
+                let attrs = &variant.attrs;
+                let name = &variant.ident;
+                let common_fields = common_fields_inner.iter();
+                let borrow_attr = lft.is_some().then(|| quote!(#[serde(borrow)]));
 
-            *variant = if empty_variants.contains(&variant.ident) {
-                syn::parse_quote!(
-                    #(#attrs)*
-                    #name {
-                        #(#common_fields),*
-                    }
-                )
-            } else {
-                syn::parse_quote!(
-                    #(#attrs)*
-                    #name {
-                        data: #name,
-                        #(#common_fields),*
-                    }
-                )
-            };
-        })
+                *variant = if empty_variants.contains(&variant.ident) {
+                    syn::parse_quote!(
+                        #(#attrs)*
+                        #name {
+                            #(#common_fields),*
+                        }
+                    )
+                } else {
+                    syn::parse_quote!(
+                        #(#attrs)*
+                        #name {
+                            #borrow_attr data: #name #lft,
+                            #(#common_fields),*
+                        }
+                    )
+                };
+            })
     });
 
     let data_variants = variants.clone().tap_mut(|variants| {
@@ -121,21 +143,28 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
     let data_enum = quote!(
         #[derive(Clone)]
         #struct_attrs
-        #visibility enum Variant {
+        #visibility enum Variant #generics {
             #data_variants
         }
     );
 
     // public-facing struct which takes the place of the annotated enum
-    let public_struct = quote!(
-        #[derive(serde::Serialize, serde::Deserialize, Clone)]
-        #[serde(from = "Raw", into = "Raw")]
-        #struct_attrs
-        pub struct Container {
-            data: Variant,
-            #common_fields_inner
-        }
-    );
+    let public_struct = {
+        let borrow_attr = if generics.lifetimes().next().is_some() {
+            quote!(#[serde(borrow)])
+        } else {
+            quote!()
+        };
+        quote!(
+            #[derive(serde::Serialize, serde::Deserialize, Clone)]
+            #[serde(from = "Raw", into = "Raw")]
+            #struct_attrs
+            pub struct Container #generics {
+                #borrow_attr data: Variant #generics,
+                #common_fields_inner
+            }
+        )
+    };
 
     let common_fields_names = common_fields_inner
         .iter()
@@ -172,25 +201,6 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
         .iter()
         .cloned()
         .map(|variant| variant.ident)
-        .collect_vec();
-
-    let variant_lifetimes = variants
-        .iter()
-        .map(|variant| {
-            variant
-                .fields
-                .iter()
-                .flat_map(|fld| type_lifetimes(&fld.ty))
-                .collect::<HashSet<_>>()
-                .pipe(|lifetimes| {
-                    if lifetimes.len() > 0 {
-                        let it = lifetimes.iter();
-                        quote!(<#(#it),*>)
-                    } else {
-                        quote!()
-                    }
-                })
-        })
         .collect_vec();
 
     let variant_structs = variants.iter().zip(variant_lifetimes.iter()).map(|(variant, lft)| {
@@ -257,16 +267,16 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
 
     // From impls for converting to and from the public struct and private type
     let convert_impls = quote!(
-        impl From<Raw> for Container {
-            fn from(f: Raw) -> Self {
+        impl #generics From<Raw #generics> for Container #generics {
+            fn from(f: Raw #generics) -> Self {
                 match f {
                     #(#convert_from_raw),*
                 }
             }
         }
 
-        impl From<Container> for Raw {
-            fn from(f: Container) -> Self {
+        impl #generics From<Container #generics > for Raw #generics {
+            fn from(f: Container #generics) -> Self {
                 match f.data {
                     #(#convert_to_raw),*
                 }

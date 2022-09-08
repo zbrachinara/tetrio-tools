@@ -23,7 +23,7 @@ pub struct TTRM<'a> {
 pub struct ReplaySet<'a> {
     #[serde(rename = "board", borrow)]
     pub boards: Vec<Board<'a>>,
-    pub replays: Vec<Replay>,
+    pub replays: Vec<Replay<'a>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -43,15 +43,16 @@ pub struct User<'a> {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Replay {
+pub struct Replay<'a> {
     // pub events: Vec<Value>,
-    pub events: Vec<event::Event>,
+    #[serde(borrow)]
+    pub events: Vec<event::Event<'a>>,
     pub frames: Number,
 }
 
 pub mod event {
     use serde::{Deserialize, Serialize};
-    use serde_json::{Map, Number, Value};
+    use serde_json::{Number, Value};
     use tagged_hybrid::hybrid_tagged;
 
     #[hybrid_tagged(
@@ -65,7 +66,7 @@ pub mod event {
         Full {
             #[serde(rename = "aggregatestats")]
             aggregate_stats: AggregateStats,
-            assumptions: Map<String, Value>,
+            assumptions: Value,
             fire: Number,
             game: Game,
             #[serde(rename = "gameoverreason")]

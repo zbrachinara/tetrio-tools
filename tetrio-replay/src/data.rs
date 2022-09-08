@@ -68,11 +68,11 @@ pub mod event {
             aggregate_stats: AggregateStats,
             assumptions: Value,
             fire: Number,
-            game: Game,
+            game: Game<'a>,
             #[serde(rename = "gameoverreason")]
             game_over_reason: Option<&'a str>,
-            killer: Killer,
-            options: GameOptions,
+            killer: Killer<'a>,
+            options: GameOptions<'a>,
             replay: Value, //TODO: gonna have to see what these structs mean
             source: Value,
             stats: Value,
@@ -81,12 +81,12 @@ pub mod event {
         },
         Targets,
         KeyDown {
-            #[serde(flatten)]
-            key_event: KeyEvent,
+            #[serde(flatten, borrow)]
+            key_event: KeyEvent<'a>,
         },
         KeyUp {
-            #[serde(flatten)]
-            key_event: KeyEvent,
+            #[serde(flatten, borrow)]
+            key_event: KeyEvent<'a>,
         },
         #[serde(rename = "ige")]
         InGameEvent {
@@ -133,15 +133,15 @@ pub mod event {
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
-    pub struct KeyEvent {
-        key: String,
+    pub struct KeyEvent<'a> {
+        key: &'a str,
         subframe: Number,
         hoisted: Option<bool>, //TODO: Figure out what this means
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     #[serde(deny_unknown_fields)]
-    pub struct GameOptions {
+    pub struct GameOptions<'a> {
         #[serde(rename = "allow180")]
         pub allow_180: bool,
         pub allow_harddrop: bool,
@@ -149,13 +149,13 @@ pub mod event {
         #[serde(rename = "b2bchaining")]
         pub b2b_chaining: bool,
         #[serde(rename = "bagtype")]
-        pub bag_type: String, // change to enum
+        pub bag_type: &'a str, // change to enum
         #[serde(rename = "boardbuffer")]
         pub board_buffer: Number,
         #[serde(rename = "boardheight")]
         pub board_height: Number,
         #[serde(rename = "boardskin")]
-        pub board_skin: String,
+        pub board_skin: &'a str,
         #[serde(rename = "boardwidth")]
         pub board_width: Number,
         pub clutch: bool,
@@ -191,7 +191,7 @@ pub mod event {
         #[serde(rename = "garbagespeed")]
         pub garbage_speed: Number,
         #[serde(rename = "ghostskin")]
-        pub ghost_skin: String,
+        pub ghost_skin: &'a str,
         #[serde(rename = "gincrease")]
         pub gravity_increase: Number,
         #[serde(rename = "gmargin")]
@@ -201,9 +201,9 @@ pub mod event {
         pub has_garbage: bool,
         #[serde(rename = "infinitemovement")]
         pub infinite_movement: bool,
-        pub kickset: String,
+        pub kickset: &'a str,
         #[serde(rename = "latencypreference")]
-        pub latency_preference: String, //TODO: Probably has to do with passthrough, but should check
+        pub latency_preference: &'a str, //TODO: Probably has to do with passthrough, but should check
         pub lineclear_are: Number,
         #[serde(rename = "lockresets")]
         pub lock_resets: Number,
@@ -211,9 +211,9 @@ pub mod event {
         pub lock_time: Number,
         pub manual_allowed: bool,
         #[serde(rename = "minoskin")]
-        pub tetromino_skin: TetrominoSkin,
-        pub mission: Option<String>,
-        pub mission_type: String,
+        pub tetromino_skin: TetrominoSkin<'a>,
+        pub mission: Option<&'a str>,
+        pub mission_type: &'a str,
         #[serde(rename = "neverstopbgm")]
         pub loop_bgm: bool,
         #[serde(rename = "nextcount")]
@@ -237,38 +237,38 @@ pub mod event {
         pub room_handling_sdf: Number,
         pub seed: Number,
         pub seed_random: bool,
-        pub slot_bar1: String,
-        pub slot_counter1: Option<String>,
-        pub slot_counter2: Option<String>,
-        pub slot_counter3: Option<String>,
-        pub slot_counter4: Option<String>,
-        pub slot_counter5: Option<String>,
+        pub slot_bar1: &'a str,
+        pub slot_counter1: Option<&'a str>,
+        pub slot_counter2: Option<&'a str>,
+        pub slot_counter3: Option<&'a str>,
+        pub slot_counter4: Option<&'a str>,
+        pub slot_counter5: Option<&'a str>,
         #[serde(rename = "spinbonuses")]
-        pub spin_bonuses: String,
+        pub spin_bonuses: &'a str,
         pub stock: Number,
-        pub username: String,
+        pub username: &'a str,
         pub version: Number,
         #[serde(rename = "zoominto")]
-        pub zoom_into: String,
+        pub zoom_into: &'a str,
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
-    pub struct TetrominoSkin {
-        i: String,
-        j: String,
-        l: String,
-        o: String,
-        s: String,
-        t: String,
-        z: String,
-        other: String,
+    pub struct TetrominoSkin<'a> {
+        i: &'a str,
+        j: &'a str,
+        l: &'a str,
+        o: &'a str,
+        s: &'a str,
+        t: &'a str,
+        z: &'a str,
+        other: &'a str,
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
-    pub struct Killer {
-        pub name: Option<String>,
+    pub struct Killer<'a> {
+        pub name: Option<&'a str>,
         #[serde(rename = "type")]
-        pub kind: String,
+        pub kind: &'a str,
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -279,22 +279,23 @@ pub mod event {
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
-    pub struct Game {
-        pub bag: Vec<String>,
+    pub struct Game<'a> {
+        pub bag: Vec<&'a str>,
         /// null or string (one of "ljzsoti" or "gb" for garbage)
-        pub board: Vec<Vec<Option<String>>>,
+        #[serde(borrow)]
+        pub board: Vec<Vec<Option<&'a str>>>,
         pub controlling: Controlling,
         #[serde(rename = "g")]
         pub gravity: Number,
         pub handling: Handling,
-        pub hold: Hold,
+        pub hold: Hold<'a>,
         pub playing: bool,
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
-    pub struct Hold {
+    pub struct Hold<'a> {
         pub locked: bool,
-        pub piece: Option<String>,
+        pub piece: Option<&'a str>,
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]

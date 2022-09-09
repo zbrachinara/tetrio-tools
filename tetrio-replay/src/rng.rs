@@ -3,6 +3,10 @@ pub struct Rng {
 }
 
 impl Rng {
+    fn seeded(seed: u64) -> Self {
+        Rng { state: seed }
+    }
+
     fn next(&mut self) -> u64 {
         self.state = 16807 * self.state % 2147483647;
         self.state

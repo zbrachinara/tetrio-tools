@@ -7,6 +7,7 @@ pub use data::TTRM;
 
 mod board;
 pub mod data;
+mod rng;
 mod reconstruct;
 
 pub fn parse_replay<'a>(content: &'a str) -> Result<TTRM<'a>> {

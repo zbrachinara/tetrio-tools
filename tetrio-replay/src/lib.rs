@@ -3,7 +3,7 @@
 
 use anyhow::Result;
 pub use data::TTRM;
-rgo
+
 mod board;
 pub mod data;
 mod rng;

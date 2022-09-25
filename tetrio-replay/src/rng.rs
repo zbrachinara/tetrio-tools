@@ -40,7 +40,7 @@ mod tests {
 
     #[test]
     fn based() {
-        let mut base = ['z', 'l', 'o', 's', 'i', 'j', 't'];
+        let base = ['z', 'l', 'o', 's', 'i', 'j', 't'];
 
         // game 1 of the file included with this source
         let mut rng = Rng::seeded(1742887628);
@@ -52,6 +52,14 @@ mod tests {
         assert_eq!(
             rng.shuffle_array(base.clone()),
             ['i', 't', 'j', 'l', 'o', 'z', 's']
+        );
+        assert_eq!(
+            rng.shuffle_array(base.clone()),
+            ['s', 'j', 't', 'o', 'l', 'i', 'z']
+        );
+        assert_eq!(
+            rng.shuffle_array(base.clone()),
+            ['l', 'j', 't', 'o', 's', 'i', 'z']
         );
     }
 }

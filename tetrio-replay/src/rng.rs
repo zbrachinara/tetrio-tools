@@ -17,7 +17,7 @@ impl Rng {
     }
 
     fn shuffle_slice<T>(&mut self, slice: &mut [T]) {
-        (0..slice.len())
+        (1..slice.len())
             .rev()
             .map(|i| {
                 let swap_with = (self.next_float() * (i + 1) as f64).floor() as usize;

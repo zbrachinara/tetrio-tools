@@ -1,10 +1,9 @@
-#![feature(let_else)]
 #![feature(result_option_inspect)]
 #![feature(mixed_integer_ops)]
 
 use anyhow::Result;
 pub use data::TTRM;
-
+rgo
 mod board;
 pub mod data;
 mod rng;

@@ -124,13 +124,6 @@ impl Board {
                 )
             })
             .is_some()
-        // self.active = rotated.tap_mut(|r| {
-        //     r.position  + accepted_kick
-        // });
-
-        // dbg!(accepted_kick);
-
-        // todo!()
     }
 
     /// Tests whether or not the positions passed in are empty (i.e. they are available for a

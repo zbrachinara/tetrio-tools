@@ -1,7 +1,9 @@
+#[allow(unused)]
 pub struct Rng {
     state: u64,
 }
 
+#[allow(unused)]
 impl Rng {
     fn seeded(seed: u64) -> Self {
         Rng { state: seed % 2147483647 }

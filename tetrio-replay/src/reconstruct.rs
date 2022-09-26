@@ -1,14 +1,8 @@
-
+use crate::board::{Cell, Mino};
 
 enum Action {
-    Garbage {
-        column: u8,
-        height: u8,
-    },
-    Reposition {
-        // TODO: better tetromino position descriptors
-    },
-    LineClear {
-        line: u8,
-    }
+    Garbage { column: u8, height: u8 },
+    Reposition { piece: Mino },
+    LineClear { line: u8 },
+    Cell { position: (u8, u8), kind: Cell },
 }

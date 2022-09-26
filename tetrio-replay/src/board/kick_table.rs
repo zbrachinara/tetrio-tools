@@ -3,9 +3,9 @@ use std::{collections::HashMap, ops::Add};
 use once_cell::sync::Lazy;
 use tap::Tap;
 
-use crate::board::{Rotation, RotationState, TetrominoVariant};
+use crate::board::{Rotation, Direction, MinoVariant};
 
-use super::Tetromino;
+use super::Mino;
 
 #[derive(Debug, Clone)]
 pub struct Positions<const N: usize>([(isize, isize); N]);
@@ -43,7 +43,7 @@ impl<const N: usize> Positions<N> {
 }
 
 impl Positions<4> {
-    pub fn tetromino(tet: Tetromino) -> Self {
+    pub fn tetromino(tet: Mino) -> Self {
         let mut cells = [(0, 0); 4];
         cells
             .iter_mut()
@@ -57,7 +57,7 @@ impl Positions<4> {
                 *fin_y = *init_y as isize;
             });
 
-        Self(cells) + mino.position
+        Self(cells) + tet.position
     }
 }
 
@@ -78,13 +78,13 @@ macro_rules! rotation_table {
     }};
 }
 
-type TetrominoState = (TetrominoVariant, RotationState);
+type TetrominoState = (MinoVariant, Direction);
 type KickTable = HashMap<Rotation, Vec<(i8, i8)>>;
 
 fn center_of_mass_rotation(
-    piece: TetrominoVariant,
+    piece: MinoVariant,
     up_position: [(i8, i8); 4],
-) -> [((TetrominoVariant, RotationState), [(i8, i8); 4]); 4] {
+) -> [((MinoVariant, Direction), [(i8, i8); 4]); 4] {
     [
         rotation_table!(piece:0 => {up_position.clone()}), // normal
         rotation_table!(piece:1 => {
@@ -106,7 +106,7 @@ fn center_of_mass_rotation(
 }
 
 fn static_rotation(
-    piece: TetrominoVariant,
+    piece: MinoVariant,
     position: [(i8, i8); 4],
 ) -> [(TetrominoState, [(i8, i8); 4]); 4] {
     [
@@ -118,7 +118,7 @@ fn static_rotation(
 }
 
 pub static ROTATION_TABLE: Lazy<HashMap<TetrominoState, [(i8, i8); 4]>> = Lazy::new(|| {
-    use TetrominoVariant::*;
+    use MinoVariant::*;
 
     [
         center_of_mass_rotation(T, [(-1, 0), (0, 0), (1, 0), (0, 1)]),
@@ -128,14 +128,14 @@ pub static ROTATION_TABLE: Lazy<HashMap<TetrominoState, [(i8, i8); 4]>> = Lazy::
         center_of_mass_rotation(S, [(0, 0), (-1, 0), (0, 1), (1, 1)]),
         center_of_mass_rotation(Z, [(0, 0), (1, 0), (0, -1), (-1, -1)]),
         [
-            ((I, RotationState::Up), [(-2, 0), (-1, 0), (0, 0), (1, 0)]),
-            ((I, RotationState::Left), [(0, 1), (0, 0), (0, -1), (0, -2)]),
+            ((I, Direction::Up), [(-2, 0), (-1, 0), (0, 0), (1, 0)]),
+            ((I, Direction::Left), [(0, 1), (0, 0), (0, -1), (0, -2)]),
             (
-                (I, RotationState::Down),
+                (I, Direction::Down),
                 [(-2, -1), (-1, -1), (0, -1), (1, -1)],
             ),
             (
-                (I, RotationState::Right),
+                (I, Direction::Right),
                 [(-1, 1), (-1, 0), (-1, -1), (-1, -2)],
             ),
         ],
@@ -146,7 +146,7 @@ pub static ROTATION_TABLE: Lazy<HashMap<TetrominoState, [(i8, i8); 4]>> = Lazy::
 });
 
 pub static SRS_PLUS_KICK_TABLE: Lazy<KickTable> = Lazy::new(|| {
-    use TetrominoVariant::*;
+    use MinoVariant::*;
 
     [J, L, T, S, Z]
         .into_iter()

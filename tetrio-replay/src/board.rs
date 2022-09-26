@@ -11,20 +11,20 @@ use crate::board::kick_table::Positions;
 
 #[derive(Clone, Debug)]
 pub enum Cell {
-    Tetromino(TetrominoVariant),
+    Tetromino(MinoVariant),
     Garbage,
 }
 
 #[derive(PartialEq, Eq, Hash, Debug)]
 pub struct Rotation {
-    pub piece: TetrominoVariant,
-    pub from: RotationState,
-    pub to: RotationState,
+    pub piece: MinoVariant,
+    pub from: Direction,
+    pub to: Direction,
 }
 
 #[derive(Copy, Clone)]
 #[repr(i8)]
-pub enum Direction {
+pub enum Spin {
     CW = 1,
     CCW = 3,
     /// Represents a 180 degree rotation
@@ -33,22 +33,21 @@ pub enum Direction {
 
 #[repr(i8)]
 #[derive(PartialEq, Eq, Hash, Copy, Clone, Debug)]
-pub enum RotationState {
-    //TODO: Check that directions are actually correct
+pub enum Direction {
     Up = 0,
     Right = 1,
     Down = 2,
     Left = 3,
 }
 
-impl From<i8> for RotationState {
+impl From<i8> for Direction {
     fn from(n: i8) -> Self {
         unsafe { std::mem::transmute(n % 4) }
     }
 }
 
-impl Add<Direction> for RotationState {
-    type Output = RotationState;
+impl Add<Spin> for Direction {
+    type Output = Direction;
 
     fn add(self, rhs: Spin) -> Self::Output {
         (self as i8 + rhs as i8).into()
@@ -56,14 +55,14 @@ impl Add<Direction> for RotationState {
 }
 
 #[derive(Clone)]
-pub struct Tetromino {
-    variant: TetrominoVariant,
-    rotation_state: RotationState,
+pub struct Mino {
+    variant: MinoVariant,
+    rotation_state: Direction,
     position: (usize, usize),
 }
 
-impl Tetromino {
-    pub fn rotation(&self, at: Direction) -> Rotation {
+impl Mino {
+    pub fn rotation(&self, at: Spin) -> Rotation {
         Rotation {
             piece: self.variant,
             from: self.rotation_state,
@@ -71,7 +70,7 @@ impl Tetromino {
         }
     }
 
-    pub fn rotate(&self, at: Direction) -> Self {
+    pub fn rotate(&self, at: Spin) -> Self {
         self.clone().tap_mut(|tet| {
             tet.rotation_state = tet.rotation_state + at;
         })
@@ -80,18 +79,13 @@ impl Tetromino {
 
 #[rustfmt::skip]
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
-pub enum TetrominoVariant {
+pub enum MinoVariant {
     L, J, T, Z, S, O, I
 }
 
 pub struct Board {
     cells: Grid<Option<Cell>>,
-    active: Tetromino,
-}
-
-pub struct Change {
-    location: (usize, usize),
-    to: Option<Cell>,
+    active: Mino,
 }
 
 impl Board {
@@ -99,7 +93,7 @@ impl Board {
     /// false otherwise.
     ///
     /// For now, assumes SRS+
-    fn rotate_active(&mut self, direction: Direction) -> bool {
+    fn rotate_active(&mut self, direction: Spin) -> bool {
         let rotated = self.active.rotate(direction);
         let rotation = self.active.rotation(direction);
 
@@ -114,7 +108,7 @@ impl Board {
         accepted_kick
             .inspect(|(x, y)| {
                 self.active = rotated.tap_mut(
-                    |Tetromino {
+                    |Mino {
                          position: (tet_x, tet_y),
                          ..
                      }| {
@@ -153,14 +147,14 @@ mod test {
 
     use crate::board::Cell;
 
-    use super::{Board, Direction, RotationState, Tetromino, TetrominoVariant};
+    use super::{Board, Spin, Direction, Mino, MinoVariant};
 
     #[test]
     fn test_rotations() {
         let mut board = Board {
-            active: Tetromino {
-                variant: super::TetrominoVariant::T,
-                rotation_state: super::RotationState::Down,
+            active: Mino {
+                variant: super::MinoVariant::T,
+                rotation_state: super::Direction::Down,
                 position: (5, 20),
             },
             cells: Grid::init(40, 10, None),
@@ -174,9 +168,9 @@ mod test {
         const GB: Option<Cell> = Some(Cell::Garbage);
 
         let mut tki_board = Board {
-            active: Tetromino {
-                variant: TetrominoVariant::T,
-                rotation_state: RotationState::Right,
+            active: Mino {
+                variant: MinoVariant::T,
+                rotation_state: Direction::Right,
                 position: (1, 2),
             },
             cells: grid![

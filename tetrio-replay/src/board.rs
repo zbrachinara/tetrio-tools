@@ -22,7 +22,7 @@ pub struct Rotation {
 
 #[derive(Copy, Clone)]
 #[repr(i8)]
-pub enum Direction {
+pub enum Spin {
     CW = 1,
     CCW = 3,
     /// Represents a 180 degree rotation
@@ -45,10 +45,10 @@ impl From<i8> for Direction {
     }
 }
 
-impl Add<Direction> for Direction {
+impl Add<Spin> for Direction {
     type Output = Direction;
 
-    fn add(self, rhs: Direction) -> Self::Output {
+    fn add(self, rhs: Spin) -> Self::Output {
         (self as i8 + rhs as i8).into()
     }
 }
@@ -61,7 +61,7 @@ pub struct Mino {
 }
 
 impl Mino {
-    pub fn rotation(&self, at: Direction) -> Rotation {
+    pub fn rotation(&self, at: Spin) -> Rotation {
         Rotation {
             piece: self.variant,
             from: self.direction,
@@ -69,7 +69,7 @@ impl Mino {
         }
     }
 
-    pub fn rotated(&self, at: Direction) -> Self {
+    pub fn rotate(&self, at: Spin) -> Self {
         self.clone().tap_mut(|tet| {
             tet.direction = tet.direction + at;
         })
@@ -92,8 +92,8 @@ impl Board {
     /// false otherwise.
     ///
     /// For now, assumes SRS+
-    fn rotate_active(&mut self, direction: Direction) -> bool {
-        let rotated = self.active.rotated(direction);
+    fn rotate_active(&mut self, direction: Spin) -> bool {
+        let rotated = self.active.rotate(direction);
         let rotation = self.active.rotation(direction);
 
         let true_rotation = Positions::tetromino(rotated.clone());
@@ -146,7 +146,7 @@ mod test {
 
     use crate::board::Cell;
 
-    use super::{Board, Direction, Direction, Mino, MinoVariant};
+    use super::{Board, Spin, Direction, Mino, MinoVariant};
 
     #[test]
     fn test_rotations() {
@@ -159,7 +159,7 @@ mod test {
             cells: Grid::init(40, 10, None),
         };
 
-        board.rotate_active(Direction::CW);
+        board.rotate_active(Spin::CW);
     }
 
     #[test]
@@ -183,7 +183,7 @@ mod test {
             ],
         };
 
-        tki_board.rotate_active(Direction::CW);
+        tki_board.rotate_active(Spin::CW);
         assert_eq!(tki_board.active.position, (2, 1));
     }
 }

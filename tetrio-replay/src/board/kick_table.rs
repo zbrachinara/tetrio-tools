@@ -3,9 +3,7 @@ use std::{collections::HashMap, ops::Add};
 use once_cell::sync::Lazy;
 use tap::Tap;
 
-use crate::board::{Rotation, Direction, MinoVariant};
-
-use super::Mino;
+use crate::board::{Rotation, MinoVariant, Mino};
 
 #[derive(Debug, Clone)]
 pub struct Positions<const N: usize>([(isize, isize); N]);
@@ -43,13 +41,13 @@ impl<const N: usize> Positions<N> {
 }
 
 impl Positions<4> {
-    pub fn tetromino(tet: Mino) -> Self {
+    pub fn tetromino(mino: Mino) -> Self {
         let mut cells = [(0, 0); 4];
         cells
             .iter_mut()
             .zip(
                 ROTATION_TABLE
-                    .get(&(tet.variant, tet.direction))
+                    .get(&(mino.variant, mino.direction))
                     .unwrap(),
             )
             .for_each(|((fin_x, fin_y), (init_x, init_y))| {
@@ -57,7 +55,7 @@ impl Positions<4> {
                 *fin_y = *init_y as isize;
             });
 
-        Self(cells) + tet.position
+        Self(cells) + mino.position
     }
 }
 
@@ -78,13 +76,13 @@ macro_rules! rotation_table {
     }};
 }
 
-type TetrominoState = (MinoVariant, Direction);
+type TetrominoState = (MinoVariant, Rotation);
 type KickTable = HashMap<Rotation, Vec<(i8, i8)>>;
 
 fn center_of_mass_rotation(
     piece: MinoVariant,
     up_position: [(i8, i8); 4],
-) -> [((MinoVariant, Direction), [(i8, i8); 4]); 4] {
+) -> [((MinoVariant, Rotation), [(i8, i8); 4]); 4] {
     [
         rotation_table!(piece:0 => {up_position.clone()}), // normal
         rotation_table!(piece:1 => {
@@ -128,14 +126,14 @@ pub static ROTATION_TABLE: Lazy<HashMap<TetrominoState, [(i8, i8); 4]>> = Lazy::
         center_of_mass_rotation(S, [(0, 0), (-1, 0), (0, 1), (1, 1)]),
         center_of_mass_rotation(Z, [(0, 0), (1, 0), (0, -1), (-1, -1)]),
         [
-            ((I, Direction::Up), [(-2, 0), (-1, 0), (0, 0), (1, 0)]),
-            ((I, Direction::Left), [(0, 1), (0, 0), (0, -1), (0, -2)]),
+            ((I, Rotation::Up), [(-2, 0), (-1, 0), (0, 0), (1, 0)]),
+            ((I, Rotation::Left), [(0, 1), (0, 0), (0, -1), (0, -2)]),
             (
-                (I, Direction::Down),
+                (I, Rotation::Down),
                 [(-2, -1), (-1, -1), (0, -1), (1, -1)],
             ),
             (
-                (I, Direction::Right),
+                (I, Rotation::Right),
                 [(-1, 1), (-1, 0), (-1, -1), (-1, -2)],
             ),
         ],

@@ -56,6 +56,13 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
         .map(|variant| variant.ident)
         .collect::<HashSet<_>>();
 
+    let container_name = tagged_type.ident;
+    let module_name = Ident::new(
+        &format!("{}_data", container_name.to_string().to_snake_case()),
+        container_name.span(),
+    );
+    let data_enum_name = Ident::new(&format!("{container_name}Data"), container_name.span());
+
     let original_attrs = tagged_type.attrs;
 
     let visibility = tagged_type.vis;
@@ -141,7 +148,7 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
     let data_enum = quote!(
         #[derive(Clone)]
         #struct_attrs
-        #visibility enum Variant #generics {
+        #visibility enum #data_enum_name #generics {
             #data_variants
         }
     );
@@ -157,8 +164,8 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
             #[derive(serde::Serialize, serde::Deserialize, Clone)]
             #[serde(from = "Raw", into = "Raw")]
             #struct_attrs
-            pub struct Container #generics {
-                #borrow_attr data: Variant #generics,
+            pub struct #container_name #generics {
+                #borrow_attr data: #data_enum_name #generics,
                 #common_fields_inner
             }
         )
@@ -221,13 +228,13 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
                         Raw :: #variant_name {
                             #(#common_fields_names: #common_fields_renamed),*, ..
                         } => Self {
-                            data: Variant:: #variant_name ,
+                            data: #data_enum_name :: #variant_name ,
                             #(#common_fields_names: #common_fields_renamed),*
                         }
                     );
 
                     let to_raw = quote!(
-                        Variant :: #variant_name => Self :: #variant_name {
+                        #data_enum_name :: #variant_name => Self :: #variant_name {
                             #(#common_fields_names: f. #common_fields_names)*,
                         }
                     );
@@ -241,14 +248,14 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
                             },
                             #(#common_fields_names: #common_fields_renamed),*
                         } => Self {
-                            data: Variant :: #variant_name {
+                            data: #data_enum_name :: #variant_name {
                                 #(#variant),*
                             }, #(#common_fields_names: #common_fields_renamed),*
                         }
                     );
 
                     let to_raw = quote!(
-                        Variant :: #variant_name {
+                        #data_enum_name :: #variant_name {
                             #(#variant),*
                         } => Self :: #variant_name {
                             data: #variant_name {
@@ -265,7 +272,7 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
 
     // From impls for converting to and from the public struct and private type
     let convert_impls = quote!(
-        impl #generics From<Raw #generics> for Container #generics {
+        impl #generics From<Raw #generics> for #container_name #generics {
             fn from(f: Raw #generics) -> Self {
                 match f {
                     #(#convert_from_raw),*
@@ -273,8 +280,8 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
             }
         }
 
-        impl #generics From<Container #generics > for Raw #generics {
-            fn from(f: Container #generics) -> Self {
+        impl #generics From<#container_name #generics > for Raw #generics {
+            fn from(f: #container_name #generics) -> Self {
                 match f.data {
                     #(#convert_to_raw),*
                 }
@@ -282,18 +289,11 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
         }
     );
 
-    let container_name = tagged_type.ident;
-    let module_name = Ident::new(
-        &format!("{}_data", container_name.to_string().to_snake_case()),
-        container_name.span(),
-    );
-    let data_enum_name = Ident::new(&format!("{container_name}Data"), container_name.span());
-
     // all put together
     quote!(
         #visibility use #module_name::{
-            Container as #container_name,
-            Variant as #data_enum_name
+            #container_name,
+            #data_enum_name
         };
         mod #module_name {
             use super::*;

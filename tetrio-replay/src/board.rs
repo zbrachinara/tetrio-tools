@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 mod kick_table;
 
 use std::{iter, ops::Add};
@@ -9,20 +11,20 @@ use crate::board::kick_table::Positions;
 
 #[derive(Clone, Debug)]
 pub enum Cell {
-    Tetromino(MinoVariant),
+    Tetromino(TetrominoVariant),
     Garbage,
 }
 
 #[derive(PartialEq, Eq, Hash, Debug)]
 pub struct Rotation {
-    pub piece: MinoVariant,
-    pub from: Direction,
-    pub to: Direction,
+    pub piece: TetrominoVariant,
+    pub from: RotationState,
+    pub to: RotationState,
 }
 
 #[derive(Copy, Clone)]
 #[repr(i8)]
-pub enum Spin {
+pub enum Direction {
     CW = 1,
     CCW = 3,
     /// Represents a 180 degree rotation
@@ -31,7 +33,7 @@ pub enum Spin {
 
 #[repr(i8)]
 #[derive(PartialEq, Eq, Hash, Copy, Clone, Debug)]
-pub enum Direction {
+pub enum RotationState {
     //TODO: Check that directions are actually correct
     Up = 0,
     Right = 1,
@@ -39,14 +41,14 @@ pub enum Direction {
     Left = 3,
 }
 
-impl From<i8> for Direction {
+impl From<i8> for RotationState {
     fn from(n: i8) -> Self {
         unsafe { std::mem::transmute(n % 4) }
     }
 }
 
-impl Add<Spin> for Direction {
-    type Output = Direction;
+impl Add<Direction> for RotationState {
+    type Output = RotationState;
 
     fn add(self, rhs: Spin) -> Self::Output {
         (self as i8 + rhs as i8).into()
@@ -54,37 +56,42 @@ impl Add<Spin> for Direction {
 }
 
 #[derive(Clone)]
-pub struct Mino {
-    variant: MinoVariant,
-    direction: Direction,
+pub struct Tetromino {
+    variant: TetrominoVariant,
+    rotation_state: RotationState,
     position: (usize, usize),
 }
 
-impl Mino {
-    pub fn rotation(&self, at: Spin) -> Rotation {
+impl Tetromino {
+    pub fn rotation(&self, at: Direction) -> Rotation {
         Rotation {
             piece: self.variant,
-            from: self.direction,
-            to: self.direction + at,
+            from: self.rotation_state,
+            to: self.rotation_state + at,
         }
     }
 
-    pub fn rotate(&self, at: Spin) -> Self {
+    pub fn rotate(&self, at: Direction) -> Self {
         self.clone().tap_mut(|tet| {
-            tet.direction = tet.direction + at;
+            tet.rotation_state = tet.rotation_state + at;
         })
     }
 }
 
 #[rustfmt::skip]
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
-pub enum MinoVariant {
+pub enum TetrominoVariant {
     L, J, T, Z, S, O, I
 }
 
 pub struct Board {
     cells: Grid<Option<Cell>>,
-    active: Mino,
+    active: Tetromino,
+}
+
+pub struct Change {
+    location: (usize, usize),
+    to: Option<Cell>,
 }
 
 impl Board {
@@ -92,7 +99,7 @@ impl Board {
     /// false otherwise.
     ///
     /// For now, assumes SRS+
-    fn rotate_active(&mut self, direction: Spin) -> bool {
+    fn rotate_active(&mut self, direction: Direction) -> bool {
         let rotated = self.active.rotate(direction);
         let rotation = self.active.rotation(direction);
 
@@ -107,7 +114,7 @@ impl Board {
         accepted_kick
             .inspect(|(x, y)| {
                 self.active = rotated.tap_mut(
-                    |Mino {
+                    |Tetromino {
                          position: (tet_x, tet_y),
                          ..
                      }| {
@@ -146,14 +153,14 @@ mod test {
 
     use crate::board::Cell;
 
-    use super::{Board, Spin, Direction, Mino, MinoVariant};
+    use super::{Board, Direction, RotationState, Tetromino, TetrominoVariant};
 
     #[test]
     fn test_rotations() {
         let mut board = Board {
-            active: Mino {
-                variant: super::MinoVariant::T,
-                direction: super::Direction::Down,
+            active: Tetromino {
+                variant: super::TetrominoVariant::T,
+                rotation_state: super::RotationState::Down,
                 position: (5, 20),
             },
             cells: Grid::init(40, 10, None),
@@ -167,9 +174,9 @@ mod test {
         const GB: Option<Cell> = Some(Cell::Garbage);
 
         let mut tki_board = Board {
-            active: Mino {
-                variant: MinoVariant::T,
-                direction: Direction::Right,
+            active: Tetromino {
+                variant: TetrominoVariant::T,
+                rotation_state: RotationState::Right,
                 position: (1, 2),
             },
             cells: grid![

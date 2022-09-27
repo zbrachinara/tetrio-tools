@@ -13,6 +13,13 @@ use crate::board::kick_table::Positions;
 pub enum Cell {
     Tetromino(MinoVariant),
     Garbage,
+    None,
+}
+
+impl Cell {
+    fn is_empty(&self) -> bool {
+        matches!(self, Cell::None)
+    }
 }
 
 #[derive(PartialEq, Eq, Hash, Debug)]
@@ -84,7 +91,7 @@ pub enum MinoVariant {
 }
 
 pub struct Board {
-    cells: Grid<Option<Cell>>,
+    cells: Grid<Cell>,
     active: Mino,
 }
 
@@ -131,12 +138,12 @@ impl Board {
             (*x >= 0 && *y >= 0) &&
             // and that the cell at that position is empty on the board
                 self.cell(*x as usize, *y as usize)
-                    .map(|u| u.is_none())
+                    .map(|u| u.is_empty())
                     == Some(true)
         })
     }
 
-    fn cell(&self, x: usize, y: usize) -> Option<&Option<Cell>> {
+    fn cell(&self, x: usize, y: usize) -> Option<&Cell> {
         self.cells.get(y, x)
     }
 }
@@ -147,7 +154,7 @@ mod test {
 
     use crate::board::Cell;
 
-    use super::{Board, Spin, Direction, Mino, MinoVariant};
+    use super::{Board, Direction, Mino, MinoVariant, Spin};
 
     #[test]
     fn test_rotations() {
@@ -157,7 +164,7 @@ mod test {
                 rotation_state: super::Direction::Down,
                 position: (5, 20),
             },
-            cells: Grid::init(40, 10, None),
+            cells: Grid::init(40, 10, Cell::None),
         };
 
         board.rotate_active(Spin::CW);
@@ -165,7 +172,8 @@ mod test {
 
     #[test]
     fn test_t_kicks() {
-        const GB: Option<Cell> = Some(Cell::Garbage);
+        const GB: Cell = Cell::Garbage;
+        const NC: Cell = Cell::None;
 
         let mut tki_board = Board {
             active: Mino {
@@ -174,13 +182,13 @@ mod test {
                 position: (1, 2),
             },
             cells: grid![
-                [GB, GB, None, GB, GB, GB, GB, GB, GB, GB]
-                [GB, None, None, None, GB, GB, GB, GB, GB, GB]
-                [GB, None, None, GB, GB, GB, GB, None, None, None]
-                [None, None, None, GB, GB, GB, None, None, None, None]
-                [None, None, None, None, None, None, None, None, None, None]
-                [None, None, None, None, None, None, None, None, None, None]
-                [None, None, None, None, None, None, None, None, None, None]
+                [GB, GB, NC, GB, GB, GB, GB, GB, GB, GB]
+                [GB, NC, NC, NC, GB, GB, GB, GB, GB, GB]
+                [GB, NC, NC, GB, GB, GB, GB, NC, NC, NC]
+                [NC, NC, NC, GB, GB, GB, NC, NC, NC, NC]
+                [NC, NC, NC, NC, NC, NC, NC, NC, NC, NC]
+                [NC, NC, NC, NC, NC, NC, NC, NC, NC, NC]
+                [NC, NC, NC, NC, NC, NC, NC, NC, NC, NC]
             ],
         };
 

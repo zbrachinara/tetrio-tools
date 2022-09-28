@@ -81,12 +81,12 @@ pub mod event {
         },
         Targets,
         KeyDown {
-            #[serde(flatten, borrow)]
-            key_event: KeyEvent<'a>,
+            #[serde(flatten)]
+            key_event: KeyEvent,
         },
         KeyUp {
-            #[serde(flatten, borrow)]
-            key_event: KeyEvent<'a>,
+            #[serde(flatten)]
+            key_event: KeyEvent,
         },
         #[serde(rename = "ige")]
         InGameEvent {
@@ -134,10 +134,30 @@ pub mod event {
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
-    pub struct KeyEvent<'a> {
-        key: &'a str,
+    pub struct KeyEvent {
+        key: Key,
         subframe: Number,
         hoisted: Option<bool>, //TODO: Figure out what this means
+    }
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub enum Key {
+        #[serde(rename = "hold")]
+        Hold,
+        #[serde(rename = "moveLeft")]
+        Left,
+        #[serde(rename = "moveRight")]
+        Right,
+        #[serde(rename = "rotateCW")]
+        Clockwise,
+        #[serde(rename = "rotate180")]
+        Flip,
+        #[serde(rename = "rotateCCW")]
+        CounterClockwise,
+        #[serde(rename = "softDrop")]
+        SoftDrop,
+        #[serde(rename = "hardDrop")]
+        HardDrop,
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -114,6 +114,7 @@ pub mod event {
     )]
     #[serde(rename_all = "snake_case")]
     pub enum Interaction {
+        #[serde(rename = "interaction")]
         InteractionDo {
             #[serde(flatten)]
             data: Garbage,

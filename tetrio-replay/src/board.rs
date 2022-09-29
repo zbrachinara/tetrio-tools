@@ -7,7 +7,7 @@ use std::{iter, ops::Add};
 use grid::Grid;
 use tap::Tap;
 
-use crate::board::kick_table::Positions;
+use crate::{board::kick_table::Positions, reconstruct::Action};
 
 #[derive(Clone, Debug)]
 pub enum Cell {
@@ -100,12 +100,12 @@ impl Board {
     /// false otherwise.
     ///
     /// For now, assumes SRS+
-    fn rotate_active(&mut self, direction: Spin) -> bool {
+    pub fn rotate_active(&mut self, direction: Spin) -> Option<Action> {
         let rotated = self.active.rotate(direction);
         let rotation = self.active.rotation(direction);
 
         let true_rotation = Positions::tetromino(rotated.clone());
-        let kicks = kick_table::SRS_PLUS_KICK_TABLE.get(&rotation).unwrap();
+        let kicks = kick_table::SRS_PLUS_KICK_TABLE.get(&rotation).unwrap(); // where SRS+ assumed
 
         let accepted_kick = iter::once(&(0, 0)).chain(kicks.iter()).find(|offset| {
             let testing = true_rotation.clone() + **offset;
@@ -124,7 +124,9 @@ impl Board {
                     },
                 )
             })
-            .is_some()
+            .map(|_| Action::Reposition {
+                piece: self.active.clone(),
+            })
     }
 
     /// Tests whether or not the positions passed in are empty (i.e. they are available for a

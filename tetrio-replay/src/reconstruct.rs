@@ -2,7 +2,7 @@
 
 use crate::{board::{Cell, Mino}, data::event::Event};
 
-enum Action {
+pub enum Action {
     Garbage { column: u8, height: u8 },
     Reposition { piece: Mino },
     LineClear { line: u8 },

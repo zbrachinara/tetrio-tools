@@ -64,6 +64,12 @@ impl<'a> From<GameOptions<'a>> for Controller {
     }
 }
 
+impl Controller {
+    fn stream_game<'a>(&mut self, game: Vec<Event<'a>>) -> Vec<Action> {
+        todo!()
+    }
+}
+
 fn reconstruct<'a>(event_stream: Vec<Event<'a>>) -> Vec<Action> {
-    todo!()
+    Controller::default().stream_game(event_stream)
 }

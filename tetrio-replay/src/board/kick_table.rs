@@ -43,7 +43,7 @@ impl<const N: usize> Positions<N> {
 }
 
 impl Positions<4> {
-    pub fn tetromino(tet: Mino) -> Self {
+    pub fn tetromino(tet: &Mino) -> Self {
         let mut cells = [(0, 0); 4];
         cells
             .iter_mut()
@@ -145,7 +145,7 @@ pub static ROTATION_TABLE: Lazy<HashMap<TetrominoState, [(i8, i8); 4]>> = Lazy::
     .collect()
 });
 
-pub static SRS_PLUS_KICK_TABLE: Lazy<KickTable> = Lazy::new(|| {
+pub static SRS_PLUS: Lazy<KickTable> = Lazy::new(|| {
     use MinoVariant::*;
 
     [J, L, T, S, Z]

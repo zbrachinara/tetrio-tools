@@ -196,7 +196,7 @@ pub mod event {
         #[serde(rename = "fulloffset")]
         pub full_offset: Number,
         #[serde(rename = "g")]
-        pub gravity: Number,
+        pub gravity: f64,
         #[serde(rename = "garbagecap")]
         pub garbage_cap: Number,
         #[serde(rename = "garbagecapincrease")]
@@ -214,10 +214,10 @@ pub mod event {
         #[serde(rename = "ghostskin")]
         pub ghost_skin: &'a str,
         #[serde(rename = "gincrease")]
-        pub gravity_increase: Number,
+        pub gravity_increase: f64,
         #[serde(rename = "gmargin")]
         pub gravity_margin: Number,
-        handling: Handling,
+        pub handling: Handling,
         #[serde(rename = "hasgarbage")]
         pub has_garbage: bool,
         #[serde(rename = "infinitemovement")]
@@ -321,12 +321,12 @@ pub mod event {
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct Handling {
-        pub arr: Number,
+        pub arr: f64,
         pub cancel: bool,
-        pub das: Number,
-        pub dcd: Number,
+        pub das: f64,
+        pub dcd: f64,
         pub safelock: bool,
-        pub sdf: Number,
+        pub sdf: f64,
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -1,3 +1,7 @@
+use std::collections::VecDeque;
+
+use crate::board::MinoVariant;
+
 #[allow(unused)]
 pub struct Rng {
     state: u64,
@@ -6,7 +10,9 @@ pub struct Rng {
 #[allow(unused)]
 impl Rng {
     fn seeded(seed: u64) -> Self {
-        Rng { state: seed % 2147483647 }
+        Rng {
+            state: seed % 2147483647,
+        }
     }
 
     fn next(&mut self) -> u64 {
@@ -33,6 +39,51 @@ impl Rng {
     fn shuffle_array<T, const N: usize>(&mut self, mut arr: [T; N]) -> [T; N] {
         self.shuffle_slice(&mut arr);
         arr
+    }
+}
+
+pub struct PieceQueue {
+    window: VecDeque<MinoVariant>,
+    window_size: usize,
+    rng: Rng,
+}
+
+impl PieceQueue {
+    pub fn seeded(seed: u64, window_size: usize) -> Self {
+        let mut rng = Rng::seeded(seed);
+        let mut window = VecDeque::with_capacity(window_size / 7 * 7);
+
+        while window.len() < window_size {
+            use MinoVariant::*;
+            window.extend(rng.shuffle_array([Z, L, O, S, I, J, T]))
+        }
+
+        Self {
+            rng,
+            window,
+            window_size,
+        }
+    }
+
+    pub fn window(&self) -> impl Iterator<Item = &MinoVariant> {
+        self.window.iter().take(self.window_size)
+    }
+
+    pub fn pop(&mut self) -> MinoVariant {
+        let ret = self.window.pop_front();
+        self.fill();
+        ret.unwrap()
+    }
+
+    pub fn fill(&mut self) {
+        if self.window.len() < self.window_size {
+            self.generate()
+        }
+    }
+
+    pub fn generate(&mut self) {
+        use MinoVariant::*;
+        self.window.extend([Z, L, O, S, I, J, T])
     }
 }
 

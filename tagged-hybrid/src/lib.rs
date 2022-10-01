@@ -154,6 +154,11 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
     );
 
     // public-facing struct which takes the place of the annotated enum
+    let common_fields_visibility = common_fields_inner.clone().tap_mut(|fields| {
+        fields
+            .iter_mut()
+            .for_each(|field| field.vis = visibility.clone())
+    });
     let public_struct = {
         let borrow_attr = if generics.lifetimes().next().is_some() {
             quote!(#[serde(borrow)])
@@ -164,9 +169,9 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
             #[derive(serde::Serialize, serde::Deserialize, Clone)]
             #[serde(from = "Raw", into = "Raw")]
             #struct_attrs
-            pub struct #container_name #generics {
-                #borrow_attr data: #data_enum_name #generics,
-                #common_fields_inner
+            #visibility struct #container_name #generics {
+                #borrow_attr pub data: #data_enum_name #generics,
+                #common_fields_visibility
             }
         )
     };

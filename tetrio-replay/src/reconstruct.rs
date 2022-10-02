@@ -2,7 +2,7 @@
 
 use crate::{
     board::{Cell, Mino},
-    data::event::{Event, GameOptions},
+    data::event::{Event, EventData, GameOptions},
 };
 
 pub enum Action {
@@ -35,8 +35,8 @@ impl Default for Settings {
     }
 }
 
-impl<'a> From<GameOptions<'a>> for Settings {
-    fn from(options: GameOptions) -> Self {
+impl<'a, 'b> From<&'a GameOptions<'b>> for Settings {
+    fn from(options: &'a GameOptions<'b>) -> Self {
         Self {
             gravity: options.gravity,
             gravity_increase: options.gravity_increase,
@@ -48,28 +48,51 @@ impl<'a> From<GameOptions<'a>> for Settings {
     }
 }
 
-#[derive(Default)]
-struct Controller {
+// #[derive(Default)]
+struct Controller<It> {
     settings: Settings,
+    events: It,
     gravity_counter: f32,
     shift_counter: f32,
 }
 
-impl<'a> From<GameOptions<'a>> for Controller {
-    fn from(options: GameOptions<'a>) -> Self {
-        Self {
-            settings: options.into(),
-            ..Default::default()
+impl<'a, It> Controller<It>
+where
+    It: Iterator<Item = &'a Event<'a>>,
+{
+    fn read_game(mut game: It) -> Result<Self, &'static str> {
+        let pregame_data = loop {
+            let next = game.next();
+            match next {
+                Some(Event {
+                    data: EventData::Full { .. },
+                    ..
+                }) => break next,
+                None => break None,
+                _ => continue,
+            }
+        }
+        .ok_or("could not find full data to extract initial game state from")?;
+
+        match pregame_data {
+            Event {
+                data: EventData::Full { options, .. },
+                ..
+            } => Ok(Self {
+                settings: options.into(),
+                events: game,
+                gravity_counter: 0.,
+                shift_counter: 0.,
+            }),
+            _ => unreachable!(),
         }
     }
-}
 
-impl Controller {
-    fn stream_game<'a>(&mut self, game: &Vec<Event<'a>>) -> Result<Vec<Action>, String> {
+    fn stream(self) -> Result<Vec<Action>, String> {
         todo!()
     }
 }
 
 fn reconstruct<'a>(event_stream: &Vec<Event<'a>>) -> Result<Vec<Action>, String> {
-    Controller::default().stream_game(&event_stream)
+    Controller::read_game(event_stream.iter())?.stream()
 }

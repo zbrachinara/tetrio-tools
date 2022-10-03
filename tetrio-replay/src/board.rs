@@ -4,10 +4,13 @@ mod kick_table;
 
 use std::{iter, ops::Add};
 
-use grid::Grid;
+use gridly::prelude::{Column, Grid, Row};
+use gridly_grids::VecGrid;
 use tap::Tap;
 
-use crate::{board::kick_table::Positions, reconstruct::Action};
+use crate::{
+    board::kick_table::Positions, data::event::Game, reconstruct::Action, rng::PieceQueue,
+};
 
 #[derive(Clone, Debug)]
 pub enum Cell {
@@ -68,6 +71,16 @@ pub struct Mino {
     position: (usize, usize),
 }
 
+impl From<MinoVariant> for Mino {
+    fn from(variant: MinoVariant) -> Self {
+        Self {
+            variant,
+            rotation_state: Direction::Up,
+            position: (5, 22), //TODO: Find out if the piece actually spawns here initially
+        }
+    }
+}
+
 impl Mino {
     pub fn rotation(&self, at: Spin) -> Rotation {
         Rotation {
@@ -91,11 +104,26 @@ pub enum MinoVariant {
 }
 
 pub struct Board {
-    cells: Grid<Cell>,
+    cells: VecGrid<Cell>,
     active: Mino,
 }
 
 impl Board {
+    // fn new(queue: PieceQueue, game: &Game) -> Self {
+
+    //     let board = game.board;
+    //     let cells = Grid::new(0, 0);
+    //     for row in board {
+    //         cells.push_row(row)
+    //     }
+
+    //     Self {
+    //         cells,
+    //         queue,
+    //         active: queue.pop().into(),
+    //     }
+    // }
+
     /// Attempts to rotate the active tetromino on the board. Returns true if successful,
     /// false otherwise.
     ///
@@ -139,20 +167,22 @@ impl Board {
             // check the position is within the bounds of the board
             (*x >= 0 && *y >= 0) &&
             // and that the cell at that position is empty on the board
-                self.cell(*x as usize, *y as usize)
+                self.cell(*x, *y)
                     .map(|u| u.is_empty())
                     == Some(true)
         })
     }
 
-    fn cell(&self, x: usize, y: usize) -> Option<&Cell> {
-        self.cells.get(y, x)
+    fn cell(&self, x: isize, y: isize) -> Option<&Cell> {
+        self.cells.get((Column(x), Row(y))).ok()
     }
 }
 
 #[cfg(test)]
 mod test {
-    use grid::{grid, Grid};
+
+    use gridly::vector::{Columns, Rows};
+    use gridly_grids::VecGrid;
 
     use crate::board::Cell;
 
@@ -166,7 +196,8 @@ mod test {
                 rotation_state: super::Direction::Down,
                 position: (5, 20),
             },
-            cells: Grid::init(40, 10, Cell::None),
+            // cells: Grid::init(40, 10, Cell::None),
+            cells: VecGrid::new_fill((Rows(40), Columns(10)), &Cell::None).unwrap(),
         };
 
         board.rotate_active(Spin::CW);
@@ -183,15 +214,15 @@ mod test {
                 rotation_state: Direction::Right,
                 position: (1, 2),
             },
-            cells: grid![
-                [GB, GB, NC, GB, GB, GB, GB, GB, GB, GB]
-                [GB, NC, NC, NC, GB, GB, GB, GB, GB, GB]
-                [GB, NC, NC, GB, GB, GB, GB, NC, NC, NC]
-                [NC, NC, NC, GB, GB, GB, NC, NC, NC, NC]
-                [NC, NC, NC, NC, NC, NC, NC, NC, NC, NC]
-                [NC, NC, NC, NC, NC, NC, NC, NC, NC, NC]
-                [NC, NC, NC, NC, NC, NC, NC, NC, NC, NC]
-            ],
+            cells: VecGrid::new_from_rows(vec![
+                [GB, GB, NC, GB, GB, GB, GB, GB, GB, GB],
+                [GB, NC, NC, NC, GB, GB, GB, GB, GB, GB],
+                [GB, NC, NC, GB, GB, GB, GB, NC, NC, NC],
+                [NC, NC, NC, GB, GB, GB, NC, NC, NC, NC],
+                [NC, NC, NC, NC, NC, NC, NC, NC, NC, NC],
+                [NC, NC, NC, NC, NC, NC, NC, NC, NC, NC],
+                [NC, NC, NC, NC, NC, NC, NC, NC, NC, NC],
+            ]).unwrap(),
         };
 
         tki_board.rotate_active(Spin::CW);

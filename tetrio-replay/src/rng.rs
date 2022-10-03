@@ -49,7 +49,6 @@ pub struct PieceQueue {
 }
 
 impl PieceQueue {
-
     /// Creates a piecequeue that won't be used
     pub fn meaningless() -> Self {
         Self::seeded(1, 1)
@@ -89,7 +88,8 @@ impl PieceQueue {
 
     pub fn generate(&mut self) {
         use MinoVariant::*;
-        self.window.extend([Z, L, O, S, I, J, T])
+        self.window
+            .extend(self.rng.shuffle_array([Z, L, O, S, I, J, T]))
     }
 }
 

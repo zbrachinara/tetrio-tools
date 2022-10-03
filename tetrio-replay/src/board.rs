@@ -139,7 +139,7 @@ pub struct Board {
 }
 
 impl Board {
-    fn new(piece_seed: u64, game: &Game) -> Self {
+    pub fn new(piece_seed: u64, game: &Game) -> Self {
         let mut queue = PieceQueue::seeded(piece_seed, 5);
         let cells = VecGrid::new_from_rows(
             game.board

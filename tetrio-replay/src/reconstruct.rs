@@ -1,7 +1,7 @@
 #![allow(unused)]
 
 use crate::{
-    board::{Cell, Mino},
+    board::{Cell, Mino, Board},
     data::event::{Event, EventData, GameOptions},
 };
 
@@ -50,8 +50,9 @@ impl<'a, 'b> From<&'a GameOptions<'b>> for Settings {
 
 // #[derive(Default)]
 struct Controller<It> {
-    settings: Settings,
     events: It,
+    board: Board,
+    settings: Settings,
     gravity_counter: f32,
     shift_counter: f32,
 }
@@ -76,11 +77,12 @@ where
 
         match pregame_data {
             Event {
-                data: EventData::Full { options, .. },
+                data: EventData::Full { options, game: board, .. },
                 ..
             } => Ok(Self {
-                settings: options.into(),
                 events: game,
+                board: Board::new(options.seed, board),
+                settings: options.into(),
                 gravity_counter: 0.,
                 shift_counter: 0.,
             }),

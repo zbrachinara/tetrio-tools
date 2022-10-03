@@ -49,6 +49,12 @@ pub struct PieceQueue {
 }
 
 impl PieceQueue {
+
+    /// Creates a piecequeue that won't be used
+    pub fn meaningless() -> Self {
+        Self::seeded(1, 1)
+    }
+
     pub fn seeded(seed: u64, window_size: usize) -> Self {
         let mut rng = Rng::seeded(seed);
         let mut window = VecDeque::with_capacity(window_size / 7 * 7);

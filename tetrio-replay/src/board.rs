@@ -19,6 +19,19 @@ pub enum Cell {
     None,
 }
 
+impl<'a> From<Option<&'a str>> for Cell {
+    fn from(name: Option<&'a str>) -> Self {
+        name.map(|str| {
+            if str == "gb" {
+                Self::Garbage
+            } else {
+                Self::Tetromino(str.into())
+            }
+        })
+        .unwrap_or(Self::None)
+    }
+}
+
 impl Cell {
     fn is_empty(&self) -> bool {
         matches!(self, Cell::None)
@@ -103,26 +116,45 @@ pub enum MinoVariant {
     L, J, T, Z, S, O, I
 }
 
+impl<'a> From<&'a str> for MinoVariant {
+    fn from(str: &'a str) -> Self {
+        use MinoVariant::*;
+        match str {
+            "l" => L,
+            "j" => J,
+            "t" => T,
+            "z" => Z,
+            "s" => S,
+            "o" => O,
+            "i" => I,
+            _ => panic!("Not a mino variant"),
+        }
+    }
+}
+
 pub struct Board {
     cells: VecGrid<Cell>,
+    queue: PieceQueue,
     active: Mino,
 }
 
 impl Board {
-    // fn new(queue: PieceQueue, game: &Game) -> Self {
+    fn new(mut queue: PieceQueue, game: &Game) -> Self {
+        let cells = VecGrid::new_from_rows(
+            game.board
+                .iter()
+                .map(|row| row.iter().map(|elem| Cell::from(*elem))),
+        )
+        .unwrap();
 
-    //     let board = game.board;
-    //     let cells = Grid::new(0, 0);
-    //     for row in board {
-    //         cells.push_row(row)
-    //     }
+        let active = queue.pop().into();
 
-    //     Self {
-    //         cells,
-    //         queue,
-    //         active: queue.pop().into(),
-    //     }
-    // }
+        Self {
+            cells,
+            queue,
+            active,
+        }
+    }
 
     /// Attempts to rotate the active tetromino on the board. Returns true if successful,
     /// false otherwise.
@@ -184,7 +216,7 @@ mod test {
     use gridly::vector::{Columns, Rows};
     use gridly_grids::VecGrid;
 
-    use crate::board::Cell;
+    use crate::{board::Cell, rng::PieceQueue};
 
     use super::{Board, Direction, Mino, MinoVariant, Spin};
 
@@ -196,6 +228,7 @@ mod test {
                 rotation_state: super::Direction::Down,
                 position: (5, 20),
             },
+            queue: PieceQueue::meaningless(),
             // cells: Grid::init(40, 10, Cell::None),
             cells: VecGrid::new_fill((Rows(40), Columns(10)), &Cell::None).unwrap(),
         };
@@ -214,6 +247,7 @@ mod test {
                 rotation_state: Direction::Right,
                 position: (1, 2),
             },
+            queue: PieceQueue::meaningless(),
             cells: VecGrid::new_from_rows(vec![
                 [GB, GB, NC, GB, GB, GB, GB, GB, GB, GB],
                 [GB, NC, NC, NC, GB, GB, GB, GB, GB, GB],
@@ -222,7 +256,8 @@ mod test {
                 [NC, NC, NC, NC, NC, NC, NC, NC, NC, NC],
                 [NC, NC, NC, NC, NC, NC, NC, NC, NC, NC],
                 [NC, NC, NC, NC, NC, NC, NC, NC, NC, NC],
-            ]).unwrap(),
+            ])
+            .unwrap(),
         };
 
         tki_board.rotate_active(Spin::CW);

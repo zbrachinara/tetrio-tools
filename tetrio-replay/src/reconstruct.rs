@@ -1,7 +1,7 @@
 #![allow(unused)]
 
 use crate::{
-    board::{Cell, Mino, Board},
+    board::{Board, Cell, Mino},
     data::event::{Event, EventData, GameOptions},
 };
 
@@ -77,7 +77,12 @@ where
 
         match pregame_data {
             Event {
-                data: EventData::Full { options, game: board, .. },
+                data:
+                    EventData::Full {
+                        options,
+                        game: board,
+                        ..
+                    },
                 ..
             } => Ok(Self {
                 events: game,

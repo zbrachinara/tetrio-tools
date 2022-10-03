@@ -144,7 +144,8 @@ impl Board {
         let cells = VecGrid::new_from_rows(
             game.board
                 .iter()
-                .map(|row| row.iter().map(|elem| Cell::from(*elem))),
+                .map(|row| row.iter().map(|elem| Cell::from(*elem)))
+                .rev(),
         )
         .unwrap();
 

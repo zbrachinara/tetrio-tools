@@ -158,6 +158,12 @@ impl Board {
         }
     }
 
+    /// Drops the active tetromino into the columns that it takes up, then checks if the position
+    /// that it was dropped to was legal (i.e. one cell landed below 20 lines)
+    fn drop_active() -> Vec<Action> {
+        todo!()
+    }
+
     /// Attempts to rotate the active tetromino on the board. Returns true if successful,
     /// false otherwise.
     ///

@@ -256,7 +256,7 @@ pub mod event {
         pub room_handling_arr: Number,
         pub room_handling_das: Number,
         pub room_handling_sdf: Number,
-        pub seed: Number,
+        pub seed: u64,
         pub seed_random: bool,
         pub slot_bar1: &'a str,
         pub slot_counter1: Option<&'a str>,

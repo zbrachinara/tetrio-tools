@@ -2,10 +2,11 @@
 
 mod kick_table;
 
-use std::{iter, ops::Add};
+use std::{iter, ops::Add, str::FromStr};
 
 use gridly::prelude::{Column, Grid, Row};
 use gridly_grids::VecGrid;
+use strum::EnumString;
 use tap::Tap;
 
 use crate::{
@@ -25,7 +26,7 @@ impl<'a> From<Option<&'a str>> for Cell {
             if str == "gb" {
                 Self::Garbage
             } else {
-                Self::Tetromino(str.into())
+                Self::Tetromino(<_>::from_str(str).unwrap())
             }
         })
         .unwrap_or(Self::None)
@@ -111,25 +112,10 @@ impl Mino {
 }
 
 #[rustfmt::skip]
-#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
+#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug, EnumString)]
+#[strum(ascii_case_insensitive)]
 pub enum MinoVariant {
     L, J, T, Z, S, O, I
-}
-
-impl<'a> From<&'a str> for MinoVariant {
-    fn from(str: &'a str) -> Self {
-        use MinoVariant::*;
-        match str {
-            "l" => L,
-            "j" => J,
-            "t" => T,
-            "z" => Z,
-            "s" => S,
-            "o" => O,
-            "i" => I,
-            _ => panic!("Not a mino variant"),
-        }
-    }
 }
 
 pub struct Board {

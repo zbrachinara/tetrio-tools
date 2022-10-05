@@ -16,9 +16,10 @@ use glium::{
 #[derive(Copy, Clone)]
 struct Vertex {
     position: [f32; 2],
+    color_id: u32,
 }
 
-implement_vertex!(Vertex, position);
+implement_vertex!(Vertex, position, color_id);
 
 fn main() {
     let el = EventLoop::new();
@@ -31,34 +32,41 @@ fn main() {
 #version 140
 
 in vec2 position;
-out vec4 color_id;
+in uint color_id;
+flat out uint color_id_out;
 
 void main() {
     gl_Position = vec4(position, 0.0, 1.0);
-    color_id = vec4(1.0, 0.0, 0.0, 1.0);
+    color_id_out = color_id;
 }
 "#;
 
     let fragment_shader = r#"
 #version 140
 
-in vec4 color_id;
+flat in uint color_id_out;
 out vec4 color;
 
 void main() {
-    color = color_id;
+    switch (color_id_out) {
+        case 0u:
+            color = vec4(1.0, 0.0, 0.0, 1.0);
+    }
 }
 "#;
 
     let shader = Program::from_source(&display, vertex_shader, fragment_shader, None).unwrap();
     let vertex1 = Vertex {
         position: [-0.5, -0.5],
+        color_id: 0,
     };
     let vertex2 = Vertex {
         position: [0.0, 0.5],
+        color_id: 0,
     };
     let vertex3 = Vertex {
         position: [0.5, -0.25],
+        color_id: 0,
     };
     let shape = [vertex1, vertex2, vertex3];
 

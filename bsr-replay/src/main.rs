@@ -64,10 +64,10 @@ out vec4 color;
 void main() {
     switch (color_id_out) {
         case 0u: // L piece
-            color = vec4(0.0, 0.0, 1.0, 1.0);
+            color = vec4(1.0, 0.1, 0.0, 1.0);
             break;
         case 1u: // J piece
-            color = vec4(1.0, 0.1, 0.0, 1.0);
+            color = vec4(0.0, 0.0, 1.0, 1.0);
             break;
         case 2u: // T piece
             color = vec4(0.5, 0.0, 1.0, 1.0);
@@ -99,7 +99,7 @@ void main() {
     };
     let vertex3 = Vertex {
         position: [0.5, -0.25],
-        color_id: MinoColors::I,
+        color_id: MinoColors::T,
     };
     let shape = [vertex1, vertex2, vertex3];
 

@@ -10,13 +10,27 @@ use glium::{
     implement_vertex,
     index::{NoIndices, PrimitiveType},
     uniforms::EmptyUniforms,
-    Program, Surface, VertexBuffer,
+    Program, Surface, VertexBuffer, vertex,
 };
+
+#[derive(Copy, Clone)]
+#[repr(u32)]
+#[rustfmt::skip]
+#[allow(dead_code)]
+enum MinoColors {
+    L, J, T, Z, S, O, I
+}
+
+unsafe impl vertex::Attribute for MinoColors{
+    fn get_type() -> vertex::AttributeType {
+        vertex::AttributeType::U32
+    }
+}
 
 #[derive(Copy, Clone)]
 struct Vertex {
     position: [f32; 2],
-    color_id: u32,
+    color_id: MinoColors,
 }
 
 implement_vertex!(Vertex, position, color_id);
@@ -49,8 +63,27 @@ out vec4 color;
 
 void main() {
     switch (color_id_out) {
-        case 0u:
+        case 0u: // L piece
+            color = vec4(0.0, 0.0, 1.0, 1.0);
+            break;
+        case 1u: // J piece
+            color = vec4(1.0, 0.1, 0.0, 1.0);
+            break;
+        case 2u: // T piece
+            color = vec4(0.5, 0.0, 1.0, 1.0);
+            break;
+        case 3u: // Z piece
             color = vec4(1.0, 0.0, 0.0, 1.0);
+            break;
+        case 4u: // S piece
+            color = vec4(0.1, 1.0, 0.0, 1.0);
+            break;
+        case 5u: // O piece
+            color = vec4(1.0, 1.0, 0.0, 1.0);
+            break;
+        case 6u: // I piece
+            color = vec4(0.0, 1.0, 1.0, 1.0);
+            break;
     }
 }
 "#;
@@ -58,15 +91,15 @@ void main() {
     let shader = Program::from_source(&display, vertex_shader, fragment_shader, None).unwrap();
     let vertex1 = Vertex {
         position: [-0.5, -0.5],
-        color_id: 0,
+        color_id: MinoColors::J,
     };
     let vertex2 = Vertex {
         position: [0.0, 0.5],
-        color_id: 0,
+        color_id: MinoColors::J,
     };
     let vertex3 = Vertex {
         position: [0.5, -0.25],
-        color_id: 0,
+        color_id: MinoColors::I,
     };
     let shape = [vertex1, vertex2, vertex3];
 
@@ -74,7 +107,7 @@ void main() {
 
     el.run(move |ev, _, control_flow| {
         let mut target = display.draw();
-        target.clear_color(0.0, 0.0, 1.0, 1.0);
+        target.clear_color(0.0, 0.0, 0.0, 1.0);
 
         target.draw(
             &vbuffer,

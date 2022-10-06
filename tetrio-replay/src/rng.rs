@@ -50,6 +50,7 @@ pub struct PieceQueue {
 
 impl PieceQueue {
     /// Creates a piecequeue that won't be used
+    #[allow(unused)] // is meant for tests
     pub fn meaningless() -> Self {
         Self::seeded(1, 1)
     }

@@ -10,7 +10,7 @@ use glium::{
     implement_vertex,
     index::{NoIndices, PrimitiveType},
     uniforms::EmptyUniforms,
-    Program, Surface, VertexBuffer, vertex,
+    vertex, Program, Surface, VertexBuffer,
 };
 
 mod draw;
@@ -23,7 +23,7 @@ enum MinoColors {
     L, J, T, Z, S, O, I
 }
 
-unsafe impl vertex::Attribute for MinoColors{
+unsafe impl vertex::Attribute for MinoColors {
     fn get_type() -> vertex::AttributeType {
         vertex::AttributeType::U32
     }

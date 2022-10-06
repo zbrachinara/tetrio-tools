@@ -6,8 +6,8 @@ pub use data::TTRM;
 
 mod board;
 pub mod data;
-mod rng;
 mod reconstruct;
+mod rng;
 
 pub fn parse_replay<'a>(content: &'a str) -> Result<TTRM<'a>> {
     Ok(serde_json::from_str(content)?)

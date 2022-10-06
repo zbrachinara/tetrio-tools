@@ -3,7 +3,7 @@ use std::{collections::HashMap, ops::Add};
 use once_cell::sync::Lazy;
 use tap::Tap;
 
-use crate::board::{Rotation, Direction, MinoVariant};
+use crate::board::{Direction, MinoVariant, Rotation};
 
 use super::Mino;
 
@@ -130,10 +130,7 @@ pub static ROTATION_TABLE: Lazy<HashMap<TetrominoState, [(i8, i8); 4]>> = Lazy::
         [
             ((I, Direction::Up), [(-2, 0), (-1, 0), (0, 0), (1, 0)]),
             ((I, Direction::Left), [(0, 1), (0, 0), (0, -1), (0, -2)]),
-            (
-                (I, Direction::Down),
-                [(-2, -1), (-1, -1), (0, -1), (1, -1)],
-            ),
+            ((I, Direction::Down), [(-2, -1), (-1, -1), (0, -1), (1, -1)]),
             (
                 (I, Direction::Right),
                 [(-1, 1), (-1, 0), (-1, -1), (-1, -2)],

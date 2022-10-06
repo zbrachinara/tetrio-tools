@@ -43,7 +43,7 @@ impl Rng {
 }
 
 pub struct PieceQueue {
-    window: VecDeque<MinoVariant>,
+    window: VecDeque<MinoVariant>, //TODO: Determine whether window is necessary
     window_size: usize,
     rng: Rng,
 }

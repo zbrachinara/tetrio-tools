@@ -13,6 +13,8 @@ use glium::{
     Program, Surface, VertexBuffer, vertex,
 };
 
+mod draw;
+
 #[derive(Copy, Clone)]
 #[repr(u32)]
 #[rustfmt::skip]
@@ -28,12 +30,12 @@ unsafe impl vertex::Attribute for MinoColors{
 }
 
 #[derive(Copy, Clone)]
-struct Vertex {
+struct MinoVertex {
     position: [f32; 2],
     color_id: MinoColors,
 }
 
-implement_vertex!(Vertex, position, color_id);
+implement_vertex!(MinoVertex, position, color_id);
 
 fn main() {
     let el = EventLoop::new();
@@ -89,15 +91,15 @@ void main() {
 "#;
 
     let shader = Program::from_source(&display, vertex_shader, fragment_shader, None).unwrap();
-    let vertex1 = Vertex {
+    let vertex1 = MinoVertex {
         position: [-0.5, -0.5],
         color_id: MinoColors::J,
     };
-    let vertex2 = Vertex {
+    let vertex2 = MinoVertex {
         position: [0.0, 0.5],
         color_id: MinoColors::J,
     };
-    let vertex3 = Vertex {
+    let vertex3 = MinoVertex {
         position: [0.5, -0.25],
         color_id: MinoColors::T,
     };

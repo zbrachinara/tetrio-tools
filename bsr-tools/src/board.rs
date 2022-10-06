@@ -1,7 +1,5 @@
 #![allow(dead_code)]
 
-mod kick_table;
-
 use std::{iter, ops::Add, str::FromStr};
 
 use gridly::prelude::{Column, Grid, Row};
@@ -10,7 +8,9 @@ use strum::EnumString;
 use tap::Tap;
 
 use crate::{
-    board::kick_table::Positions, data::event::Game, reconstruct::Action, rng::PieceQueue,
+    action::Action,
+    kick_table::{self, Positions},
+    rng::PieceQueue,
 };
 
 #[derive(Clone, Debug)]
@@ -80,9 +80,9 @@ impl Add<Spin> for Direction {
 
 #[derive(Clone)]
 pub struct Mino {
-    variant: MinoVariant,
-    rotation_state: Direction,
-    position: (usize, usize),
+    pub variant: MinoVariant,
+    pub rotation_state: Direction,
+    pub position: (usize, usize),
 }
 
 impl From<MinoVariant> for Mino {
@@ -125,11 +125,10 @@ pub struct Board {
 }
 
 impl Board {
-    pub fn new(piece_seed: u64, game: &Game) -> Self {
+    pub fn new(piece_seed: u64, game: &Vec<Vec<Option<&str>>>) -> Self {
         let mut queue = PieceQueue::seeded(piece_seed, 5);
         let cells = VecGrid::new_from_rows(
-            game.board
-                .iter()
+            game.iter()
                 .map(|row| row.iter().map(|elem| Cell::from(*elem)))
                 .rev(),
         )

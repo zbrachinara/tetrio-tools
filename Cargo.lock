@@ -95,6 +95,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "bsr-tools"
+version = "0.1.0"
+dependencies = [
+ "gridly",
+ "gridly_grids",
+ "once_cell",
+ "strum",
+ "strum_macros",
+ "tap",
+]
+
+[[package]]
 name = "bumpalo"
 version = "3.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -975,9 +987,9 @@ dependencies = [
 
 [[package]]
 name = "rand_core"
-version = "0.6.3"
+version = "0.6.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d34f1408f55294453790c48b2f1ebbb1c5b4b7563eb1f418bcfcfdbb06ebb4e7"
+checksum = "ec0be4795e2f6a28069bec0b5ff3e2ac9bafc99e6a9a7dc3547996c5c816922c"
 
 [[package]]
 name = "raw-window-handle"
@@ -1228,15 +1240,11 @@ name = "tetrio-replay"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "gridly",
- "gridly_grids",
+ "bsr-tools",
  "itertools",
- "once_cell",
  "phf",
  "serde",
  "serde_json",
- "strum",
- "strum_macros",
  "tagged-hybrid",
  "tap",
 ]

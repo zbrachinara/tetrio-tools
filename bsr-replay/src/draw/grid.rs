@@ -13,7 +13,7 @@ struct Vertex2 {
 
 implement_vertex!(Vertex2, position);
 
-const vertex_shader: &'static str = r#"
+const VERTEX_SHADER: &'static str = r#"
 #version 140
 
 in vec2 position;
@@ -25,7 +25,7 @@ void main() {
 }
 "#;
 
-const fragment_shader: &'static str = r#"
+const FRAGMENT_SHADER: &'static str = r#"
 #version 140
 
 out vec4 color;
@@ -62,7 +62,7 @@ impl DrawProgram {
             .collect::<Vec<_>>();
 
         Self {
-            program: Program::from_source(display, vertex_shader, fragment_shader, None).unwrap(),
+            program: Program::from_source(display, VERTEX_SHADER, FRAGMENT_SHADER, None).unwrap(),
             grid: VertexBuffer::immutable(display, &vbuffer).unwrap(),
         }
     }

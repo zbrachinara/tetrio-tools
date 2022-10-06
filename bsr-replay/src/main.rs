@@ -107,17 +107,20 @@ void main() {
 
     let vbuffer = VertexBuffer::new(&display, &shape).unwrap();
 
+    let draw_grid = draw::grid::DrawProgram::new(&display);
+
     el.run(move |ev, _, control_flow| {
         let mut target = display.draw();
         target.clear_color(0.0, 0.0, 0.0, 1.0);
 
-        target.draw(
-            &vbuffer,
-            &NoIndices(PrimitiveType::TrianglesList),
-            &shader,
-            &EmptyUniforms,
-            &Default::default(),
-        ).unwrap();
+        draw_grid.draw_grid(&mut target).unwrap();
+        // target.draw(
+        //     &vbuffer,
+        //     &NoIndices(PrimitiveType::TrianglesList),
+        //     &shader,
+        //     &EmptyUniforms,
+        //     &Default::default(),
+        // ).unwrap();
 
         target.finish().unwrap();
 

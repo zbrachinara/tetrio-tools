@@ -1,5 +1,10 @@
-use glium::{implement_vertex, Display, DrawError, Frame, Program, VertexBuffer};
+use glium::{
+    implement_vertex,
+    index::{NoIndices, PrimitiveType},
+    uniform, Display, DrawError, Frame, Program, Surface, VertexBuffer,
+};
 use itertools::Itertools;
+use tap::Pipe;
 
 #[derive(Copy, Clone)]
 struct Vertex2 {
@@ -13,8 +18,10 @@ const vertex_shader: &'static str = r#"
 
 in vec2 position;
 
+uniform vec2 scale_factor;
+
 void main() {
-    gl_Position = vec4(position, 0.0, 1.0);
+    gl_Position = vec4(position * scale_factor, 0.0, 1.0);
 }
 "#;
 
@@ -59,7 +66,17 @@ impl DrawProgram {
             grid: VertexBuffer::immutable(display, &vbuffer).unwrap(),
         }
     }
-    pub fn draw_grid(frame: &mut Frame) -> Result<(), DrawError> {
-        todo!()
+    pub fn draw_grid(&self, frame: &mut Frame) -> Result<(), DrawError> {
+        let (win_x, win_y) = frame.get_dimensions().pipe(|(x, y)| (x as f32, y as f32));
+        let rect_ratio = win_x / win_y;
+        let screen_ratio = 50. / win_x;
+
+        frame.draw(
+            &self.grid,
+            &NoIndices(PrimitiveType::LinesList),
+            &self.program,
+            &uniform! {scale_factor: [screen_ratio, screen_ratio * rect_ratio]},
+            &Default::default(),
+        )
     }
 }

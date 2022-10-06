@@ -39,12 +39,13 @@ void main() {
 pub struct DrawProgram {
     program: Program,
     grid: VertexBuffer<Vertex2>,
+    dimensions: (u8, u8),
 }
 
 impl DrawProgram {
-    pub fn new(display: &Display) -> Self {
-        let vbuffer = (0..10)
-            .cartesian_product(0..20)
+    pub fn new(display: &Display, dimensions @ (x, y): (u8, u8)) -> Self {
+        let vbuffer = (0..x)
+            .cartesian_product(0..y)
             .flat_map(|(x, y)| {
                 [
                     (x, y),
@@ -65,6 +66,7 @@ impl DrawProgram {
         Self {
             program: Program::from_source(display, VERTEX_SHADER, FRAGMENT_SHADER, None).unwrap(),
             grid: VertexBuffer::immutable(display, &vbuffer).unwrap(),
+            dimensions,
         }
     }
 
@@ -79,7 +81,7 @@ impl DrawProgram {
             &self.program,
             &uniform! {
                 scale_factor: [screen_ratio, screen_ratio * rect_ratio],
-                offset: [-5_f32, -10_f32],
+                offset: [-(self.dimensions.0 as f32) / 2., -(self.dimensions.1 as f32) / 2.],
             },
             &Default::default(),
         )

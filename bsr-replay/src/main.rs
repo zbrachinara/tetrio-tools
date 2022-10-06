@@ -107,7 +107,7 @@ void main() {
 
     let vbuffer = VertexBuffer::new(&display, &shape).unwrap();
 
-    let draw_grid = draw::grid::DrawProgram::new(&display);
+    let draw_grid = draw::grid::DrawProgram::new(&display, (10, 20));
 
     el.run(move |ev, _, control_flow| {
         let mut target = display.draw();

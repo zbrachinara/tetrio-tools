@@ -8,9 +8,7 @@ use glium::{
         ContextBuilder,
     },
     implement_vertex,
-    index::{NoIndices, PrimitiveType},
-    uniforms::EmptyUniforms,
-    vertex, Program, Surface, VertexBuffer,
+    vertex, Program, Surface,
 };
 
 mod draw;
@@ -91,22 +89,6 @@ void main() {
 "#;
 
     let shader = Program::from_source(&display, vertex_shader, fragment_shader, None).unwrap();
-    let vertex1 = MinoVertex {
-        position: [-0.5, -0.5],
-        color_id: MinoColors::J,
-    };
-    let vertex2 = MinoVertex {
-        position: [0.0, 0.5],
-        color_id: MinoColors::J,
-    };
-    let vertex3 = MinoVertex {
-        position: [0.5, -0.25],
-        color_id: MinoColors::T,
-    };
-    let shape = [vertex1, vertex2, vertex3];
-
-    let vbuffer = VertexBuffer::new(&display, &shape).unwrap();
-
     let draw_grid = draw::grid::DrawProgram::new(&display, (10, 20));
 
     el.run(move |ev, _, control_flow| {

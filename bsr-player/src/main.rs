@@ -6,34 +6,12 @@ use glium::{
         event_loop::{ControlFlow, EventLoop},
         window::WindowBuilder,
         ContextBuilder,
-    },
-    implement_vertex,
-    vertex, Program, Surface,
+    }, Program, Surface,
 };
 
 mod draw;
+mod board;
 
-#[derive(Copy, Clone)]
-#[repr(u32)]
-#[rustfmt::skip]
-#[allow(dead_code)]
-enum MinoColors {
-    L, J, T, Z, S, O, I
-}
-
-unsafe impl vertex::Attribute for MinoColors {
-    fn get_type() -> vertex::AttributeType {
-        vertex::AttributeType::U32
-    }
-}
-
-#[derive(Copy, Clone)]
-struct MinoVertex {
-    position: [f32; 2],
-    color_id: MinoColors,
-}
-
-implement_vertex!(MinoVertex, position, color_id);
 
 fn main() {
     let el = EventLoop::new();

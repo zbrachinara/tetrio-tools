@@ -10,3 +10,6 @@ edition = "2021"
 glium = "0.32"
 itertools = "0.10"
 tap = "1.0"
+
+gridly_grids = "0.5"
+gridly = "0.9"

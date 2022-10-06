@@ -1,5 +1,5 @@
 [package]
-name = "bsr-replay"
+name = "bsr-player"
 version = "0.1.0"
 edition = "2021"
 

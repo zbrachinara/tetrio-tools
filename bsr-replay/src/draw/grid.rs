@@ -19,9 +19,10 @@ const VERTEX_SHADER: &'static str = r#"
 in vec2 position;
 
 uniform vec2 scale_factor;
+uniform vec2 offset;
 
 void main() {
-    gl_Position = vec4(position * scale_factor, 0.0, 1.0);
+    gl_Position = vec4((position + offset) * scale_factor, 0.0, 1.0);
 }
 "#;
 
@@ -66,6 +67,7 @@ impl DrawProgram {
             grid: VertexBuffer::immutable(display, &vbuffer).unwrap(),
         }
     }
+
     pub fn draw_grid(&self, frame: &mut Frame) -> Result<(), DrawError> {
         let (win_x, win_y) = frame.get_dimensions().pipe(|(x, y)| (x as f32, y as f32));
         let rect_ratio = win_x / win_y;
@@ -75,7 +77,10 @@ impl DrawProgram {
             &self.grid,
             &NoIndices(PrimitiveType::LinesList),
             &self.program,
-            &uniform! {scale_factor: [screen_ratio, screen_ratio * rect_ratio]},
+            &uniform! {
+                scale_factor: [screen_ratio, screen_ratio * rect_ratio],
+                offset: [-5_f32, -10_f32],
+            },
             &Default::default(),
         )
     }

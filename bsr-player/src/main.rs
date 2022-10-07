@@ -1,10 +1,7 @@
 use std::time::{Duration, Instant};
 
-use bsr_tools::{
-    board::{Board, Cell, Direction, Mino, MinoVariant},
-    rng::PieceQueue,
-};
-use draw::board::{DrawBoard};
+use bsr_tools::board::{Cell, Direction, Mino, MinoVariant};
+use draw::board::{Board, DrawBoard};
 use glium::{
     glutin::{
         event::{Event, WindowEvent},
@@ -60,7 +57,6 @@ fn main() {
 
     let example_board = Board {
         cells: VecGrid::new_from_rows(TEST_BOARD).unwrap(),
-        queue: PieceQueue::meaningless(),
         active: Mino {
             variant: MinoVariant::T,
             rotation_state: Direction::Up,

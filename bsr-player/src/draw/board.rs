@@ -1,10 +1,11 @@
-use bsr_tools::board::{Board, Cell, MinoVariant};
+use bsr_tools::board::{Cell, Mino, MinoVariant};
 use glium::{
     implement_vertex,
     index::{NoIndices, PrimitiveType},
     uniform, vertex, Display, DrawError, Frame, Program, Surface, VertexBuffer,
 };
 use gridly::prelude::{Grid, GridBounds};
+use gridly_grids::VecGrid;
 use tap::Pipe;
 
 impl From<&MinoVariant> for MinoColor {
@@ -46,6 +47,11 @@ unsafe impl vertex::Attribute for MinoColor {
     fn get_type() -> vertex::AttributeType {
         vertex::AttributeType::U32
     }
+}
+
+pub struct Board {
+    pub cells: VecGrid<Cell>,
+    pub active: Mino,
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -158,13 +164,11 @@ impl DrawBoard {
         frame: &mut Frame,
         board: &Board,
     ) -> Result<(), DrawError> {
-
         let (win_x, win_y) = frame.get_dimensions().pipe(|(x, y)| (x as f32, y as f32));
         let rect_ratio = win_x / win_y;
         let screen_ratio = 50. / win_x;
 
         let size = board.cells.dimensions();
-
 
         frame.draw(
             &board_vertex_buffer(display, board),

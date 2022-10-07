@@ -1,5 +1,6 @@
 use std::time::{Duration, Instant};
 
+use bsr_tools::{board::{Board, Mino, MinoVariant, Direction, Cell}, rng::PieceQueue};
 use glium::{
     glutin::{
         event::{Event, WindowEvent},
@@ -8,6 +9,9 @@ use glium::{
         ContextBuilder,
     }, Program, Surface,
 };
+use gridly_grids::VecGrid;
+
+use crate::board::board_vertex_buffer;
 
 mod draw;
 mod board;
@@ -68,12 +72,32 @@ void main() {
 
     let shader = Program::from_source(&display, vertex_shader, fragment_shader, None).unwrap();
     let draw_grid = draw::grid::DrawProgram::new(&display, (10, 20));
+    let draw_board = board::DrawBoard::new(&display);
+
+
+
+    use MinoVariant::*;
+    use Cell::Tetromino as Tet;
+    use Cell::Garbage as Gb;
+    use Cell::None as Nn;
+    let example_board = Board {
+        cells: VecGrid::new_from_rows([
+            [Tet(J), Tet(J), Nn, Tet(I), Tet(I), Tet(I), Tet(I), Tet(S), Tet(O), Tet(O)]
+        ]).unwrap(),
+        queue: PieceQueue::meaningless(),
+        active: Mino {
+            variant: MinoVariant::T,
+            rotation_state: Direction::Up,
+            position: (5, 22),
+        },
+    };
 
     el.run(move |ev, _, control_flow| {
         let mut target = display.draw();
         target.clear_color(0.0, 0.0, 0.0, 1.0);
 
         draw_grid.draw_grid(&mut target).unwrap();
+        draw_board.draw_board(&display, &mut target, &example_board).unwrap();
         // target.draw(
         //     &vbuffer,
         //     &NoIndices(PrimitiveType::TrianglesList),

@@ -2,9 +2,7 @@
 
 use bsr_tools::{action::Action, board::Board};
 
-use crate::{
-    data::event::{Event, EventData, GameOptions},
-};
+use crate::data::event::{Event, EventData, GameOptions};
 
 struct Settings {
     gravity: f64,

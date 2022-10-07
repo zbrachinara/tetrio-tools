@@ -18,6 +18,36 @@ use gridly_grids::VecGrid;
 mod board;
 mod draw;
 
+#[rustfmt::skip]
+const TEST_BOARD : [[Cell; 10]; 20] = {
+    use Cell::Garbage as Garbag;
+    use Cell::None as NoCell;
+    use Cell::Tetromino as Tet;
+    use MinoVariant::*;
+    [
+        [Garbag, Garbag, NoCell, Garbag, Garbag, Garbag, Garbag, Garbag, Garbag, Garbag],
+        [Tet(J), Tet(J), NoCell, Tet(I), Tet(I), Tet(I), Tet(I), Tet(S), Tet(O), Tet(O)],
+        [Tet(J), NoCell, NoCell, NoCell, Tet(Z), Tet(Z), Tet(S), Tet(S), Tet(O), Tet(O)],
+        [Tet(J), NoCell, NoCell, Tet(Z), Tet(Z), Tet(L), Tet(S), NoCell, NoCell, NoCell],
+        [NoCell, NoCell, NoCell, Tet(L), Tet(L), Tet(L), NoCell, NoCell, NoCell, NoCell],
+        [NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell],
+        [NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell],
+        [NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell],
+        [NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell],
+        [NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell],
+        [NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell],
+        [NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell],
+        [NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell],
+        [NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell],
+        [NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell],
+        [NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell],
+        [NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell],
+        [NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell],
+        [NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell],
+        [NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell, NoCell],
+    ]
+};
+
 fn main() {
     let el = EventLoop::new();
     let wb = WindowBuilder::new().with_title("Hello world!");
@@ -28,24 +58,11 @@ fn main() {
     let draw_grid = draw::grid::DrawProgram::new(&display, (10, 20));
     let draw_board = board::DrawBoard::new(&display);
 
-    use Cell::Garbage as Gb;
     use Cell::None as Nn;
     use Cell::Tetromino as Tet;
     use MinoVariant::*;
     let example_board = Board {
-        cells: VecGrid::new_from_rows([[
-            Tet(J),
-            Tet(J),
-            Nn,
-            Tet(I),
-            Tet(I),
-            Tet(I),
-            Tet(I),
-            Tet(S),
-            Tet(O),
-            Tet(O),
-        ]])
-        .unwrap(),
+        cells: VecGrid::new_from_rows(TEST_BOARD).unwrap(),
         queue: PieceQueue::meaningless(),
         active: Mino {
             variant: MinoVariant::T,
@@ -62,13 +79,6 @@ fn main() {
         draw_board
             .draw_board(&display, &mut target, &example_board)
             .unwrap();
-        // target.draw(
-        //     &vbuffer,
-        //     &NoIndices(PrimitiveType::TrianglesList),
-        //     &shader,
-        //     &EmptyUniforms,
-        //     &Default::default(),
-        // ).unwrap();
 
         target.finish().unwrap();
 

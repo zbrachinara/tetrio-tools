@@ -13,3 +13,5 @@ tap = "1.0"
 
 gridly_grids = "0.5"
 gridly = "0.9"
+
+bsr-tools = { path = "../bsr-tools" }

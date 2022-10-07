@@ -87,6 +87,7 @@ dependencies = [
 name = "bsr-player"
 version = "0.1.0"
 dependencies = [
+ "bsr-tools",
  "glium",
  "gridly",
  "gridly_grids",

@@ -4,4 +4,4 @@
 pub mod action;
 pub mod kick_table;
 pub mod board;
-mod rng;
+pub mod rng;

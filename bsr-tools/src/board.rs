@@ -119,9 +119,9 @@ pub enum MinoVariant {
 }
 
 pub struct Board {
-    cells: VecGrid<Cell>,
-    queue: PieceQueue,
-    active: Mino,
+    pub cells: VecGrid<Cell>,
+    pub queue: PieceQueue,
+    pub active: Mino,
 }
 
 impl Board {

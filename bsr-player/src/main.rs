@@ -4,6 +4,7 @@ use bsr_tools::{
     board::{Board, Cell, Direction, Mino, MinoVariant},
     rng::PieceQueue,
 };
+use draw::board::{DrawBoard};
 use glium::{
     glutin::{
         event::{Event, WindowEvent},
@@ -15,7 +16,6 @@ use glium::{
 };
 use gridly_grids::VecGrid;
 
-mod board;
 mod draw;
 
 #[rustfmt::skip]
@@ -56,7 +56,7 @@ fn main() {
     let display = glium::Display::new(wb, windowed_context, &el).unwrap();
 
     let draw_grid = draw::grid::DrawProgram::new(&display, (10, 20));
-    let draw_board = board::DrawBoard::new(&display);
+    let draw_board = DrawBoard::new(&display);
 
     let example_board = Board {
         cells: VecGrid::new_from_rows(TEST_BOARD).unwrap(),

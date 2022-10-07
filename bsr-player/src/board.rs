@@ -4,7 +4,7 @@ use glium::{
     index::{NoIndices, PrimitiveType},
     uniform, vertex, Display, DrawError, Frame, Program, Surface, VertexBuffer,
 };
-use gridly::prelude::Grid;
+use gridly::prelude::{Grid, GridBounds};
 use tap::Pipe;
 
 impl From<&MinoVariant> for MinoColor {
@@ -62,11 +62,11 @@ pub fn board_vertex_buffer(frame: &Display, b: &Board) -> VertexBuffer<MinoVerte
         .rows()
         .iter()
         .enumerate()
-        .map(|(bx, row)| {
+        .map(|(by, row)| {
             row.iter()
                 .enumerate()
-                .filter_map(|(by, elem)| MinoColor::try_from(elem).ok().map(|color| (by, color)))
-                .flat_map(move |(by, color)| {
+                .filter_map(|(bx, elem)| MinoColor::try_from(elem).ok().map(|color| (bx, color)))
+                .flat_map(move |(bx, color)| {
                     [
                         // triangle 1
                         ([bx, by], color),
@@ -97,9 +97,10 @@ in uint color_id;
 flat out uint color_id_out;
 
 uniform vec2 scale_factor;
+uniform vec2 offset;
 
 void main() {
-    gl_Position = vec4(position * scale_factor, 0.0, 1.0);
+    gl_Position = vec4((position + offset) * scale_factor, 0.0, 1.0);
     color_id_out = color_id;
 }
 "#;
@@ -162,12 +163,16 @@ impl DrawBoard {
         let rect_ratio = win_x / win_y;
         let screen_ratio = 50. / win_x;
 
+        let size = board.cells.dimensions();
+
+
         frame.draw(
             &board_vertex_buffer(display, board),
             NoIndices(PrimitiveType::TrianglesList),
             &self.program,
             &uniform! {
                 scale_factor: [screen_ratio, screen_ratio * rect_ratio],
+                offset: [-(size.columns.0 as f32) / 2., -(size.rows.0 as f32) / 2.],
             },
             &Default::default(),
         )

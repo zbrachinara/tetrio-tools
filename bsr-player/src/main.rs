@@ -58,9 +58,6 @@ fn main() {
     let draw_grid = draw::grid::DrawProgram::new(&display, (10, 20));
     let draw_board = board::DrawBoard::new(&display);
 
-    use Cell::None as Nn;
-    use Cell::Tetromino as Tet;
-    use MinoVariant::*;
     let example_board = Board {
         cells: VecGrid::new_from_rows(TEST_BOARD).unwrap(),
         queue: PieceQueue::meaningless(),

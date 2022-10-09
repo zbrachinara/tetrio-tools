@@ -1,4 +1,4 @@
-use crate::board::{Cell, Mino};
+use crate::tetromino::{Cell, Mino};
 
 pub enum Action {
     Garbage { column: u8, height: u8 },

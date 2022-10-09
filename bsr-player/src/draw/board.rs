@@ -1,4 +1,4 @@
-use bsr_tools::board::{Cell, Mino, MinoVariant};
+use bsr_tools::tetromino::{Cell, Mino, MinoVariant};
 use glium::{
     implement_vertex,
     index::{NoIndices, PrimitiveType},

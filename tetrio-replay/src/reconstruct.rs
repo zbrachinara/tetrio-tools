@@ -1,8 +1,11 @@
 #![allow(unused)]
 
-use bsr_tools::{action::Action, board::Board};
+use bsr_tools::action::Action;
 
-use crate::data::event::{Event, EventData, GameOptions};
+use crate::{
+    board::Board,
+    data::event::{Event, EventData, GameOptions},
+};
 
 struct Settings {
     gravity: f64,

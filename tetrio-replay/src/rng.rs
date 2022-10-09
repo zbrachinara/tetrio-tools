@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use crate::board::MinoVariant;
+use bsr_tools::tetromino::MinoVariant;
 
 #[allow(unused)]
 pub struct Rng {

@@ -1,6 +1,6 @@
 use std::time::{Duration, Instant};
 
-use bsr_tools::board::{Cell, Direction, Mino, MinoVariant};
+use bsr_tools::tetromino::{Cell, Direction, Mino, MinoVariant};
 use draw::board::{Board, DrawBoard};
 use glium::{
     glutin::{

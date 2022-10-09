@@ -3,7 +3,7 @@ use std::{collections::HashMap, ops::Add};
 use once_cell::sync::Lazy;
 use tap::Tap;
 
-use crate::board::{Direction, Mino, MinoVariant, Rotation};
+use crate::tetromino::{Direction, Mino, MinoVariant, Rotation};
 
 #[derive(Debug, Clone)]
 pub struct Positions<const N: usize>([(isize, isize); N]);

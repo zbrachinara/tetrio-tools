@@ -9,7 +9,7 @@ use tap::Tap;
 
 use crate::{
     action::Action,
-    kick_table::{self, Positions},
+    kick_table::{self, Positions, ROTATION_TABLE},
     rng::PieceQueue,
 };
 
@@ -96,6 +96,21 @@ impl From<MinoVariant> for Mino {
 }
 
 impl Mino {
+    pub fn position(&self) -> Option<Vec<(usize, usize)>> {
+        Some(
+            ROTATION_TABLE
+                .get(&(self.variant, self.rotation_state))?
+                .iter()
+                .map(|(x, y)| {
+                    (
+                        self.position.0.wrapping_add_signed(*x as isize),
+                        self.position.1.wrapping_add_signed(*y as isize),
+                    )
+                })
+                .collect(),
+        )
+    }
+
     pub fn rotation(&self, at: Spin) -> Rotation {
         Rotation {
             piece: self.variant,

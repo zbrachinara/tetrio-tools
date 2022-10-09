@@ -1,4 +1,7 @@
-use bsr_tools::board::{Cell, Mino, MinoVariant};
+use bsr_tools::{
+    board::{Cell, Mino, MinoVariant},
+    kick_table::ROTATION_TABLE,
+};
 use glium::{
     implement_vertex,
     index::{NoIndices, PrimitiveType},
@@ -62,7 +65,7 @@ pub struct MinoVertex {
 
 implement_vertex!(MinoVertex, position, color_id);
 
-pub fn board_vertex_buffer(frame: &Display, b: &Board) -> VertexBuffer<MinoVertex> {
+pub fn board_vertex_buffer(frame: &Display, b: &Board) -> Option<VertexBuffer<MinoVertex>> {
     let vbuffer = b
         .cells
         .rows()
@@ -84,16 +87,41 @@ pub fn board_vertex_buffer(frame: &Display, b: &Board) -> VertexBuffer<MinoVerte
                         ([bx, by + 1], color),
                     ]
                 })
-                .map(|([px, py], color_id)| MinoVertex {
-                    position: [px as f32, py as f32],
-                    color_id,
-                })
         })
         .flatten()
+        .chain({
+            let active_color = MinoColor::from(&b.active.variant);
+
+            b.active
+                .position()
+                .unwrap()
+                .iter()
+                // ROTATION_TABLE
+                //     .get(&(b.active.variant, b.active.rotation_state))?
+                //     .iter()
+                .flat_map(move |(bx, by)| {
+                    let (bx, by) = (*bx as usize, *by as usize);
+
+                    [
+                        // triangle 1
+                        ([bx, by], active_color),
+                        ([bx + 1, by], active_color),
+                        ([bx, by + 1], active_color),
+                        // triangle 2
+                        ([bx + 1, by + 1], active_color),
+                        ([bx + 1, by], active_color),
+                        ([bx, by + 1], active_color),
+                    ]
+                })
+        })
+        .map(|([px, py], color_id)| MinoVertex {
+            position: [px as f32, py as f32],
+            color_id,
+        })
         // TODO: Chain in the active mino's cells
         .collect::<Vec<_>>();
 
-    VertexBuffer::new(frame, &vbuffer).unwrap()
+    Some(VertexBuffer::new(frame, &vbuffer).unwrap())
 }
 const VERTEX_SHADER: &'static str = r#"
 #version 140
@@ -171,7 +199,8 @@ impl DrawBoard {
         let size = board.cells.dimensions();
 
         frame.draw(
-            &board_vertex_buffer(display, board),
+            //TODO: Better error here
+            &board_vertex_buffer(display, board).ok_or(DrawError::AttributeMissing)?,
             NoIndices(PrimitiveType::TrianglesList),
             &self.program,
             &uniform! {

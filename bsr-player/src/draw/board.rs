@@ -1,7 +1,4 @@
-use bsr_tools::{
-    board::{Cell, Mino, MinoVariant},
-    kick_table::ROTATION_TABLE,
-};
+use bsr_tools::board::{Cell, Mino, MinoVariant};
 use glium::{
     implement_vertex,
     index::{NoIndices, PrimitiveType},
@@ -96,9 +93,6 @@ pub fn board_vertex_buffer(frame: &Display, b: &Board) -> Option<VertexBuffer<Mi
                 .position()
                 .unwrap()
                 .iter()
-                // ROTATION_TABLE
-                //     .get(&(b.active.variant, b.active.rotation_state))?
-                //     .iter()
                 .flat_map(move |(bx, by)| {
                     let (bx, by) = (*bx as usize, *by as usize);
 

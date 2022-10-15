@@ -88,16 +88,15 @@ impl From<MinoVariant> for Mino {
 }
 
 impl Mino {
-    pub fn position(&self) -> Option<[(usize, usize); 4]> {
+    pub fn position(&self) -> [(usize, usize); 4] {
         ROTATION_TABLE
             .get(&(self.variant, self.rotation_state))
-            .map(|arr| {
-                arr.map(|(x, y)| {
-                    (
-                        self.position.0.wrapping_add_signed(x as isize),
-                        self.position.1.wrapping_add_signed(y as isize),
-                    )
-                })
+            .unwrap()
+            .map(|(x, y)| {
+                (
+                    self.position.0.wrapping_add_signed(x as isize),
+                    self.position.1.wrapping_add_signed(y as isize),
+                )
             })
     }
 

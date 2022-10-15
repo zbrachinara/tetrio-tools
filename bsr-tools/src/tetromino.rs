@@ -88,19 +88,17 @@ impl From<MinoVariant> for Mino {
 }
 
 impl Mino {
-    pub fn position(&self) -> Option<Vec<(usize, usize)>> {
-        Some(
-            ROTATION_TABLE
-                .get(&(self.variant, self.rotation_state))?
-                .iter()
-                .map(|(x, y)| {
+    pub fn position(&self) -> Option<[(usize, usize); 4]> {
+        ROTATION_TABLE
+            .get(&(self.variant, self.rotation_state))
+            .map(|arr| {
+                arr.map(|(x, y)| {
                     (
-                        self.position.0.wrapping_add_signed(*x as isize),
-                        self.position.1.wrapping_add_signed(*y as isize),
+                        self.position.0.wrapping_add_signed(x as isize),
+                        self.position.1.wrapping_add_signed(y as isize),
                     )
                 })
-                .collect(),
-        )
+            })
     }
 
     pub fn rotation(&self, at: Spin) -> Rotation {

@@ -91,7 +91,6 @@ pub fn board_vertex_buffer(frame: &Display, b: &Board) -> Option<VertexBuffer<Mi
 
             b.active
                 .position()
-                .unwrap()
                 .iter()
                 .flat_map(move |(bx, by)| {
                     let (bx, by) = (*bx as usize, *by as usize);

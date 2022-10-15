@@ -56,6 +56,7 @@ impl<'a, It> Controller<It>
 where
     It: Iterator<Item = &'a Event<'a>>,
 {
+    /// Creates a controller from a series of tetrio events
     fn read_game(mut game: It) -> Result<Self, &'static str> {
         let pregame_data = loop {
             let next = game.next();

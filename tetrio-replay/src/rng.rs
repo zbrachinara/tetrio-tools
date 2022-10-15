@@ -49,12 +49,13 @@ pub struct PieceQueue {
 }
 
 impl PieceQueue {
-    /// Creates a piecequeue that won't be used
+    /// Creates a dummy piecequeue that won't be used (for tests, for example)
     #[allow(unused)] // is meant for tests
     pub fn meaningless() -> Self {
         Self::seeded(1, 1)
     }
 
+    /// New piece queue with a seed and a window size (the number of preview pieces available)
     pub fn seeded(seed: u64, window_size: usize) -> Self {
         let mut rng = Rng::seeded(seed);
         let mut window = VecDeque::with_capacity(window_size / 7 * 7);
@@ -75,6 +76,7 @@ impl PieceQueue {
         self.window.iter().take(self.window_size)
     }
 
+    /// Return the next piece held in the queue and generate more pieces if necessary
     pub fn pop(&mut self) -> MinoVariant {
         let ret = self.window.pop_front();
         self.fill();

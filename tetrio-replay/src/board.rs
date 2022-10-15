@@ -13,6 +13,9 @@ use bsr_tools::{
     tetromino::{Cell, Mino, Spin},
 };
 
+/// Holds the state of the tetrio board, which can be updated through the issuing of commands.
+/// The board does not keep a buffer of the commands, but transforms the commands it is issued
+/// into actions, which are returned immediately.
 pub struct Board {
     pub cells: VecGrid<Cell>,
     pub queue: PieceQueue,
@@ -20,6 +23,8 @@ pub struct Board {
 }
 
 impl Board {
+    /// Creates a new board from a PRNG seed and a board that may be filled with some cells.
+    /// The format of the board is the same as the format found in ttr and ttrm files.
     pub fn new(piece_seed: u64, game: &Vec<Vec<Option<&str>>>) -> Self {
         let mut queue = PieceQueue::seeded(piece_seed, 5);
         let cells = VecGrid::new_from_rows(
@@ -93,6 +98,7 @@ impl Board {
         })
     }
 
+    /// Gets the cell at the given position (x: column, y: row)
     fn cell(&self, x: isize, y: isize) -> Option<&Cell> {
         self.cells.get((Column(x), Row(y))).ok()
     }

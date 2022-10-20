@@ -3,7 +3,7 @@ use std::{ops::Add, str::FromStr};
 use strum::EnumString;
 use tap::Tap;
 
-use crate::kick_table::ROTATION_TABLE;
+use crate::kick_table::{Positions, ROTATION_TABLE};
 
 #[derive(Clone, Debug)]
 pub enum Cell {
@@ -88,16 +88,18 @@ impl From<MinoVariant> for Mino {
 }
 
 impl Mino {
-    pub fn position(&self) -> [(usize, usize); 4] {
-        ROTATION_TABLE
-            .get(&(self.variant, self.rotation_state))
-            .unwrap()
-            .map(|(x, y)| {
-                (
-                    self.position.0.wrapping_add_signed(x as isize),
-                    self.position.1.wrapping_add_signed(y as isize),
-                )
-            })
+    pub fn position(&self) -> Positions<4> {
+        Positions(
+            ROTATION_TABLE
+                .get(&(self.variant, self.rotation_state))
+                .unwrap()
+                .map(|(x, y)| {
+                    (
+                        self.position.0 as isize + x as isize,
+                        self.position.1 as isize + y as isize,
+                    )
+                }),
+        )
     }
 
     pub fn rotation(&self, at: Spin) -> Rotation {

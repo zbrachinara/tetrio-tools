@@ -4,6 +4,7 @@ use std::iter;
 
 use gridly::prelude::{Column, Grid, Row};
 use gridly_grids::VecGrid;
+use itertools::Itertools;
 use tap::Tap;
 
 use crate::rng::PieceQueue;
@@ -46,6 +47,31 @@ impl Board {
     /// Drops the active tetromino into the columns that it takes up, then checks if the position
     /// that it was dropped to was legal (i.e. one cell landed below 20 lines)
     fn drop_active(&mut self) -> Vec<Action> {
+        let height = self.active.position.1;
+
+        let mut checkable_positions = (0..=height)
+            .rev()
+            .map(|y| {
+                self.active.clone().tap_mut(|a| {
+                    let (x, _) = a.position;
+                    a.position = (x, y);
+                })
+            })
+            .peekable();
+
+        let mut most_valid = checkable_positions
+            .next()
+            .expect("The current position was somehow already out of bounds");
+        while let Some(next_position) = checkable_positions.peek() {
+            if self.test_empty(&next_position.position()) {
+                most_valid = checkable_positions.next().unwrap();
+            } else {
+                break;
+            }
+        }
+
+        // TODO: Then check if the position is legal and return from there
+
         unimplemented!()
     }
 

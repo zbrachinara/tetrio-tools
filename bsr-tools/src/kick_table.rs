@@ -6,7 +6,7 @@ use tap::Tap;
 use crate::tetromino::{Direction, Mino, MinoVariant, Rotation};
 
 #[derive(Debug, Clone)]
-pub struct Positions<const N: usize>([(isize, isize); N]);
+pub struct Positions<const N: usize>(pub [(isize, isize); N]);
 
 impl<const N: usize> Add<(i8, i8)> for Positions<N> {
     type Output = Positions<N>;

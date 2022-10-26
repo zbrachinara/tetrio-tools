@@ -108,6 +108,13 @@ impl Board {
             })
     }
 
+    /// Tests whether or not the placement of the piece will end the game (i.e. it is above the
+    /// twenty line mark -- other board heights will be implemented later). Does not test whether
+    /// the next piece is allowed to spawn after placement of this piece.
+    fn test_legal<const N: usize>(&self, positions: &Positions<N>) -> bool {
+        positions.iter().any(|(_, y)| *y < 20)
+    }
+
     /// Tests whether or not the positions passed in are empty (i.e. they are available for a
     /// tetromino to rotate into)
     ///

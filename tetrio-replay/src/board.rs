@@ -116,9 +116,7 @@ impl Board {
     }
 
     /// Tests whether or not the positions passed in are empty (i.e. they are available for a
-    /// tetromino to rotate into)
-    ///
-    /// Keep in mind that this also tests for the buffer which exists above the region in which
+    /// tetromino to rotate into) Also tests within the buffer above the region in which
     /// it it legal to place tetrominos
     fn test_empty<const N: usize>(&self, positions: &Positions<N>) -> bool {
         positions.iter().all(|(x, y)| {

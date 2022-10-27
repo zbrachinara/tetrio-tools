@@ -43,6 +43,11 @@ impl Board {
         }
     }
 
+    /// Shifts the active tetromino by the given amount of cells. 
+    fn shift(cells: i8) -> Option<Action> {
+        unimplemented!()
+    }
+
     /// Drops the active tetromino into the columns that it takes up, then checks if the position
     /// that it was dropped to was legal (i.e. one cell landed below 20 lines)
     fn drop_active(&mut self) -> Vec<Action> {

@@ -47,7 +47,7 @@ impl Positions<4> {
             .iter_mut()
             .zip(
                 ROTATION_TABLE
-                    .get(&(tet.variant, tet.rotation_state))
+                    .get(&(tet.variant, tet.direction))
                     .unwrap(),
             )
             .for_each(|((fin_x, fin_y), (init_x, init_y))| {
@@ -55,7 +55,7 @@ impl Positions<4> {
                 *fin_y = *init_y as isize;
             });
 
-        Self(cells) + tet.position
+        Self(cells) + tet.center
     }
 }
 

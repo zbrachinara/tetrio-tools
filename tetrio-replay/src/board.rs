@@ -46,14 +46,14 @@ impl Board {
     /// Drops the active tetromino into the columns that it takes up, then checks if the position
     /// that it was dropped to was legal (i.e. one cell landed below 20 lines)
     fn drop_active(&mut self) -> Vec<Action> {
-        let height = self.active.position.1;
+        let height = self.active.center.1;
 
         let checkable_positions = (0..=height)
             .rev()
             .map(|y| {
                 self.active.clone().tap_mut(|a| {
-                    let (x, _) = a.position;
-                    a.position = (x, y);
+                    let (x, _) = a.center;
+                    a.center = (x, y);
                 })
             })
             .peekable();
@@ -88,7 +88,7 @@ impl Board {
             .inspect(|(x, y)| {
                 self.active = rotated.tap_mut(
                     |Mino {
-                         position: (tet_x, tet_y),
+                         center: (tet_x, tet_y),
                          ..
                      }| {
                         *tet_x = tet_x.wrapping_add_signed(*x as isize);
@@ -144,8 +144,8 @@ mod test {
         let mut board = Board {
             active: Mino {
                 variant: MinoVariant::T,
-                rotation_state: Direction::Down,
-                position: (5, 20),
+                direction: Direction::Down,
+                center: (5, 20),
             },
             queue: PieceQueue::meaningless(),
             // cells: Grid::init(40, 10, Cell::None),
@@ -163,8 +163,8 @@ mod test {
         let mut tki_board = Board {
             active: Mino {
                 variant: MinoVariant::T,
-                rotation_state: Direction::Right,
-                position: (1, 2),
+                direction: Direction::Right,
+                center: (1, 2),
             },
             queue: PieceQueue::meaningless(),
             cells: VecGrid::new_from_rows(vec![
@@ -180,6 +180,6 @@ mod test {
         };
 
         tki_board.rotate_active(Spin::CW);
-        assert_eq!(tki_board.active.position, (2, 1));
+        assert_eq!(tki_board.active.center, (2, 1));
     }
 }

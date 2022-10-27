@@ -73,16 +73,16 @@ impl Add<Spin> for Direction {
 #[derive(Clone)]
 pub struct Mino {
     pub variant: MinoVariant,
-    pub rotation_state: Direction,
-    pub position: (usize, usize),
+    pub direction: Direction,
+    pub center: (usize, usize),
 }
 
 impl From<MinoVariant> for Mino {
     fn from(variant: MinoVariant) -> Self {
         Self {
             variant,
-            rotation_state: Direction::Up,
-            position: (5, 22), //TODO: Find out if the piece actually spawns here initially
+            direction: Direction::Up,
+            center: (5, 22), //TODO: Find out if the piece actually spawns here initially
         }
     }
 }
@@ -91,12 +91,12 @@ impl Mino {
     pub fn position(&self) -> Positions<4> {
         Positions(
             ROTATION_TABLE
-                .get(&(self.variant, self.rotation_state))
+                .get(&(self.variant, self.direction))
                 .unwrap()
                 .map(|(x, y)| {
                     (
-                        self.position.0 as isize + x as isize,
-                        self.position.1 as isize + y as isize,
+                        self.center.0 as isize + x as isize,
+                        self.center.1 as isize + y as isize,
                     )
                 }),
         )
@@ -105,14 +105,14 @@ impl Mino {
     pub fn rotation(&self, at: Spin) -> Rotation {
         Rotation {
             piece: self.variant,
-            from: self.rotation_state,
-            to: self.rotation_state + at,
+            from: self.direction,
+            to: self.direction + at,
         }
     }
 
     pub fn rotate(&self, at: Spin) -> Self {
         self.clone().tap_mut(|tet| {
-            tet.rotation_state = tet.rotation_state + at;
+            tet.direction = tet.direction + at;
         })
     }
 }

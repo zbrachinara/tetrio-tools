@@ -59,8 +59,8 @@ fn main() {
         cells: VecGrid::new_from_rows(TEST_BOARD).unwrap(),
         active: Mino {
             variant: MinoVariant::T,
-            rotation_state: Direction::Up,
-            position: (5, 22),
+            direction: Direction::Up,
+            center: (5, 22),
         },
     };
 

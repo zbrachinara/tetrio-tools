@@ -92,7 +92,15 @@ where
     }
 
     fn stream(self) -> Result<Vec<Action>, String> {
-        todo!()
+        let stream = Vec::new();
+
+        self.events.for_each(|event| {
+
+            unimplemented!("game parsing")
+
+        });
+
+        Ok(stream)
     }
 }
 

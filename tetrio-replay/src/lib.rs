@@ -1,5 +1,4 @@
 #![feature(result_option_inspect)]
-#![feature(mixed_integer_ops)]
 
 use anyhow::Result;
 pub use data::TTRM;

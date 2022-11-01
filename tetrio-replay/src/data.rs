@@ -56,7 +56,7 @@ pub mod event {
     use tagged_hybrid::hybrid_tagged;
 
     #[hybrid_tagged(
-        fields = {frame: Number},
+        fields = {frame: u64},
         tag = "type",
         struct_attrs = { #[derive(Debug)]}
     )]

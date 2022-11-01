@@ -43,13 +43,16 @@ impl<'a, 'b> From<&'a GameOptions<'b>> for Settings {
     }
 }
 
-// #[derive(Default)]
+#[rustfmt::skip]
+enum ShiftDirection { None, Left, Right }
+
 struct Controller<It> {
     events: It,
     board: Board,
     settings: Settings,
     gravity_counter: f32,
     shift_counter: f32,
+    shifting: ShiftDirection,
 }
 
 impl<'a, It> Controller<It>
@@ -86,6 +89,7 @@ where
                 settings: options.into(),
                 gravity_counter: 0.,
                 shift_counter: 0.,
+                shifting: ShiftDirection::None,
             }),
             _ => unreachable!(),
         }
@@ -94,10 +98,12 @@ where
     fn stream(self) -> Result<Vec<Action>, String> {
         let stream = Vec::new();
 
+        let mut initial_frame = 0;
         self.events.for_each(|event| {
+            let frames_passed = event.frame - initial_frame;
+            initial_frame = event.frame;
 
             unimplemented!("game parsing")
-
         });
 
         Ok(stream)

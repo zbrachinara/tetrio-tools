@@ -135,9 +135,9 @@ pub mod event {
 
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct KeyEvent {
-        key: Key,
-        subframe: Number,
-        hoisted: Option<bool>, //TODO: Figure out what this means
+        pub key: Key,
+        pub subframe: Number,
+        pub hoisted: Option<bool>, //TODO: Figure out what this means
     }
 
     #[derive(Debug, Clone, Serialize, Deserialize)]

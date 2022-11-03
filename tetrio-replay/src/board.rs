@@ -98,6 +98,8 @@ impl Board {
             .last()
             .unwrap();
 
+        let dropping = self.cycle_piece();
+
         // TODO: Then check if the position is legal and return from there
 
         unimplemented!()

@@ -20,6 +20,8 @@ pub struct Board {
     pub cells: VecGrid<Cell>,
     pub queue: PieceQueue,
     pub active: Mino,
+    hold: Option<Mino>,
+    hold_available: bool,
 }
 
 impl Board {
@@ -40,22 +42,40 @@ impl Board {
             cells,
             queue,
             active,
+            hold: None,
+            hold_available: true,
         }
     }
 
-    /// Shifts the active tetromino by the given amount of cells. 
+    /// Shifts the active tetromino by the given amount of cells.
     fn shift(&mut self, cells: i8) -> Option<Action> {
         unimplemented!()
     }
 
     /// holds a piece if that is possible
     pub fn hold(&mut self) -> Option<Action> {
-        unimplemented!()
+        let ret = self.hold_available.then(|| {
+
+            match self.hold {
+                Some(ref mut held) => std::mem::swap(&mut self.active, held),
+                None => {
+                    let active = std::mem::replace(&mut self.active, Mino::from(self.queue.pop()));
+                    self.hold = Some(active)
+                }
+            }
+            Action::Hold
+        });
+        
+        self.hold_available = false;
+    
+        ret
     }
 
     /// Drops the active tetromino into the columns that it takes up, then checks if the position
     /// that it was dropped to was legal (i.e. one cell landed below 20 lines)
     fn drop_active(&mut self) -> Vec<Action> {
+        self.hold_available = true;
+
         let height = self.active.center.1;
 
         let checkable_positions = (0..=height)
@@ -160,6 +180,8 @@ mod test {
             queue: PieceQueue::meaningless(),
             // cells: Grid::init(40, 10, Cell::None),
             cells: VecGrid::new_fill((Rows(40), Columns(10)), &Cell::None).unwrap(),
+            hold: None,
+            hold_available: true,
         };
 
         board.rotate_active(Spin::CW);
@@ -187,6 +209,8 @@ mod test {
                 [NC, NC, NC, NC, NC, NC, NC, NC, NC, NC],
             ])
             .unwrap(),
+            hold: None,
+            hold_available: true,
         };
 
         tki_board.rotate_active(Spin::CW);

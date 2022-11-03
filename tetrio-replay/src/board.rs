@@ -44,7 +44,12 @@ impl Board {
     }
 
     /// Shifts the active tetromino by the given amount of cells. 
-    fn shift(cells: i8) -> Option<Action> {
+    fn shift(&mut self, cells: i8) -> Option<Action> {
+        unimplemented!()
+    }
+
+    /// holds a piece if that is possible
+    pub fn hold(&mut self) -> Option<Action> {
         unimplemented!()
     }
 

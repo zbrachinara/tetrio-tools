@@ -5,4 +5,5 @@ pub enum Action {
     Reposition { piece: Mino },
     LineClear { line: u8 },
     Cell { position: (u8, u8), kind: Cell },
+    Hold,
 }

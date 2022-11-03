@@ -46,6 +46,12 @@ impl<'a, 'b> From<&'a GameOptions<'b>> for Settings {
 #[rustfmt::skip]
 enum ShiftDirection { None, Left, Right }
 
+impl Default for ShiftDirection {
+    fn default() -> Self {
+        ShiftDirection::None
+    }
+}
+
 struct Controller<It> {
     events: It,
     board: Board,
@@ -53,14 +59,26 @@ struct Controller<It> {
     state: State,
 }
 
+#[derive(Default)]
 struct State {
     gravity_counter: f32,
     shift_counter: f32,
     shifting: ShiftDirection,
+
+    // button presses
+    hard_drop: bool,
+    hold: bool,
+    rotate: bool, //TODO: Find out if rotation keyup/down events are individually handled
 }
 
 impl State {
-    fn handle_keys(&mut self, stream: &mut Vec<Action>, event: &KeyEvent, down: bool) {
+    fn handle_keys(
+        &mut self,
+        board: &mut Board,
+        stream: &mut Vec<Action>,
+        event: &KeyEvent,
+        down: bool,
+    ) {
         if down {
             match event.key {
                 // holdable keypresses
@@ -71,8 +89,17 @@ impl State {
                 Key::Clockwise => todo!(),
                 Key::CounterClockwise => todo!(),
                 Key::Flip => todo!(),
-                Key::Hold => todo!(),
-                Key::HardDrop => todo!(),
+                Key::Hold => {
+                    if !self.hold {
+                        stream.extend(board.hold());
+                        self.hold = true;
+                    }
+                }
+                Key::HardDrop => {
+                    if !self.hard_drop {
+                        todo!("perform hard drop");
+                    }
+                }
             }
         } else {
             match event.key {
@@ -84,8 +111,8 @@ impl State {
                 Key::Clockwise => todo!(),
                 Key::CounterClockwise => todo!(),
                 Key::Flip => todo!(),
-                Key::Hold => todo!(),
-                Key::HardDrop => todo!(),
+                Key::Hold => self.hold = false,
+                Key::HardDrop => self.hard_drop = false,
             }
         }
     }
@@ -123,11 +150,7 @@ where
                 events: game,
                 board: Board::new(options.seed, &board.board),
                 settings: options.into(),
-                state: State {
-                    gravity_counter: 0.,
-                    shift_counter: 0.,
-                    shifting: ShiftDirection::None,
-                },
+                state: State::default(),
             }),
             _ => unreachable!(),
         }
@@ -146,10 +169,12 @@ where
                 EventData::Full { .. } => (),
                 EventData::Targets => (),
                 EventData::KeyDown { ref key_event } => {
-                    self.state.handle_keys(&mut stream, key_event, true);
+                    self.state
+                        .handle_keys(&mut self.board, &mut stream, key_event, true);
                 }
                 EventData::KeyUp { ref key_event } => {
-                    self.state.handle_keys(&mut stream, key_event, false)
+                    self.state
+                        .handle_keys(&mut self.board, &mut stream, key_event, false)
                 }
                 EventData::InGameEvent { ref event } => todo!(),
                 EventData::End => todo!(),

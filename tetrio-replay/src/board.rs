@@ -47,6 +47,12 @@ impl Board {
         }
     }
 
+    /// Expends and returns the currently active piece, replacing it instead with the next piece
+    /// in the queue. Meant for internal use (during holding/after hard dropping)
+    fn cycle_piece(&mut self) -> Mino {
+        std::mem::replace(&mut self.active, Mino::from(self.queue.pop()))
+    }
+
     /// Shifts the active tetromino by the given amount of cells.
     fn shift(&mut self, cells: i8) -> Option<Action> {
         unimplemented!()
@@ -59,8 +65,7 @@ impl Board {
             match self.hold {
                 Some(ref mut held) => std::mem::swap(&mut self.active, held),
                 None => {
-                    let active = std::mem::replace(&mut self.active, Mino::from(self.queue.pop()));
-                    self.hold = Some(active)
+                    self.hold = Some(self.cycle_piece())
                 }
             }
             Action::Hold

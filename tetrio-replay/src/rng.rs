@@ -2,6 +2,7 @@ use std::collections::VecDeque;
 
 use bsr_tools::tetromino::MinoVariant;
 
+/// The RNG used by tetrio to generate new pieces.
 #[allow(unused)]
 pub struct Rng {
     state: u64,
@@ -42,6 +43,7 @@ impl Rng {
     }
 }
 
+/// A piece queue which uses the tetrio RNG strategy to generate new pieces. 
 pub struct PieceQueue {
     window: VecDeque<MinoVariant>, //TODO: Determine whether window is necessary
     window_size: usize,
@@ -55,7 +57,7 @@ impl PieceQueue {
         Self::seeded(1, 1)
     }
 
-    /// New piece queue with a seed and a window size (the number of preview pieces available)
+    /// Creates a new piece queue with a seed and a preview window size
     pub fn seeded(seed: u64, window_size: usize) -> Self {
         let mut rng = Rng::seeded(seed);
         let mut window = VecDeque::with_capacity(window_size / 7 * 7);
@@ -72,6 +74,7 @@ impl PieceQueue {
         }
     }
 
+    /// Returns a view into the preview window of the queue
     pub fn window(&self) -> impl Iterator<Item = &MinoVariant> {
         self.window.iter().take(self.window_size)
     }
@@ -83,6 +86,7 @@ impl PieceQueue {
         ret.unwrap()
     }
 
+    /// Add as many pieces as necessary to fill up the display window
     pub fn fill(&mut self) {
         if self.window.len() < self.window_size {
             self.generate()

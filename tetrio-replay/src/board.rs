@@ -15,18 +15,24 @@ use bsr_tools::{
 
 /// Holds the state of the tetrio board, which can be updated through the issuing of commands.
 /// The board does not keep a buffer of the commands, but transforms the commands it is issued
-/// into actions, which are returned immediately.
+/// into actions, which are returned immediately. This is used to externally build up a sequence
+/// of actions while having a copy of the state with which to determine which actions are possible
+/// (such as the validity of rotation) and which actions would happen as a consequence of previous
+/// actions (such as line clears).
 pub struct Board {
     pub cells: VecGrid<Cell>,
     pub queue: PieceQueue,
     pub active: Mino,
-    hold: Option<Mino>,
+    hold: Option<Mino>, //TODO: Combine hold fields
     hold_available: bool,
 }
 
 impl Board {
+    // TODO: Determine if the board is stored bottom-up or top-down in ttr
     /// Creates a new board from a PRNG seed and a board that may be filled with some cells.
-    /// The format of the board is the same as the format found in ttr and ttrm files.
+    /// 
+    /// The format of the matrix is the same as the format found in ttr and ttrm files -- that is,
+    /// as a two-dimensional matrix.
     pub fn new(piece_seed: u64, game: &Vec<Vec<Option<&str>>>) -> Self {
         let mut queue = PieceQueue::seeded(piece_seed, 5);
         let cells = VecGrid::new_from_rows(
@@ -47,8 +53,8 @@ impl Board {
         }
     }
 
-    /// Expends and returns the currently active piece, replacing it instead with the next piece
-    /// in the queue. Meant for internal use (during holding/after hard dropping)
+    /// Expends and returns the currently active piece, replacing it with the next piece in the
+    /// queue. Meant for internal use, such as during holding/after hard dropping.
     fn cycle_piece(&mut self) -> Mino {
         std::mem::replace(&mut self.active, Mino::from(self.queue.pop()))
     }
@@ -58,7 +64,7 @@ impl Board {
         unimplemented!()
     }
 
-    /// holds a piece if that is possible
+    /// Holds a piece if that is possible.
     pub fn hold(&mut self) -> Option<Action> {
         let ret = self.hold_available.then(|| {
 
@@ -77,7 +83,7 @@ impl Board {
     }
 
     /// Drops the active tetromino into the columns that it takes up, then checks if the position
-    /// that it was dropped to was legal (i.e. one cell landed below 20 lines)
+    /// that it was dropped to was legal (i.e. the tetromino is partially below the 20-cell line).
     fn drop_active(&mut self) -> Vec<Action> {
         self.hold_available = true;
 
@@ -93,6 +99,8 @@ impl Board {
             })
             .peekable();
 
+        // TODO: Test and modify returned actions for line clears
+
         let most_valid = checkable_positions
             .take_while(|mino| self.test_empty(&mino.position()))
             .last()
@@ -105,8 +113,7 @@ impl Board {
         unimplemented!()
     }
 
-    /// Attempts to rotate the active tetromino on the board. Returns true if successful,
-    /// false otherwise.
+    /// Attempts to rotate the active tetromino on the board.
     ///
     /// For now, assumes SRS+
     pub fn rotate_active(&mut self, direction: Spin) -> Option<Action> {
@@ -138,21 +145,23 @@ impl Board {
             })
     }
 
-    /// Tests whether or not the placement of the piece will end the game (i.e. it is above the
-    /// twenty line mark -- other board heights will be implemented later). Does not test whether
-    /// the next piece is allowed to spawn after placement of this piece.
+    /// Tests whether or not the current position of the piece, if placed, will end the game
+    /// (i.e. if it is not placed at least partially below 20 lines -- other board heights will be
+    /// implemented later). Does not test whether the next piece is allowed to spawn after
+    /// placement of this piece.
     fn test_legal<const N: usize>(&self, positions: &Positions<N>) -> bool {
         positions.iter().any(|(_, y)| *y < 20)
     }
 
-    /// Tests whether or not the positions passed in are empty (i.e. they are available for a
-    /// tetromino to rotate into) Also tests within the buffer above the region in which
-    /// it it legal to place tetrominos
+    /// Tests whether or not the positions passed in intersect with the wall or other filled cells
+    /// (which may, for example, imply they are available for a tetromino to rotate into) Also
+    /// tests within the buffer above the region in which it it legal to place tetrominos
     fn test_empty<const N: usize>(&self, positions: &Positions<N>) -> bool {
         positions.iter().all(|(x, y)| {
-            // check the position is within the bounds of the board
+            // check the position is within the lower bounds of the board
             (*x >= 0 && *y >= 0) &&
-            // and that the cell at that position is empty on the board
+            // and that the cell at that position is empty on the board (and within the upper
+            // bounds of the board)
                 self.cell(*x, *y)
                     .map(|u| u.is_empty())
                     == Some(true)

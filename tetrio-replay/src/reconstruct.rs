@@ -52,6 +52,11 @@ impl Default for ShiftDirection {
     }
 }
 
+/// Holds the entire state of the game. These are:
+/// * Board state
+/// * Controller state
+/// * Future events
+/// * Handling/ingame settings
 struct Controller<It> {
     events: It,
     board: Board,
@@ -59,6 +64,10 @@ struct Controller<It> {
     state: State,
 }
 
+/// Holds the various states of the controller. Since this replay reader reads frames one-by-one
+/// to produce a stream of events, the effects from passive states (such as soft drop) may have
+/// been felt multiple times or depend on states which have activated previously (such as hard
+/// drop).
 #[derive(Default)]
 struct State {
     gravity_counter: f32,
@@ -72,6 +81,8 @@ struct State {
 }
 
 impl State {
+    /// Manages the recorded keypresses and sends commands accordingly to the board. Handles the
+    /// logic of DAS and SDF.
     fn handle_keys(
         &mut self,
         board: &mut Board,
@@ -90,6 +101,7 @@ impl State {
                 Key::CounterClockwise => todo!(),
                 Key::Flip => todo!(),
                 Key::Hold => {
+                    //TODO: should these be put outside or kept within? Keeping it within may imply that gravity, sdf, and such logics are necessary to handle here as well.
                     if !self.hold {
                         stream.extend(board.hold());
                         self.hold = true;

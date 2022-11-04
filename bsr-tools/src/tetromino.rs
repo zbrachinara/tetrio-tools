@@ -50,6 +50,10 @@ pub enum Spin {
     Flip = 2,
 }
 
+/// Represents the orientation of the mino. For example, for a T-mino, the Up direction
+/// refers to the orientation where the cell portruding from the center by itself points upward.
+/// It can be modified by adding a [Spin] to it, modifying the orientation by the spin described
+/// by it.
 #[repr(i8)]
 #[derive(PartialEq, Eq, Hash, Copy, Clone, Debug)]
 pub enum Direction {

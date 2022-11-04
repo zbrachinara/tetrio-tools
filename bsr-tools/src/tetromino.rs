@@ -11,7 +11,7 @@ use crate::kick_table::{Positions, ROTATION_TABLE};
 pub enum Cell {
     Tetromino(MinoVariant),
     Garbage,
-    None,
+    Empty,
 }
 
 // TODO: Tetrio-specific implementation -- separate
@@ -24,13 +24,13 @@ impl<'a> From<Option<&'a str>> for Cell {
                 Self::Tetromino(<_>::from_str(str).unwrap())
             }
         })
-        .unwrap_or(Self::None)
+        .unwrap_or(Self::Empty)
     }
 }
 
 impl Cell {
     pub fn is_empty(&self) -> bool {
-        matches!(self, Cell::None)
+        matches!(self, Cell::Empty)
     }
 }
 

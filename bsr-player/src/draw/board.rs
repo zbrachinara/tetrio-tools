@@ -30,7 +30,7 @@ impl TryFrom<&Cell> for MinoColor {
         match value {
             Cell::Tetromino(tet) => Ok(tet.into()),
             Cell::Garbage => Ok(Self::Gb),
-            Cell::None => Err(()),
+            Cell::Empty => Err(()),
         }
     }
 }

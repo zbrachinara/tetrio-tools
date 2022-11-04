@@ -195,7 +195,7 @@ mod test {
             },
             queue: PieceQueue::meaningless(),
             // cells: Grid::init(40, 10, Cell::None),
-            cells: VecGrid::new_fill((Rows(40), Columns(10)), &Cell::None).unwrap(),
+            cells: VecGrid::new_fill((Rows(40), Columns(10)), &Cell::Empty).unwrap(),
             hold: None,
             hold_available: true,
         };
@@ -206,7 +206,7 @@ mod test {
     #[test]
     fn test_t_kicks() {
         const GB: Cell = Cell::Garbage;
-        const NC: Cell = Cell::None;
+        const NC: Cell = Cell::Empty;
 
         let mut tki_board = Board {
             active: Mino {

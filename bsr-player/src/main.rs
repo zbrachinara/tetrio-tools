@@ -18,7 +18,7 @@ mod draw;
 #[rustfmt::skip]
 const TEST_BOARD : [[Cell; 10]; 20] = {
     use Cell::Garbage as Garbag;
-    use Cell::None as NoCell;
+    use Cell::Empty as NoCell;
     use Cell::Tetromino as Tet;
     use MinoVariant::*;
     [

@@ -5,6 +5,9 @@ use tap::Tap;
 
 use crate::tetromino::{Direction, Mino, MinoVariant, Rotation};
 
+/// A list of positions the cells of a mino takes up. Ordinarily, the cells which a mino takes up
+/// are expressed in terms of the position of its center, its rotation state, and its type. These
+/// are transformed into this direct list of positions using [Positions::tetromino] 
 #[derive(Debug, Clone)]
 pub struct Positions<const N: usize>(pub [(isize, isize); N]);
 

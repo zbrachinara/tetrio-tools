@@ -5,6 +5,8 @@ use tap::Tap;
 
 use crate::kick_table::{Positions, ROTATION_TABLE};
 
+/// The possible states that a cell can take up. A Tetromino cell refers to a filled cell with the
+/// color associated with that tetromino
 #[derive(Clone, Debug)]
 pub enum Cell {
     Tetromino(MinoVariant),
@@ -12,6 +14,7 @@ pub enum Cell {
     None,
 }
 
+// TODO: Tetrio-specific implementation -- separate
 impl<'a> From<Option<&'a str>> for Cell {
     fn from(name: Option<&'a str>) -> Self {
         name.map(|str| {
@@ -70,10 +73,17 @@ impl Add<Spin> for Direction {
     }
 }
 
+/// A representation of a mino by its states. Does not directly allow you to access its occupied
+/// positions (can be done using [Positions]), but does let you easily modify its state.
 #[derive(Clone)]
 pub struct Mino {
+    /// The type of mino that is represented (determines its shape)
     pub variant: MinoVariant,
+    /// The direction in which the mino is pointing
     pub direction: Direction,
+    /// The "center" here is defined by [Positions::tetromino]. It is an arbitrary point which can
+    /// be thought of as the "center of rotation", but its most useful property is that it uniquely
+    /// determines the absolute position of the tetromino based on its variant and direction.
     pub center: (usize, usize),
 }
 

@@ -22,10 +22,10 @@ impl Default for Settings {
             gravity: 0.01,
             // TODO: Find tetrio defaults for below fields
             gravity_increase: Default::default(),
-            das: Default::default(),
-            arr: Default::default(),
-            sdf: Default::default(),
-            dcd: Default::default(),
+            das: 10.,
+            arr: 2.,
+            sdf: 6.,
+            dcd: 1.,
         }
     }
 }

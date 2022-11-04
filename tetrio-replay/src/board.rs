@@ -28,7 +28,6 @@ pub struct Board {
 }
 
 impl Board {
-    // TODO: Determine if the board is stored bottom-up or top-down in ttr
     /// Creates a new board from a PRNG seed and a board that may be filled with some cells.
     /// 
     /// The format of the matrix is the same as the format found in ttr and ttrm files -- that is,

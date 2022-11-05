@@ -111,7 +111,6 @@ pub fn board_vertex_buffer(frame: &Display, b: &Board) -> Option<VertexBuffer<Mi
             position: [px as f32, py as f32],
             color_id,
         })
-        // TODO: Chain in the active mino's cells
         .collect::<Vec<_>>();
 
     Some(VertexBuffer::new(frame, &vbuffer).unwrap())

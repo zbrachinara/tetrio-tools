@@ -77,7 +77,7 @@ struct State {
     // button presses
     hard_drop: bool,
     hold: bool,
-    rotate_cw: bool, //TODO: Find out if rotation keyup/down events are individually handled
+    rotate_cw: bool,
     rotate_ccw: bool,
     rotate_flip: bool,
 }
@@ -99,7 +99,7 @@ impl State {
                 Key::Right => todo!(),
                 Key::SoftDrop => todo!(),
                 // single keypresses
-                Key::Clockwise => {
+                Key::Clockwise => { //TODO: Maybe button logic is unnecessary if valid ttrm files validate them
                     if !self.rotate_cw {
                         stream.extend(board.rotate_active(Spin::CW));
                         self.rotate_cw = true;

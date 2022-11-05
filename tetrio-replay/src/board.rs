@@ -29,7 +29,7 @@ pub struct Board {
 
 impl Board {
     /// Creates a new board from a PRNG seed and a board that may be filled with some cells.
-    /// 
+    ///
     /// The format of the matrix is the same as the format found in ttr and ttrm files -- that is,
     /// as a two-dimensional matrix.
     pub fn new(piece_seed: u64, game: &Vec<Vec<Option<&str>>>) -> Self {
@@ -66,18 +66,15 @@ impl Board {
     /// Holds a piece if that is possible.
     pub fn hold(&mut self) -> Option<Action> {
         let ret = self.hold_available.then(|| {
-
             match self.hold {
                 Some(ref mut held) => std::mem::swap(&mut self.active, held),
-                None => {
-                    self.hold = Some(self.cycle_piece())
-                }
+                None => self.hold = Some(self.cycle_piece()),
             }
             Action::Hold
         });
-        
+
         self.hold_available = false;
-    
+
         ret
     }
 
@@ -86,12 +83,13 @@ impl Board {
     fn drop_active(&mut self) -> Vec<Action> {
         self.hold_available = true;
 
-        let height = self.active.center.1;
+        let dropping = self.cycle_piece();
+        let height = dropping.center.1;
 
         let checkable_positions = (0..=height)
             .rev()
             .map(|y| {
-                self.active.clone().tap_mut(|a| {
+                dropping.clone().tap_mut(|a| {
                     let (x, _) = a.center;
                     a.center = (x, y);
                 })
@@ -104,8 +102,6 @@ impl Board {
             .take_while(|mino| self.test_empty(&mino.position()))
             .last()
             .unwrap();
-
-        let dropping = self.cycle_piece();
 
         // TODO: Then check if the position is legal and return from there
 

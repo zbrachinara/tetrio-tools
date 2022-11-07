@@ -79,8 +79,7 @@ impl Board {
         ret
     }
 
-    /// Drops the active tetromino into the columns that it takes up, then checks if the position
-    /// that it was dropped to was legal (i.e. the tetromino is partially below the 20-cell line).
+    /// Drops the active tetromino into the lowest possible position within the columns it takes up.
     pub fn drop_active(&mut self) -> Vec<Action> {
         self.hold_available = true;
 

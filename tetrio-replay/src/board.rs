@@ -4,6 +4,7 @@ use std::iter;
 
 use gridly::prelude::{Column, Grid, GridMut, Row};
 use gridly_grids::VecGrid;
+use itertools::Itertools;
 use tap::Tap;
 
 use crate::rng::PieceQueue;
@@ -96,21 +97,59 @@ impl Board {
             })
             .peekable();
 
-        // TODO: Test and modify returned actions for line clears
-
         let dropped = checkable_positions
             .take_while(|mino| self.test_empty(&mino.position()))
             .last()
             .unwrap(); // valid because the mino's current position is guaranteed valid
 
+        let dropped_variant: Cell = dropped.variant.into();
+
         // populate the cells which have been dropped into
         dropped.position().iter().for_each(|position| {
-            *self.cell_mut(position.0, position.1).unwrap() = dropped.variant.into();
+            *self.cell_mut(position.0, position.1).unwrap() = dropped_variant.clone();
         });
 
-        // TODO: Then check if the position is legal and return from there
+        let mut height_offset = 0;
 
-        unimplemented!()
+        dropped
+            .position()
+            .lowest_first()
+            .iter()
+            .peekable()
+            .batching(|it| {
+                let (pos, height) = it.next()?;
+
+                // if we're not dealing with a filled column, then report the positions of filled
+                // cells
+                let mut sto = self.is_filled(*height).unwrap().then(|| {
+                    height_offset -= 1;
+                    vec![Action::Cell {
+                        position: (*pos as u8, (*height + height_offset) as u8),
+                        kind: dropped_variant.clone(),
+                    }]
+                });
+
+                // keep taking elements until the next height
+                while let Some((_, h)) = it.peek() {
+                    if h != height {
+                        break;
+                    } else {
+                        let (pos, height) = it.next().unwrap();
+                        sto.iter_mut().for_each(|v| {
+                            v.push(Action::Cell {
+                                position: (*pos as u8, (*height + height_offset) as u8),
+                                kind: dropped_variant.clone(),
+                            })
+                        });
+                    }
+                }
+
+                Some(sto.unwrap_or(vec![Action::LineClear {
+                    column: (*height + height_offset) as u8,
+                }]))
+            })
+            .flatten()
+            .collect()
     }
 
     /// Attempts to rotate the active tetromino on the board.
@@ -143,6 +182,15 @@ impl Board {
             .map(|_| Action::Reposition {
                 piece: self.active.clone(),
             })
+    }
+
+    /// Tests if a row is filled, and therefore should be cleared. Returns `None` if the given
+    /// row is invalid
+    fn is_filled(&self, row: isize) -> Option<bool> {
+        self.cells
+            .row(row)
+            .ok()
+            .map(|row| !row.iter().any(|cell| cell.is_empty()))
     }
 
     /// Tests whether or not the current position of the piece, if placed, will end the game

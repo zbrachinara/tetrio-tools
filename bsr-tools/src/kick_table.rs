@@ -7,7 +7,7 @@ use crate::tetromino::{Direction, Mino, MinoVariant, Rotation};
 
 /// A list of positions the cells of a mino takes up. Ordinarily, the cells which a mino takes up
 /// are expressed in terms of the position of its center, its rotation state, and its type. These
-/// are transformed into this direct list of positions using [Positions::tetromino] 
+/// are transformed into this direct list of positions using [Positions::tetromino]
 #[derive(Debug, Clone)]
 pub struct Positions<const N: usize>(pub [(isize, isize); N]);
 
@@ -41,6 +41,11 @@ impl<const N: usize> Positions<N> {
     pub fn iter(&self) -> impl Iterator<Item = &(isize, isize)> {
         self.0.iter()
     }
+
+    /// Resorts the positions contained by how low they are on the board
+    pub fn lowest_first(self) -> Self {
+        self.tap_mut(|pos| pos.0.sort_by(|(_, y1), (_, y2)| y1.cmp(y2)))
+    }
 }
 
 impl Positions<4> {
@@ -48,11 +53,7 @@ impl Positions<4> {
         let mut cells = [(0, 0); 4];
         cells
             .iter_mut()
-            .zip(
-                ROTATION_TABLE
-                    .get(&(tet.variant, tet.direction))
-                    .unwrap(),
-            )
+            .zip(ROTATION_TABLE.get(&(tet.variant, tet.direction)).unwrap())
             .for_each(|((fin_x, fin_y), (init_x, init_y))| {
                 *fin_x = *init_x as isize;
                 *fin_y = *init_y as isize;

@@ -2,7 +2,7 @@
 
 use std::iter;
 
-use gridly::prelude::{Column, Grid, Row};
+use gridly::prelude::{Column, Grid, GridMut, Row};
 use gridly_grids::VecGrid;
 use tap::Tap;
 
@@ -80,7 +80,7 @@ impl Board {
 
     /// Drops the active tetromino into the columns that it takes up, then checks if the position
     /// that it was dropped to was legal (i.e. the tetromino is partially below the 20-cell line).
-    fn drop_active(&mut self) -> Vec<Action> {
+    pub fn drop_active(&mut self) -> Vec<Action> {
         self.hold_available = true;
 
         let dropping = self.cycle_piece();
@@ -98,10 +98,15 @@ impl Board {
 
         // TODO: Test and modify returned actions for line clears
 
-        let most_valid = checkable_positions
+        let dropped = checkable_positions
             .take_while(|mino| self.test_empty(&mino.position()))
             .last()
-            .unwrap();
+            .unwrap(); // valid because the mino's current position is guaranteed valid
+
+        // populate the cells which have been dropped into
+        dropped.position().iter().for_each(|position| {
+            *self.cell_mut(position.0, position.1).unwrap() = dropped.variant.into();
+        });
 
         // TODO: Then check if the position is legal and return from there
 
@@ -166,6 +171,10 @@ impl Board {
     /// Gets the cell at the given position (x: column, y: row)
     fn cell(&self, x: isize, y: isize) -> Option<&Cell> {
         self.cells.get((Column(x), Row(y))).ok()
+    }
+
+    fn cell_mut(&mut self, x: isize, y: isize) -> Option<&mut Cell> {
+        self.cells.get_mut((Column(x), Row(y))).ok()
     }
 }
 

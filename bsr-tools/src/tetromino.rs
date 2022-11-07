@@ -5,6 +5,12 @@ use tap::Tap;
 
 use crate::kick_table::{Positions, ROTATION_TABLE};
 
+impl From<MinoVariant> for Cell {
+    fn from(value: MinoVariant) -> Self {
+        Self::Tetromino(value)
+    }
+}
+
 /// The possible states that a cell can take up. A Tetromino cell refers to a filled cell with the
 /// color associated with that tetromino
 #[derive(Clone, Debug)]

@@ -285,9 +285,6 @@ mod test {
 
     #[test]
     fn test_t_kicks() {
-        const GB: Cell = Cell::Garbage;
-        const NC: Cell = Cell::Empty;
-
         let mut tki_board = Board {
             active: Mino {
                 variant: MinoVariant::T,

@@ -228,7 +228,7 @@ impl Board {
 #[cfg(test)]
 mod test {
 
-    use gridly::vector::{Columns, Rows};
+    use gridly::prelude::*;
     use gridly_grids::VecGrid;
     use itertools::Itertools;
 
@@ -314,5 +314,37 @@ mod test {
 
         tst_board.rotate_active(Spin::CW);
         assert_eq!(tst_board.active.center, (4, 1))
+    }
+
+    #[test]
+    fn test_drops() {
+        {
+            let board_initial = board_from_string("________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________#__########___#########__#____###___#__####______###_____#_##_#_____#_#_#_#_____#_###_#####___######____#####_###_####_#");
+            let board_final = board_from_string("________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________#__########___#########__#____###___#__####______###_____#_##_#jjj__#_#_#_#j____#_###_#####___######____#####_###_####_#");
+
+            let mut b = Board {
+                cells: board_initial,
+                queue: PieceQueue::meaningless(),
+                active: Mino {
+                    variant: MinoVariant::J,
+                    direction: Direction::Down,
+                    center: (4, 7),
+                },
+                hold: None,
+                hold_available: true,
+            };
+
+            b.drop_active();
+
+            b.cells
+                .rows()
+                .iter()
+                .map(|c| c.iter())
+                .flatten()
+                .zip(board_final.rows().iter().map(|c| c.iter()).flatten())
+                .for_each(|(a1, a2)| {
+                    assert_eq!(a1, a2, "final state:\n{}", b.cells.display_with(|u| u.clone()))
+                });
+        }
     }
 }

@@ -1,4 +1,4 @@
-use std::{ops::Add, str::FromStr};
+use std::{ops::Add, str::FromStr, fmt::Display};
 
 use strum::EnumString;
 use tap::Tap;
@@ -13,11 +13,27 @@ impl From<MinoVariant> for Cell {
 
 /// The possible states that a cell can take up. A Tetromino cell refers to a filled cell with the
 /// color associated with that tetromino
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Cell {
     Tetromino(MinoVariant),
     Garbage,
     Empty,
+}
+
+impl Display for Cell {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Cell::Tetromino(MinoVariant::I) => f.write_str("II"),
+            Cell::Tetromino(MinoVariant::J) => f.write_str("JJ"),
+            Cell::Tetromino(MinoVariant::L) => f.write_str("LL"),
+            Cell::Tetromino(MinoVariant::S) => f.write_str("SS"),
+            Cell::Tetromino(MinoVariant::Z) => f.write_str("ZZ"),
+            Cell::Tetromino(MinoVariant::T) => f.write_str("TT"),
+            Cell::Tetromino(MinoVariant::O) => f.write_str("OO"),
+            Cell::Garbage => f.write_str("GB"),
+            Cell::Empty => f.write_str("NC"),
+        }
+    }
 }
 
 // TODO: Tetrio-specific implementation -- separate

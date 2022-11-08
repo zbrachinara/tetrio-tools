@@ -230,11 +230,40 @@ mod test {
 
     use gridly::vector::{Columns, Rows};
     use gridly_grids::VecGrid;
+    use itertools::Itertools;
 
     use super::Board;
     use crate::{board::Cell, rng::PieceQueue};
 
     use bsr_tools::tetromino::{Direction, Mino, MinoVariant, Spin};
+
+    /// Takes a map exported from [https://tetrio.team2xh.net/?t=editor] and converts it to
+    /// a `VecGrid` board used by the [Board]
+    fn board_from_string(s: &str) -> VecGrid<Cell> {
+        use MinoVariant::*;
+        let cells_chunks = s
+            .chars()
+            .filter_map(|ch| match ch {
+                '_' => Some(Cell::Empty),
+                'z' => Some(Cell::Tetromino(T)),
+                'l' => Some(Cell::Tetromino(L)),
+                'o' => Some(Cell::Tetromino(O)),
+                's' => Some(Cell::Tetromino(S)),
+                'i' => Some(Cell::Tetromino(I)),
+                'j' => Some(Cell::Tetromino(J)),
+                't' => Some(Cell::Tetromino(T)),
+                '#' => Some(Cell::Garbage),
+                _ => None,
+            })
+            .chunks(10);
+        let mut cells = cells_chunks.into_iter().collect_vec();
+
+        cells.reverse();
+
+        let grid = VecGrid::new_from_rows(cells).unwrap();
+
+        grid
+    }
 
     #[test]
     fn test_rotations() {
@@ -266,16 +295,8 @@ mod test {
                 center: (1, 2),
             },
             queue: PieceQueue::meaningless(),
-            cells: VecGrid::new_from_rows(vec![
-                [GB, GB, NC, GB, GB, GB, GB, GB, GB, GB],
-                [GB, NC, NC, NC, GB, GB, GB, GB, GB, GB],
-                [GB, NC, NC, GB, GB, GB, GB, NC, NC, NC],
-                [NC, NC, NC, GB, GB, GB, NC, NC, NC, NC],
-                [NC, NC, NC, NC, NC, NC, NC, NC, NC, NC],
-                [NC, NC, NC, NC, NC, NC, NC, NC, NC, NC],
-                [NC, NC, NC, NC, NC, NC, NC, NC, NC, NC],
-            ])
-            .unwrap(),
+            // the flat-top tki made with garbage cells built with tspin on the left
+            cells: board_from_string("___________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________###____#__####___#___########_#######"),
             hold: None,
             hold_available: true,
         };

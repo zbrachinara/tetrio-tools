@@ -124,11 +124,11 @@ pub static ROTATION_TABLE: Lazy<HashMap<TetrominoState, [(i8, i8); 4]>> = Lazy::
 
     [
         center_of_mass_rotation(T, [(-1, 0), (0, 0), (1, 0), (0, 1)]),
-        center_of_mass_rotation(L, [(-1, -1), (-1, 0), (0, 0), (1, 0)]),
-        center_of_mass_rotation(J, [(1, 1), (-1, 0), (0, 0), (1, 0)]),
+        center_of_mass_rotation(L, [(1, 1), (-1, 0), (0, 0), (1, 0)]),
+        center_of_mass_rotation(J, [(-1, 1), (-1, 0), (0, 0), (1, 0)]),
         static_rotation(O, [(0, 0), (0, 1), (1, 0), (1, 1)]),
         center_of_mass_rotation(S, [(0, 0), (-1, 0), (0, 1), (1, 1)]),
-        center_of_mass_rotation(Z, [(0, 0), (1, 0), (0, -1), (-1, -1)]),
+        center_of_mass_rotation(Z, [(0, 0), (1, 0), (0, 1), (-1, 1)]),
         [
             ((I, Direction::Up), [(-2, 0), (-1, 0), (0, 0), (1, 0)]),
             ((I, Direction::Left), [(0, 1), (0, 0), (0, -1), (0, -2)]),

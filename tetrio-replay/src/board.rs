@@ -274,7 +274,6 @@ mod test {
                 center: (5, 20),
             },
             queue: PieceQueue::meaningless(),
-            // cells: Grid::init(40, 10, Cell::None),
             cells: VecGrid::new_fill((Rows(40), Columns(10)), &Cell::Empty).unwrap(),
             hold: None,
             hold_available: true,
@@ -300,5 +299,20 @@ mod test {
 
         tki_board.rotate_active(Spin::CW);
         assert_eq!(tki_board.active.center, (2, 1));
+
+        let mut tst_board = Board {
+            cells: board_from_string("__________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________#_______________####_#########__########_#####"),
+            queue: PieceQueue::meaningless(),
+            active: Mino {
+                variant: MinoVariant::T,
+                direction: Direction::Up,
+                center: (5, 3)
+            },
+            hold: None,
+            hold_available: true,
+        };
+
+        tst_board.rotate_active(Spin::CW);
+        assert_eq!(tst_board.active.center, (4, 1))
     }
 }

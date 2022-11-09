@@ -2,11 +2,11 @@ use crate::tetromino::{Cell, Mino};
 
 /// An action is something which can happen to a player's board, though it is not recorded whether
 /// or not this is a consequence of the player's actions themselves. They may happen in the same
-/// frame, as in the case of a hard drop or piece lock spawning multiple cells, but will not be
-/// executed simultaneously. Instead, they will be executed in the order of the frames first, and
-/// then in the order that they are given.
+/// frame, as in the case of a hard drop or piece locking into place and spawning multiple cells,
+/// but will not be executed simultaneously. Instead, they will be executed in the order of the
+/// frames first, and then in the order that they are given.
 pub enum Action {
-    /// Create a new garbage line at the specified column with the given height. 
+    /// Create a new garbage line with a hole at the specified column with the given height. 
     Garbage { column: u8, height: u8 },
     /// Does a modification to the active mino. This is not limited to a rotation or translation,
     /// and can also involve changing the type of mino.

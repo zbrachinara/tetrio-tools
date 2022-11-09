@@ -260,9 +260,7 @@ mod test {
 
         cells.reverse();
 
-        let grid = VecGrid::new_from_rows(cells).unwrap();
-
-        grid
+        VecGrid::new_from_rows(cells).unwrap()
     }
 
     #[test]

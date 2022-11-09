@@ -245,7 +245,7 @@ mod test {
             .chars()
             .filter_map(|ch| match ch {
                 '_' => Some(Cell::Empty),
-                'z' => Some(Cell::Tetromino(T)),
+                'z' => Some(Cell::Tetromino(Z)),
                 'l' => Some(Cell::Tetromino(L)),
                 'o' => Some(Cell::Tetromino(O)),
                 's' => Some(Cell::Tetromino(S)),

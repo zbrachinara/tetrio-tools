@@ -201,7 +201,7 @@ impl Board {
     /// implemented later). Does not test whether the next piece is allowed to spawn after
     /// placement of this piece.
     fn test_legal<const N: usize>(&self, positions: &Positions<N>) -> bool {
-        positions.iter().any(|(_, y)| *y < 20)
+        positions.iter().any(|(_, y)| *y < 20 && *y >= 0)
     }
 
     /// Tests whether or not the positions passed in intersect with the wall or other filled cells

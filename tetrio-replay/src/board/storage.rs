@@ -3,14 +3,14 @@ use gridly::{
     vector::{Columns, Rows, Vector},
 };
 
-struct BoardStorage<T> {
+pub struct BoardStorage<T> {
     columns: usize,
     storage: Vec<Vec<T>>,
 }
 
 impl<T> BoardStorage<T> {
     /// Constructs a new grid but does not check for rectangularity
-    fn new_from_rows_unchecked(v: Vec<Vec<T>>) -> Self {
+    pub fn new_from_rows_unchecked(v: Vec<Vec<T>>) -> Self {
         Self {
             columns: v.get(0).map(|v| v.len()).unwrap_or(0),
             storage: v,

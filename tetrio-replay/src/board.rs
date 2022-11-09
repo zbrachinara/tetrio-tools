@@ -3,7 +3,6 @@
 use std::iter;
 
 use gridly::prelude::{Column, Grid, GridMut, Row};
-use gridly_grids::VecGrid;
 use itertools::Itertools;
 use tap::Tap;
 
@@ -14,6 +13,8 @@ use bsr_tools::{
     tetromino::{Cell, Mino, Spin},
 };
 
+use self::storage::BoardStorage;
+
 mod storage;
 
 /// Holds the state of the tetrio board, which can be updated through the issuing of commands.
@@ -23,7 +24,7 @@ mod storage;
 /// (such as the validity of rotation) and which actions would happen as a consequence of previous
 /// actions (such as line clears).
 pub struct Board {
-    pub cells: VecGrid<Cell>,
+    pub cells: BoardStorage<Cell>,
     pub queue: PieceQueue,
     pub active: Mino,
     hold: Option<Mino>, //TODO: Combine hold fields
@@ -37,12 +38,12 @@ impl Board {
     /// as a two-dimensional matrix.
     pub fn new(piece_seed: u64, game: &Vec<Vec<Option<&str>>>) -> Self {
         let mut queue = PieceQueue::seeded(piece_seed, 5);
-        let cells = VecGrid::new_from_rows(
+        let cells = BoardStorage::new_from_rows_unchecked(
             game.iter()
-                .map(|row| row.iter().map(|elem| Cell::from(*elem)))
-                .rev(),
-        )
-        .unwrap();
+                .map(|row| row.iter().map(|elem| Cell::from(*elem)).collect_vec())
+                .rev()
+                .collect_vec(),
+        );
 
         let active = queue.pop().into();
 
@@ -232,17 +233,16 @@ impl Board {
 mod test {
 
     use gridly::prelude::*;
-    use gridly_grids::VecGrid;
     use itertools::Itertools;
 
-    use super::Board;
+    use super::{storage::BoardStorage, Board};
     use crate::{board::Cell, rng::PieceQueue};
 
     use bsr_tools::tetromino::{Direction, Mino, MinoVariant, Spin};
 
     /// Takes a map exported from [https://tetrio.team2xh.net/?t=editor] and converts it to
-    /// a `VecGrid` board used by the [Board]
-    fn board_from_string(s: &str) -> VecGrid<Cell> {
+    /// a [BoardStorage]
+    fn board_from_string(s: &str) -> BoardStorage<Cell> {
         use MinoVariant::*;
         let cells_chunks = s
             .chars()
@@ -259,11 +259,19 @@ mod test {
                 _ => None,
             })
             .chunks(10);
-        let mut cells = cells_chunks.into_iter().collect_vec();
+        let mut cells = cells_chunks
+            .into_iter()
+            .map(|r| r.collect_vec())
+            .collect_vec();
 
         cells.reverse();
 
-        VecGrid::new_from_rows(cells).unwrap()
+        BoardStorage::new_from_rows_unchecked(cells)
+    }
+
+    /// Creates a board containing nothing
+    fn empty_board() -> BoardStorage<Cell> {
+        board_from_string("________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________")
     }
 
     #[test]
@@ -275,7 +283,7 @@ mod test {
                 center: (5, 20),
             },
             queue: PieceQueue::meaningless(),
-            cells: VecGrid::new_fill((Rows(40), Columns(10)), &Cell::Empty).unwrap(),
+            cells: empty_board(),
             hold: None,
             hold_available: true,
         };
@@ -344,7 +352,12 @@ mod test {
                 .flatten()
                 .zip(board_final.rows().iter().map(|c| c.iter()).flatten())
                 .for_each(|(a1, a2)| {
-                    assert_eq!(a1, a2, "final state:\n{}", b.cells.display_with(|u| u.clone()))
+                    assert_eq!(
+                        a1,
+                        a2,
+                        "final state:\n{}",
+                        b.cells.display_with(|u| u.clone())
+                    )
                 });
         }
     }

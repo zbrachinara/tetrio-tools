@@ -14,6 +14,8 @@ use bsr_tools::{
     tetromino::{Cell, Mino, Spin},
 };
 
+mod storage;
+
 /// Holds the state of the tetrio board, which can be updated through the issuing of commands.
 /// The board does not keep a buffer of the commands, but transforms the commands it is issued
 /// into actions, which are returned immediately. This is used to externally build up a sequence
@@ -110,6 +112,7 @@ impl Board {
 
         let mut height_offset = 0;
 
+        //TODO: Propogate the line clears to the board representation
         dropped
             .position()
             .lowest_first()

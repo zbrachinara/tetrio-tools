@@ -4,16 +4,25 @@ use gridly::{
 };
 
 struct BoardStorage<T> {
+    columns: usize,
     storage: Vec<Vec<T>>,
 }
 
-impl<T> BoardStorage<T> {}
+impl<T> BoardStorage<T> {
+    /// Constructs a new grid but does not check for rectangularity
+    fn new_from_rows_unchecked(v: Vec<Vec<T>>) -> Self {
+        Self {
+            columns: v.get(0).map(|v| v.len()).unwrap_or(0),
+            storage: v,
+        }
+    }
+}
 
 impl<T> GridBounds for BoardStorage<T> {
     fn dimensions(&self) -> Vector {
         Vector {
             rows: Rows(self.storage.len() as isize),
-            columns: Columns(self.storage.get(0).map(|v| v.len()).unwrap_or(0) as isize),
+            columns: Columns(self.columns as isize),
         }
     }
 

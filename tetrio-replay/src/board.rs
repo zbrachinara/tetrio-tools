@@ -2,7 +2,7 @@
 
 use std::iter;
 
-use gridly::prelude::{Column, Grid, GridMut, Row};
+use gridly::prelude::{Column, Grid, GridMut, Row, GridBounds};
 use itertools::Itertools;
 use tap::Tap;
 
@@ -87,6 +87,7 @@ impl Board {
         self.hold_available = true;
 
         let dropping = self.cycle_piece();
+        let variant: Cell = dropping.variant.into();
         let height = dropping.center.1;
 
         let checkable_positions = (0..=height)
@@ -100,22 +101,20 @@ impl Board {
             .peekable();
 
         let dropped = checkable_positions
-            .take_while(|mino| self.test_empty(&mino.position()))
+            .map(|mino| mino.position())
+            .take_while(|position| self.test_empty(&position))
             .last()
             .unwrap(); // valid because the mino's current position is guaranteed valid
 
-        let dropped_variant: Cell = dropped.variant.into();
-
         // populate the cells which have been dropped into
-        dropped.position().iter().for_each(|position| {
-            *self.cell_mut(position.0, position.1).unwrap() = dropped_variant.clone();
+        dropped.iter().for_each(|position| {
+            *self.cell_mut(position.0, position.1).unwrap() = variant.clone();
         });
 
         let mut height_offset = 0;
 
         //TODO: Propogate the line clears to the board representation
         dropped
-            .position()
             .lowest_first()
             .iter()
             .peekable()
@@ -128,7 +127,7 @@ impl Board {
                     height_offset -= 1;
                     vec![Action::Cell {
                         position: (*pos as u8, (*height + height_offset) as u8),
-                        kind: dropped_variant.clone(),
+                        kind: variant.clone(),
                     }]
                 });
 
@@ -141,14 +140,14 @@ impl Board {
                         sto.iter_mut().for_each(|v| {
                             v.push(Action::Cell {
                                 position: (*pos as u8, (*height + height_offset) as u8),
-                                kind: dropped_variant.clone(),
+                                kind: variant.clone(),
                             })
                         });
                     }
                 }
 
                 Some(sto.unwrap_or(vec![Action::LineClear {
-                    column: (*height + height_offset) as u8,
+                    row: (*height + height_offset) as u8,
                 }]))
             })
             .flatten()

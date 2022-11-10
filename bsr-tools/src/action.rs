@@ -12,7 +12,7 @@ pub enum Action {
     /// and can also involve changing the type of mino.
     Reposition { piece: Mino },
     /// Removes a line at the given column
-    LineClear { column: u8 },
+    LineClear { row: u8 },
     /// Changes a cell at the given position. This is not limited to spawning a cell, and can also
     /// mark one's removal
     Cell { position: (u8, u8), kind: Cell },

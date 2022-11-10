@@ -333,20 +333,10 @@ mod test {
 
             b.drop_active();
 
-            b.cells
-                .rows()
-                .iter()
-                .map(|c| c.iter())
-                .flatten()
-                .zip(board_final.rows().iter().map(|c| c.iter()).flatten())
-                .for_each(|(a1, a2)| {
-                    assert_eq!(
-                        a1,
-                        a2,
-                        "final state:\n{}",
-                        b.cells.display_with(|u| u.clone())
-                    )
-                });
+            assert_eq!(
+                b.cells,
+                board_final,
+            )
         }
     }
 }

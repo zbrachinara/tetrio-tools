@@ -4,6 +4,7 @@ use gridly::{
     vector::{Columns, Rows, Vector},
 };
 
+#[derive(PartialEq, Debug)]
 pub struct BoardStorage<T> {
     columns: usize,
     storage: Vec<Vec<T>>,

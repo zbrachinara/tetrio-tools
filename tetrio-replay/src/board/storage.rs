@@ -1,3 +1,4 @@
+use bsr_tools::tetromino::Cell;
 use gridly::{
     prelude::*,
     vector::{Columns, Rows, Vector},
@@ -15,6 +16,14 @@ impl<T> BoardStorage<T> {
             columns: v.get(0).map(|v| v.len()).unwrap_or(0),
             storage: v,
         }
+    }
+}
+
+impl BoardStorage<Cell> {
+    /// Clears a line from the board, recursively bringing down every line above it
+    pub fn clear_line(&mut self, l: usize) {
+        self.storage[l..].rotate_left(1);
+        self.storage.last_mut().unwrap().fill_with(|| Cell::Empty)
     }
 }
 

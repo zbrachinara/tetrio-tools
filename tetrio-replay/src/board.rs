@@ -2,7 +2,7 @@
 
 use std::iter;
 
-use gridly::prelude::{Column, Grid, GridMut, Row, GridBounds};
+use gridly::prelude::{Column, Grid, GridBounds, GridMut, Row};
 use itertools::Itertools;
 use tap::Tap;
 
@@ -87,7 +87,7 @@ impl Board {
         self.hold_available = true;
 
         let dropping = self.cycle_piece();
-        let variant: Cell = dropping.variant.into();
+        let kind: Cell = dropping.variant.into();
         let height = dropping.center.1;
 
         let checkable_positions = (0..=height)
@@ -108,50 +108,39 @@ impl Board {
 
         // populate the cells which have been dropped into
         dropped.iter().for_each(|position| {
-            *self.cell_mut(position.0, position.1).unwrap() = variant.clone();
+            *self.cell_mut(position.0, position.1).unwrap() = kind.clone();
         });
 
-        let mut height_offset = 0;
+        // here we check every row, not just the ones dropped into, because tetrio can behave
+        // like that (custom boards)
+        let mut dropped_cells = dropped.0.to_vec();
+        (0..self.cells.num_rows().0)
+            .scan(0, |real_row, row| {
+                if self.is_filled(*real_row).unwrap() {
+                    // clear the row
+                    self.cells.clear_line(*real_row as usize);
+                    // discard position entries on that row
+                    dropped_cells.drain_filter(|(_, y)| *y == row);
 
-        //TODO: Propogate the line clears to the board representation
-        dropped
-            .lowest_first()
-            .iter()
-            .peekable()
-            .batching(|it| {
-                let (pos, height) = it.next()?;
-
-                // if we're not dealing with a filled column, then report the positions of filled
-                // cells
-                let mut sto = self.is_filled(*height).unwrap().then(|| {
-                    height_offset -= 1;
-                    vec![Action::Cell {
-                        position: (*pos as u8, (*height + height_offset) as u8),
-                        kind: variant.clone(),
-                    }]
-                });
-
-                // keep taking elements until the next height
-                while let Some((_, h)) = it.peek() {
-                    if h != height {
-                        break;
-                    } else {
-                        let (pos, height) = it.next().unwrap();
-                        sto.iter_mut().for_each(|v| {
-                            v.push(Action::Cell {
-                                position: (*pos as u8, (*height + height_offset) as u8),
-                                kind: variant.clone(),
-                            })
-                        });
-                    }
+                    Some(Action::LineClear {
+                        row: *real_row as u8,
+                    })
+                } else {
+                    dropped_cells
+                        .iter_mut()
+                        .filter_map(|(_, y)| (*y == row).then(|| y))
+                        .for_each(|y| *y = *real_row);
+                    *real_row += 1;
+                    None
                 }
-
-                Some(sto.unwrap_or(vec![Action::LineClear {
-                    row: (*height + height_offset) as u8,
-                }]))
             })
-            .flatten()
-            .collect()
+            .collect_vec()
+            .tap_mut(|ve| {
+                ve.extend(dropped_cells.into_iter().map(|(x, y)| Action::Cell {
+                    position: (x as u8, y as u8),
+                    kind: kind.clone(),
+                }));
+            })
     }
 
     /// Attempts to rotate the active tetromino on the board.

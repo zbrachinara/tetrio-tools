@@ -1,13 +1,23 @@
 use bsr_tools::tetromino::Cell;
+use itertools::Itertools;
+use std::fmt::Debug;
 use gridly::{
     prelude::*,
     vector::{Columns, Rows, Vector},
 };
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq)]
 pub struct BoardStorage<T> {
     columns: usize,
     storage: Vec<Vec<T>>,
+}
+
+impl Debug for BoardStorage<Cell> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+       self.storage.iter().rev().try_for_each(|line| {
+            f.write_str(&format!("{}\n", line.iter().join(" ")))
+       }) 
+    }
 }
 
 impl<T> BoardStorage<T> {

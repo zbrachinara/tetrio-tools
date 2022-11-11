@@ -127,6 +127,7 @@ impl Board {
                         row: real_row as u8,
                     })
                 } else {
+                    // move newly dropped cells to the actual row after line clears
                     dropped_cells
                         .iter_mut()
                         .filter_map(|(_, y)| (*y == row).then(|| y))

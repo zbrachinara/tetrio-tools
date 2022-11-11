@@ -111,26 +111,27 @@ impl Board {
             *self.cell_mut(position.0, position.1).unwrap() = kind.clone();
         });
 
+        let mut real_row = 0;
         // here we check every row, not just the ones dropped into, because tetrio can behave
         // like that (custom boards)
         let mut dropped_cells = dropped.0.to_vec();
         (0..self.cells.num_rows().0)
-            .scan(0, |real_row, row| {
-                if self.is_filled(*real_row).unwrap() {
+            .filter_map(|row| {
+                if self.is_filled(real_row).unwrap() {
                     // clear the row
-                    self.cells.clear_line(*real_row as usize);
+                    self.cells.clear_line(real_row as usize);
                     // discard position entries on that row
                     dropped_cells.drain_filter(|(_, y)| *y == row);
 
                     Some(Action::LineClear {
-                        row: *real_row as u8,
+                        row: real_row as u8,
                     })
                 } else {
                     dropped_cells
                         .iter_mut()
                         .filter_map(|(_, y)| (*y == row).then(|| y))
-                        .for_each(|y| *y = *real_row);
-                    *real_row += 1;
+                        .for_each(|y| *y = real_row);
+                    real_row += 1;
                     None
                 }
             })

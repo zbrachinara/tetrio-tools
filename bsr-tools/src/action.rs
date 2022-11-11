@@ -5,6 +5,7 @@ use crate::tetromino::{Cell, Mino};
 /// frame, as in the case of a hard drop or piece locking into place and spawning multiple cells,
 /// but will not be executed simultaneously. Instead, they will be executed in the order of the
 /// frames first, and then in the order that they are given.
+#[derive(Debug)]
 pub enum Action {
     /// Create a new garbage line with a hole at the specified column with the given height. 
     Garbage { column: u8, height: u8 },

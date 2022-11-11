@@ -221,7 +221,6 @@ impl Board {
 #[cfg(test)]
 mod test {
 
-    use gridly::prelude::*;
     use itertools::Itertools;
 
     use super::{storage::BoardStorage, Board};
@@ -358,7 +357,7 @@ mod test {
                 hold_available: true,
             };
 
-            b.drop_active();
+            println!("{:?}", b.drop_active());
             assert_eq!(
                 b.cells,
                 board_final,

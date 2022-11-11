@@ -101,7 +101,7 @@ impl Add<Spin> for Direction {
 
 /// A representation of a mino by its states. Does not directly allow you to access its occupied
 /// positions (can be done using [Positions]), but does let you easily modify its state.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Mino {
     /// The type of mino that is represented (determines its shape)
     pub variant: MinoVariant,

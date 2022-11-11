@@ -160,21 +160,20 @@ impl Board {
             self.test_empty(&testing)
         });
 
-        accepted_kick
-            .inspect(|(x, y)| {
-                self.active = rotated.tap_mut(
-                    |Mino {
-                         center: (tet_x, tet_y),
-                         ..
-                     }| {
-                        *tet_x = tet_x.wrapping_add_signed(*x as isize);
-                        *tet_y = tet_y.wrapping_add_signed(*y as isize);
-                    },
-                )
-            })
-            .map(|_| Action::Reposition {
+        accepted_kick.map(|(x, y)| {
+            self.active = rotated.tap_mut(
+                |Mino {
+                     center: (tet_x, tet_y),
+                     ..
+                 }| {
+                    *tet_x = tet_x.wrapping_add_signed(*x as isize);
+                    *tet_y = tet_y.wrapping_add_signed(*y as isize);
+                },
+            );
+            Action::Reposition {
                 piece: self.active.clone(),
-            })
+            }
+        })
     }
 
     /// Tests if a row is filled, and therefore should be cleared. Returns `None` if the given
@@ -335,12 +334,7 @@ mod test {
 
             b.drop_active();
 
-            assert_eq!(
-                b.cells,
-                board_final,
-                "messy board"
-            );
-
+            assert_eq!(b.cells, board_final, "messy board");
 
             // drop that clears lines
             let board_initial = board_from_string("______________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________####_#####__________####_#####____________________");
@@ -359,12 +353,7 @@ mod test {
             };
 
             println!("{:?}", b.drop_active());
-            assert_eq!(
-                b.cells,
-                board_final,
-                "unnatural t skim"
-            )
-
+            assert_eq!(b.cells, board_final, "unnatural t skim")
         }
     }
 }

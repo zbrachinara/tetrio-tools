@@ -1,4 +1,3 @@
-#![feature(result_option_inspect)]
 #![feature(drain_filter)]
 
 use anyhow::Result;

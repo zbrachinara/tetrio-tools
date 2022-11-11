@@ -18,4 +18,3 @@ tap = "1.0"
 phf = { version = "0.11", features = ["macros"] }
 
 gridly = "0.9"
-gridly_grids = "0.5"

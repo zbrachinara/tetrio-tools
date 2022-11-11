@@ -1241,7 +1241,6 @@ dependencies = [
  "anyhow",
  "bsr-tools",
  "gridly",
- "gridly_grids",
  "itertools",
  "phf",
  "serde",

@@ -97,8 +97,7 @@ impl Board {
                     let (x, _) = a.center;
                     a.center = (x, y);
                 })
-            })
-            .peekable();
+            });
 
         let dropped = checkable_positions
             .map(|mino| mino.position())

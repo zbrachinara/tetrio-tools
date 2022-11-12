@@ -12,15 +12,6 @@ use syn::{
 };
 use tap::{Pipe, Tap};
 
-#[allow(unused)]
-macro_rules! dsp {
-    ($arg:expr) => {{
-        let result = $arg;
-        println!("{result}");
-        result
-    }};
-}
-
 #[proc_macro_attribute]
 pub fn hybrid_tagged(attr: TokenStream, item: TokenStream) -> TokenStream {
     hybrid_tagged_impl(attr.into(), item.into()).into()

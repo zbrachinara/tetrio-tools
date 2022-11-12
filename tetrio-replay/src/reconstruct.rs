@@ -73,13 +73,6 @@ struct State {
     gravity_counter: f32,
     shift_counter: f32,
     shifting: ShiftDirection,
-
-    // button presses
-    hard_drop: bool,
-    hold: bool,
-    rotate_cw: bool,
-    rotate_ccw: bool,
-    rotate_flip: bool,
 }
 
 impl State {
@@ -99,36 +92,11 @@ impl State {
                 Key::Right => todo!(),
                 Key::SoftDrop => todo!(),
                 // single keypresses
-                Key::Clockwise => { //TODO: Maybe button logic is unnecessary if valid ttrm files validate them
-                    if !self.rotate_cw {
-                        stream.extend(board.rotate_active(Spin::CW));
-                        self.rotate_cw = true;
-                    }
-                }
-                Key::CounterClockwise => {
-                    if !self.rotate_ccw {
-                        stream.extend(board.rotate_active(Spin::CCW));
-                        self.rotate_ccw = true;
-                    }
-                }
-                Key::Flip => {
-                    if !self.rotate_flip {
-                        stream.extend(board.rotate_active(Spin::Flip));
-                        self.rotate_flip = true;
-                    }
-                }
-                Key::Hold => {
-                    if !self.hold {
-                        stream.extend(board.hold());
-                        self.hold = true;
-                    }
-                }
-                Key::HardDrop => {
-                    if !self.hard_drop {
-                        stream.extend(board.drop_active());
-                        self.hard_drop = true;
-                    }
-                }
+                Key::Clockwise => stream.extend(board.rotate_active(Spin::CW)),
+                Key::CounterClockwise => stream.extend(board.rotate_active(Spin::CCW)),
+                Key::Flip => stream.extend(board.rotate_active(Spin::Flip)),
+                Key::Hold => stream.extend(board.hold()),
+                Key::HardDrop => stream.extend(board.drop_active()),
             }
         } else {
             match event.key {
@@ -137,11 +105,7 @@ impl State {
                 Key::Right => todo!(),
                 Key::SoftDrop => todo!(),
                 // single keypresses
-                Key::Clockwise => self.rotate_cw = false,
-                Key::CounterClockwise => self.rotate_ccw = false,
-                Key::Flip => self.rotate_flip = false,
-                Key::Hold => self.hold = false,
-                Key::HardDrop => self.hard_drop = false,
+                _ => (),
             }
         }
     }

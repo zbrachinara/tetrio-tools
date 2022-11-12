@@ -69,17 +69,14 @@ impl Board {
 
     /// Holds a piece if that is possible.
     pub fn hold(&mut self) -> Option<Action> {
-        let ret = self.hold_available.then(|| {
+        self.hold_available.then(|| {
             match self.hold {
                 Some(ref mut held) => std::mem::swap(&mut self.active, held),
                 None => self.hold = Some(self.cycle_piece()),
             }
+            self.hold_available = false;
             Action::Hold
-        });
-
-        self.hold_available = false;
-
-        ret
+        })
     }
 
     /// Drops the active tetromino into the lowest possible position within the columns it takes up.

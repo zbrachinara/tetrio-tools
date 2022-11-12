@@ -1,4 +1,4 @@
-use std::{ops::Add, str::FromStr, fmt::Display};
+use std::{fmt::Display, ops::Add, str::FromStr};
 
 use strum::EnumString;
 use tap::Tap;

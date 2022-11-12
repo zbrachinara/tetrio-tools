@@ -90,14 +90,12 @@ impl Board {
         let kind: Cell = dropping.variant.into();
         let height = dropping.center.1;
 
-        let checkable_positions = (0..=height)
-            .rev()
-            .map(|y| {
-                dropping.clone().tap_mut(|a| {
-                    let (x, _) = a.center;
-                    a.center = (x, y);
-                })
-            });
+        let checkable_positions = (0..=height).rev().map(|y| {
+            dropping.clone().tap_mut(|a| {
+                let (x, _) = a.center;
+                a.center = (x, y);
+            })
+        });
 
         let dropped = checkable_positions
             .map(|mino| mino.position())

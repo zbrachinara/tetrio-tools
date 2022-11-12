@@ -7,7 +7,7 @@ use crate::tetromino::{Cell, Mino};
 /// frames first, and then in the order that they are given.
 #[derive(Debug)]
 pub enum Action {
-    /// Create a new garbage line with a hole at the specified column with the given height. 
+    /// Create a new garbage line with a hole at the specified column with the given height.
     Garbage { column: u8, height: u8 },
     /// Does a modification to the active mino. This is not limited to a rotation or translation,
     /// and can also involve changing the type of mino.

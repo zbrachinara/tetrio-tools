@@ -43,7 +43,7 @@ impl Rng {
     }
 }
 
-/// A piece queue which uses the tetrio RNG strategy to generate new pieces. 
+/// A piece queue which uses the tetrio RNG strategy to generate new pieces.
 pub struct PieceQueue {
     window: VecDeque<MinoVariant>, //TODO: Determine whether window is necessary
     window_size: usize,

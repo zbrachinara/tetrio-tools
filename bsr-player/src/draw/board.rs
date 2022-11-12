@@ -89,23 +89,20 @@ pub fn board_vertex_buffer(frame: &Display, b: &Board) -> Option<VertexBuffer<Mi
         .chain({
             let active_color = MinoColor::from(&b.active.variant);
 
-            b.active
-                .position()
-                .iter()
-                .flat_map(move |(bx, by)| {
-                    let (bx, by) = (*bx as usize, *by as usize);
+            b.active.position().iter().flat_map(move |(bx, by)| {
+                let (bx, by) = (*bx as usize, *by as usize);
 
-                    [
-                        // triangle 1
-                        ([bx, by], active_color),
-                        ([bx + 1, by], active_color),
-                        ([bx, by + 1], active_color),
-                        // triangle 2
-                        ([bx + 1, by + 1], active_color),
-                        ([bx + 1, by], active_color),
-                        ([bx, by + 1], active_color),
-                    ]
-                })
+                [
+                    // triangle 1
+                    ([bx, by], active_color),
+                    ([bx + 1, by], active_color),
+                    ([bx, by + 1], active_color),
+                    // triangle 2
+                    ([bx + 1, by + 1], active_color),
+                    ([bx + 1, by], active_color),
+                    ([bx, by + 1], active_color),
+                ]
+            })
         })
         .map(|([px, py], color_id)| MinoVertex {
             position: [px as f32, py as f32],

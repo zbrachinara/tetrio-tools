@@ -151,7 +151,7 @@ impl Board {
         let rotated = self.active.rotate(direction);
         let rotation = self.active.rotation(direction);
 
-        let true_rotation = Positions::tetromino(&rotated);
+        let true_rotation = rotated.position();
         let kicks = kick_table::SRS_PLUS.get(&rotation).unwrap(); // where SRS+ assumed
 
         let accepted_kick = iter::once(&(0, 0)).chain(kicks.iter()).find(|offset| {

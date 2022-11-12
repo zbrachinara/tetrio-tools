@@ -3,7 +3,7 @@ use std::{collections::HashMap, ops::Add};
 use once_cell::sync::Lazy;
 use tap::Tap;
 
-use crate::tetromino::{Direction, Mino, MinoVariant, Rotation};
+use crate::tetromino::{Direction, MinoVariant, Rotation};
 
 /// A list of positions the cells of a mino takes up. Ordinarily, the cells which a mino takes up
 /// are expressed in terms of the position of its center, its rotation state, and its type. These
@@ -45,21 +45,6 @@ impl<const N: usize> Positions<N> {
     /// Resorts the positions contained by how low they are on the board
     pub fn lowest_first(self) -> Self {
         self.tap_mut(|pos| pos.0.sort_by(|(_, y1), (_, y2)| y1.cmp(y2)))
-    }
-}
-
-impl Positions<4> {
-    pub fn tetromino(tet: &Mino) -> Self {
-        let mut cells = [(0, 0); 4];
-        cells
-            .iter_mut()
-            .zip(ROTATION_TABLE.get(&(tet.variant, tet.direction)).unwrap())
-            .for_each(|((fin_x, fin_y), (init_x, init_y))| {
-                *fin_x = *init_x as isize;
-                *fin_y = *init_y as isize;
-            });
-
-        Self(cells) + tet.center
     }
 }
 

@@ -4,7 +4,7 @@ use bsr_tools::{action::Action, tetromino::Spin};
 
 use crate::{
     board::Board,
-    data::event::{Event, EventData, GameOptions, Key, KeyEvent},
+    data::event::{Event, EventData, Game, GameOptions, Key, KeyEvent},
 };
 
 struct Settings {
@@ -117,36 +117,31 @@ where
 {
     /// Creates a controller from a series of tetrio events
     fn read_game(mut game: It) -> Result<Self, &'static str> {
-        let pregame_data = loop {
+        loop {
             let next = game.next();
+
             match next {
                 Some(Event {
-                    data: EventData::Full { .. },
+                    data:
+                        EventData::Full {
+                            options,
+                            game: Game { board, .. },
+                            ..
+                        },
                     ..
-                }) => break next,
+                }) => {
+                    break Some(Self {
+                        events: game,
+                        board: Board::new(options.seed, board),
+                        settings: options.into(),
+                        state: State::default(),
+                    })
+                }
                 None => break None,
-                _ => continue,
+                _ => continue, // keep searching for full data
             }
         }
-        .ok_or("could not find full data to extract initial game state from")?;
-
-        match pregame_data {
-            Event {
-                data:
-                    EventData::Full {
-                        options,
-                        game: board,
-                        ..
-                    },
-                ..
-            } => Ok(Self {
-                events: game,
-                board: Board::new(options.seed, &board.board),
-                settings: options.into(),
-                state: State::default(),
-            }),
-            _ => unreachable!(),
-        }
+        .ok_or("could not find full data to extract initial game state from")
     }
 
     fn stream(mut self) -> Result<Vec<Action>, String> {

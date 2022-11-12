@@ -10,7 +10,7 @@ use crate::rng::PieceQueue;
 use bsr_tools::{
     action::Action,
     kick_table::{self, Positions},
-    tetromino::{Cell, Mino, Spin},
+    tetromino::{Cell, Mino, MinoVariant, Spin},
 };
 
 use self::storage::BoardStorage;
@@ -27,7 +27,7 @@ pub struct Board {
     pub cells: BoardStorage<Cell>,
     pub queue: PieceQueue,
     pub active: Mino,
-    hold: Option<Mino>, //TODO: Combine hold fields
+    hold: Option<MinoVariant>, //TODO: Combine hold fields
     hold_available: bool,
 }
 
@@ -71,8 +71,13 @@ impl Board {
     pub fn hold(&mut self) -> Option<Action> {
         self.hold_available.then(|| {
             match self.hold {
-                Some(ref mut held) => std::mem::swap(&mut self.active, held),
-                None => self.hold = Some(self.cycle_piece()),
+                Some(ref mut held) => {
+                    // `held` refers to two things in this case. In the epxression it refers to the 
+                    // variant of mino previously in the hold queue, and in the desination it
+                    // becomes the piece that was previously active but now held
+                    *held = std::mem::replace(&mut self.active, Mino::from(*held)).variant
+                }
+                None => self.hold = Some(self.cycle_piece().variant),
             }
             self.hold_available = false;
             Action::Hold

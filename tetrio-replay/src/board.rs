@@ -147,12 +147,11 @@ impl Board {
     /// Attempts to rotate the active tetromino on the board.
     ///
     /// For now, assumes SRS+
-    pub fn rotate_active(&mut self, direction: Spin) -> Option<Action> {
-        let rotated = self.active.rotate(direction);
-        let rotation = self.active.rotation(direction);
+    pub fn rotate_active(&mut self, spin: Spin) -> Option<Action> {
+        let rotated = self.active.rotate(spin);
 
         let true_rotation = rotated.position();
-        let kicks = kick_table::SRS_PLUS.get(&rotation).unwrap(); // where SRS+ assumed
+        let kicks = self.active.kick(spin).unwrap().clone(); // where SRS+ assumed
 
         let accepted_kick = iter::once(&(0, 0)).chain(kicks.iter()).find(|offset| {
             let testing = true_rotation.clone() + **offset;

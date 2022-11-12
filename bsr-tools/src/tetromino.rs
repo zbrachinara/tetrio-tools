@@ -3,7 +3,7 @@ use std::{fmt::Display, ops::Add, str::FromStr};
 use strum::EnumString;
 use tap::Tap;
 
-use crate::kick_table::{Positions, ROTATION_TABLE};
+use crate::kick_table::{self, Positions, ROTATION_TABLE};
 
 impl From<MinoVariant> for Cell {
     fn from(value: MinoVariant) -> Self {
@@ -131,6 +131,14 @@ impl Mino {
                 .unwrap()
                 .map(|(x, y)| (x as isize, y as isize)),
         ) + self.center
+    }
+
+    pub fn kick(&self, at: Spin) -> Option<&Vec<(i8, i8)>> {
+        kick_table::SRS_PLUS.get(&Rotation {
+            piece: self.variant,
+            from: self.direction,
+            to: self.direction + at,
+        })
     }
 
     pub fn rotation(&self, at: Spin) -> Rotation {

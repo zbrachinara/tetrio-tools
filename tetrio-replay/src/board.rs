@@ -9,7 +9,7 @@ use tap::Tap;
 use crate::rng::PieceQueue;
 use bsr_tools::{
     action::Action,
-    kick_table::{self, Positions},
+    kick_table::Positions,
     tetromino::{Cell, Mino, MinoVariant, Spin},
 };
 
@@ -72,7 +72,7 @@ impl Board {
         self.hold_available.then(|| {
             match self.hold {
                 Some(ref mut held) => {
-                    // `held` refers to two things in this case. In the epxression it refers to the 
+                    // `held` refers to two things in this case. In the epxression it refers to the
                     // variant of mino previously in the hold queue, and in the desination it
                     // becomes the piece that was previously active but now held
                     *held = std::mem::replace(&mut self.active, Mino::from(*held)).variant

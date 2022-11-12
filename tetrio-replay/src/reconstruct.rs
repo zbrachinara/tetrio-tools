@@ -125,7 +125,8 @@ impl State {
                 }
                 Key::HardDrop => {
                     if !self.hard_drop {
-                        todo!("perform hard drop");
+                        stream.extend(board.drop_active());
+                        self.hard_drop = true;
                     }
                 }
             }

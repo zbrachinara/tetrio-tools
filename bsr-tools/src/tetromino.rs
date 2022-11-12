@@ -129,13 +129,8 @@ impl Mino {
             ROTATION_TABLE
                 .get(&(self.variant, self.direction))
                 .unwrap()
-                .map(|(x, y)| {
-                    (
-                        self.center.0 as isize + x as isize,
-                        self.center.1 as isize + y as isize,
-                    )
-                }),
-        )
+                .map(|(x, y)| (x as isize, y as isize)),
+        ) + self.center
     }
 
     pub fn rotation(&self, at: Spin) -> Rotation {

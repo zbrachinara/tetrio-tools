@@ -1,12 +1,11 @@
 use bsr_tools::tetromino::{Cell, Mino, MinoVariant};
-use glium::{
-    implement_vertex,
-    index::{NoIndices, PrimitiveType},
-    uniform, vertex, Display, DrawError, Frame, Program, Surface, VertexBuffer,
+use gridly::{
+    prelude::{Grid, GridBounds},
+    vector::Vector,
 };
-use gridly::prelude::{Grid, GridBounds};
 use gridly_grids::VecGrid;
-use tap::Pipe;
+
+use macroquad::prelude::*;
 
 impl From<&MinoVariant> for MinoColor {
     fn from(v: &MinoVariant) -> Self {
@@ -43,160 +42,54 @@ enum MinoColor {
     L, J, T, Z, S, O, I, Gb
 }
 
-unsafe impl vertex::Attribute for MinoColor {
-    fn get_type() -> vertex::AttributeType {
-        vertex::AttributeType::U32
-    }
-}
-
 pub struct Board {
     pub cells: VecGrid<Cell>,
     pub active: Mino,
 }
 
-#[derive(Copy, Clone, Debug)]
-pub struct MinoVertex {
-    position: [f32; 2],
-    color_id: MinoColor,
-}
-
-implement_vertex!(MinoVertex, position, color_id);
-
-pub fn board_vertex_buffer(frame: &Display, b: &Board) -> Option<VertexBuffer<MinoVertex>> {
-    let vbuffer = b
-        .cells
-        .rows()
-        .iter()
-        .enumerate()
-        .map(|(by, row)| {
-            row.iter()
-                .enumerate()
-                .filter_map(|(bx, elem)| MinoColor::try_from(elem).ok().map(|color| (bx, color)))
-                .flat_map(move |(bx, color)| {
-                    [
-                        // triangle 1
-                        ([bx, by], color),
-                        ([bx + 1, by], color),
-                        ([bx, by + 1], color),
-                        // triangle 2
-                        ([bx + 1, by + 1], color),
-                        ([bx + 1, by], color),
-                        ([bx, by + 1], color),
-                    ]
-                })
-        })
-        .flatten()
-        .chain({
-            let active_color = MinoColor::from(&b.active.variant);
-
-            b.active.position().iter().flat_map(move |(bx, by)| {
-                let (bx, by) = (*bx as usize, *by as usize);
-
-                [
-                    // triangle 1
-                    ([bx, by], active_color),
-                    ([bx + 1, by], active_color),
-                    ([bx, by + 1], active_color),
-                    // triangle 2
-                    ([bx + 1, by + 1], active_color),
-                    ([bx + 1, by], active_color),
-                    ([bx, by + 1], active_color),
-                ]
-            })
-        })
-        .map(|([px, py], color_id)| MinoVertex {
-            position: [px as f32, py as f32],
-            color_id,
-        })
-        .collect::<Vec<_>>();
-
-    Some(VertexBuffer::new(frame, &vbuffer).unwrap())
-}
-const VERTEX_SHADER: &'static str = r#"
-#version 140
-
-in vec2 position;
-in uint color_id;
-flat out uint color_id_out;
-
-uniform vec2 scale_factor;
-uniform vec2 offset;
-
-void main() {
-    gl_Position = vec4((position + offset) * scale_factor, 0.0, 1.0);
-    color_id_out = color_id;
-}
-"#;
-
-const FRAGMENT_SHADER: &'static str = r#"
-#version 140
-
-flat in uint color_id_out;
-out vec4 color;
-
-void main() {
-    switch (color_id_out) {
-        case 0u: // L piece
-            color = vec4(1.0, 0.1, 0.0, 1.0);
-            break;
-        case 1u: // J piece
-            color = vec4(0.0, 0.0, 1.0, 1.0);
-            break;
-        case 2u: // T piece
-            color = vec4(0.5, 0.0, 1.0, 1.0);
-            break;
-        case 3u: // Z piece
-            color = vec4(1.0, 0.0, 0.0, 1.0);
-            break;
-        case 4u: // S piece
-            color = vec4(0.1, 1.0, 0.0, 1.0);
-            break;
-        case 5u: // O piece
-            color = vec4(1.0, 1.0, 0.0, 1.0);
-            break;
-        case 6u: // I piece
-            color = vec4(0.0, 1.0, 1.0, 1.0);
-            break;
-        case 7u: // garbage piece
-            color = vec4(0.6, 0.6, 0.6, 1.0);
-            break;
+impl Board {
+    fn enumerated(&self) -> impl Iterator<Item = ((usize, usize), &Cell)> {
+        self.cells
+            .rows()
+            .iter()
+            .enumerate()
+            .flat_map(|(y, row)| row.iter().enumerate().map(move |(x, cell)| ((x, y), cell)))
     }
 }
-"#;
 
-pub struct DrawBoard {
-    program: Program,
-}
+pub fn draw_board(board: &Board, legal_region: usize, scale: f32) {
+    let size = 30. * scale;
 
-impl DrawBoard {
-    pub fn new(dpy: &Display) -> Self {
-        Self {
-            program: Program::from_source(dpy, VERTEX_SHADER, FRAGMENT_SHADER, None).unwrap(),
+    let Vector { columns, .. } = board.cells.dimensions();
+    let origin = (
+        screen_width() / 2. - (columns.0 as f32 * size / 2.) as f32,
+        screen_height() / 2. + legal_region as f32 * size / 2.,
+    );
+
+    for ((x, y), cell) in board.enumerated() {
+        if let Ok(color) = MinoColor::try_from(cell) {
+            draw_rectangle(
+                dbg!(origin.0 + size * x as f32),
+                dbg!(origin.1 - size * (y + 1) as f32),
+                size,
+                size,
+                match color {
+                    MinoColor::T => PURPLE,
+                    MinoColor::L => ORANGE,
+                    MinoColor::J => BLUE,
+                    MinoColor::S => GREEN,
+                    MinoColor::Z => RED,
+                    MinoColor::O => YELLOW,
+                    MinoColor::I => Color {
+                        r: 0.,
+                        g: 1.,
+                        b: 1.,
+                        a: 1.,
+                    },
+                    MinoColor::Gb => GRAY,
+                },
+            )
         }
     }
-
-    pub fn draw_board(
-        &self,
-        display: &Display,
-        frame: &mut Frame,
-        board: &Board,
-    ) -> Result<(), DrawError> {
-        let (win_x, win_y) = frame.get_dimensions().pipe(|(x, y)| (x as f32, y as f32));
-        let rect_ratio = win_x / win_y;
-        let screen_ratio = 50. / win_x;
-
-        let size = board.cells.dimensions();
-
-        frame.draw(
-            //TODO: Better error here
-            &board_vertex_buffer(display, board).ok_or(DrawError::AttributeMissing)?,
-            NoIndices(PrimitiveType::TrianglesList),
-            &self.program,
-            &uniform! {
-                scale_factor: [screen_ratio, screen_ratio * rect_ratio],
-                offset: [-(size.columns.0 as f32) / 2., -(size.rows.0 as f32) / 2.],
-            },
-            &Default::default(),
-        )
-    }
+    println!();
 }

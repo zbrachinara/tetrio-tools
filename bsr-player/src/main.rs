@@ -1,17 +1,9 @@
-use std::time::{Duration, Instant};
-
 use bsr_tools::tetromino::{Cell, Direction, Mino, MinoVariant};
-use draw::board::{Board, DrawBoard};
-use glium::{
-    glutin::{
-        event::{Event, WindowEvent},
-        event_loop::{ControlFlow, EventLoop},
-        window::WindowBuilder,
-        ContextBuilder,
-    },
-    Surface,
-};
+use draw::board::{Board};
+
+use gridly::prelude::Grid;
 use gridly_grids::VecGrid;
+use macroquad::prelude::*;
 
 mod draw;
 
@@ -45,48 +37,26 @@ const TEST_BOARD : [[Cell; 10]; 20] = {
     ]
 };
 
-fn main() {
-    let el = EventLoop::new();
-    let wb = WindowBuilder::new().with_title("Hello world!");
-    let windowed_context = ContextBuilder::new();
+#[macroquad::main("bsr player")]
+async fn main() {
 
-    let display = glium::Display::new(wb, windowed_context, &el).unwrap();
+    let board = Board { cells: VecGrid::new_from_rows(TEST_BOARD).unwrap(), active: Mino { variant: MinoVariant::T, direction: Direction::Up, center: (5, 22) } };
 
-    let draw_grid = draw::grid::DrawProgram::new(&display, (10, 20));
-    let draw_board = DrawBoard::new(&display);
+    println!("{}", board.cells.display_with(|u| u.clone()));
+    println!("{} {}", 
+    
+        screen_width() / 2. - (10 / 2_isize) as f32,
+        screen_height() / 2. - 20 as f32 * 30.0 / 2.,
+);
 
-    let example_board = Board {
-        cells: VecGrid::new_from_rows(TEST_BOARD).unwrap(),
-        active: Mino {
-            variant: MinoVariant::T,
-            direction: Direction::Up,
-            center: (5, 22),
-        },
-    };
+    loop {
+        clear_background(BLACK);
 
-    el.run(move |ev, _, control_flow| {
-        let mut target = display.draw();
-        target.clear_color(0.0, 0.0, 0.0, 1.0);
+        draw_rectangle(0., 0., 40.0, 40.0, WHITE);
 
-        draw_grid.draw_grid(&mut target).unwrap();
-        draw_board
-            .draw_board(&display, &mut target, &example_board)
-            .unwrap();
+        draw::grid::draw_grid(10, 20, 1.0);
+        draw::board::draw_board(&board, 20, 1.0);
 
-        target.finish().unwrap();
-
-        let next_frame_time = Instant::now() + Duration::from_nanos(16_666_667);
-
-        *control_flow = ControlFlow::WaitUntil(next_frame_time);
-        match ev {
-            Event::WindowEvent { event, .. } => match event {
-                WindowEvent::CloseRequested => {
-                    *control_flow = ControlFlow::Exit;
-                    return;
-                }
-                _ => return,
-            },
-            _ => (),
-        }
-    });
+        next_frame().await
+    }
 }

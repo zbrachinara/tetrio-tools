@@ -1,6 +1,6 @@
 use macroquad::prelude::*;
 pub fn draw_grid(width: usize, height: usize, scale: f32) {
-    let size = 30. * scale; 
+    let size = 30. * scale;
 
     let width_bound_left = screen_width() / 2. - size * width as f32 / 2.;
     let width_bound_right = screen_width() / 2. + size * width as f32 / 2.;

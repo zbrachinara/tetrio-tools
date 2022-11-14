@@ -1,7 +1,6 @@
 use bsr_tools::tetromino::{Cell, Direction, Mino, MinoVariant};
-use draw::board::{Board};
+use draw::board::Board;
 
-use gridly::prelude::Grid;
 use gridly_grids::VecGrid;
 use macroquad::prelude::*;
 
@@ -39,8 +38,14 @@ const TEST_BOARD : [[Cell; 10]; 20] = {
 
 #[macroquad::main("bsr player")]
 async fn main() {
-
-    let board = Board { cells: VecGrid::new_from_rows(TEST_BOARD).unwrap(), active: Mino { variant: MinoVariant::T, direction: Direction::Up, center: (5, 22) } };
+    let board = Board {
+        cells: VecGrid::new_from_rows(TEST_BOARD).unwrap(),
+        active: Mino {
+            variant: MinoVariant::T,
+            direction: Direction::Up,
+            center: (5, 22),
+        },
+    };
 
     loop {
         clear_background(BLACK);

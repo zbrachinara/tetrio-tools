@@ -94,9 +94,9 @@ pub fn draw_board(board: &Board, legal_region: usize, scale: f32) {
         screen_height() / 2. + legal_region as f32 * size / 2.,
     );
 
-    for ((x, y), cell) in board.enumerated() {
+    for (pos, cell) in board.enumerated() {
         if let Ok(color) = MinoColor::try_from(cell) {
-            draw_cell((origin.0, origin.1), (x, y), color, size)
+            draw_cell(origin, pos, color, size)
         }
     }
 }

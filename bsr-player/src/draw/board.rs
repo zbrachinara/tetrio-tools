@@ -37,7 +37,6 @@ impl TryFrom<&Cell> for MinoColor {
 #[derive(Copy, Clone, Debug)]
 #[repr(u32)]
 #[rustfmt::skip]
-#[allow(dead_code)]
 enum MinoColor {
     L, J, T, Z, S, O, I, Gb
 }
@@ -57,6 +56,35 @@ impl Board {
     }
 }
 
+fn draw_cell(
+    (root_x, root_y): (f32, f32),
+    (pos_x, pos_y): (usize, usize),
+    color: MinoColor,
+    size: f32,
+) {
+    draw_rectangle(
+        root_x + size * pos_x as f32,
+        root_y - size * (pos_y + 1) as f32,
+        size,
+        size,
+        match color {
+            MinoColor::T => PURPLE,
+            MinoColor::L => ORANGE,
+            MinoColor::J => BLUE,
+            MinoColor::S => GREEN,
+            MinoColor::Z => RED,
+            MinoColor::O => YELLOW,
+            MinoColor::I => Color {
+                r: 0.,
+                g: 1.,
+                b: 1.,
+                a: 1.,
+            },
+            MinoColor::Gb => GRAY,
+        },
+    );
+}
+
 pub fn draw_board(board: &Board, legal_region: usize, scale: f32) {
     let size = 30. * scale;
 
@@ -68,28 +96,7 @@ pub fn draw_board(board: &Board, legal_region: usize, scale: f32) {
 
     for ((x, y), cell) in board.enumerated() {
         if let Ok(color) = MinoColor::try_from(cell) {
-            draw_rectangle(
-                dbg!(origin.0 + size * x as f32),
-                dbg!(origin.1 - size * (y + 1) as f32),
-                size,
-                size,
-                match color {
-                    MinoColor::T => PURPLE,
-                    MinoColor::L => ORANGE,
-                    MinoColor::J => BLUE,
-                    MinoColor::S => GREEN,
-                    MinoColor::Z => RED,
-                    MinoColor::O => YELLOW,
-                    MinoColor::I => Color {
-                        r: 0.,
-                        g: 1.,
-                        b: 1.,
-                        a: 1.,
-                    },
-                    MinoColor::Gb => GRAY,
-                },
-            )
+            draw_cell((origin.0, origin.1), (x, y), color, size)
         }
     }
-    println!();
 }

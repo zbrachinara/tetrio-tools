@@ -3,12 +3,10 @@ use std::collections::VecDeque;
 use bsr_tools::tetromino::MinoVariant;
 
 /// The RNG used by tetrio to generate new pieces.
-#[allow(unused)]
 pub struct Rng {
     state: u64,
 }
 
-#[allow(unused)]
 impl Rng {
     fn seeded(seed: u64) -> Self {
         Rng {
@@ -52,7 +50,7 @@ pub struct PieceQueue {
 
 impl PieceQueue {
     /// Creates a dummy piecequeue that won't be used (for tests, for example)
-    #[allow(unused)] // is meant for tests
+    #[cfg(test)] // is meant for tests
     pub fn meaningless() -> Self {
         Self::seeded(1, 1)
     }

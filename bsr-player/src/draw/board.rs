@@ -22,6 +22,12 @@ impl From<&MinoVariant> for MinoColor {
     }
 }
 
+impl From<MinoVariant> for MinoColor {
+    fn from(value: MinoVariant) -> Self {
+        Self::from(&value)
+    }
+}
+
 impl TryFrom<&Cell> for MinoColor {
     type Error = ();
 
@@ -98,5 +104,14 @@ pub fn draw_board(board: &Board, legal_region: usize, scale: f32) {
         if let Ok(color) = MinoColor::try_from(cell) {
             draw_cell(origin, pos, color, size)
         }
+    }
+
+    for (pos_x, pos_y) in board.active.position().0 {
+        draw_cell(
+            origin,
+            (pos_x as usize, (pos_y - 1) as usize),
+            board.active.variant.into(),
+            size,
+        )
     }
 }

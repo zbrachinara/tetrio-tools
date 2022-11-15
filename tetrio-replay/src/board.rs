@@ -173,14 +173,14 @@ impl Board {
             self.test_empty(&testing)
         });
 
-        accepted_kick.map(|(x, y)| {
+        accepted_kick.map(|&(x, y)| {
             self.active = rotated.tap_mut(
                 |Mino {
                      center: (tet_x, tet_y),
                      ..
                  }| {
-                    *tet_x = tet_x.wrapping_add_signed(*x as isize);
-                    *tet_y = tet_y.wrapping_add_signed(*y as isize);
+                    *tet_x = tet_x.wrapping_add_signed(x as isize);
+                    *tet_y = tet_y.wrapping_add_signed(y as isize);
                 },
             );
             Action::Reposition {
@@ -203,19 +203,19 @@ impl Board {
     /// implemented later). Does not test whether the next piece is allowed to spawn after
     /// placement of this piece.
     fn test_legal<const N: usize>(&self, positions: &Positions<N>) -> bool {
-        positions.iter().any(|(_, y)| *y < 20 && *y >= 0)
+        positions.iter().any(|&(_, y)| y < 20 && y >= 0)
     }
 
     /// Tests whether or not the positions passed in intersect with the wall or other filled cells
     /// (which may, for example, imply they are available for a tetromino to rotate into) Also
     /// tests within the buffer above the region in which it it legal to place tetrominos
     fn test_empty<const N: usize>(&self, positions: &Positions<N>) -> bool {
-        positions.iter().all(|(x, y)| {
+        positions.iter().all(|&(x, y)| {
             // check the position is within the lower bounds of the board
-            (*x >= 0 && *y >= 0) &&
+            (x >= 0 && y >= 0) &&
             // and that the cell at that position is empty on the board (and within the upper
             // bounds of the board)
-                self.cell(*x, *y)
+                self.cell(x, y)
                     .map(|u| u.is_empty())
                     == Some(true)
         })

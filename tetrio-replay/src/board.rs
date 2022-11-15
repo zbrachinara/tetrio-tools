@@ -105,12 +105,12 @@ impl Board {
 
         let dropping = self.cycle_piece();
         let kind: Cell = dropping.variant.into();
-        let height = dropping.center.1;
+        let height = dropping.coordinate.1;
 
         let checkable_positions = (0..=height).rev().map(|y| {
             dropping.clone().tap_mut(|a| {
-                let (x, _) = a.center;
-                a.center = (x, y);
+                let (x, _) = a.coordinate;
+                a.coordinate = (x, y);
             })
         });
 
@@ -176,7 +176,7 @@ impl Board {
         accepted_kick.map(|&(x, y)| {
             self.active = rotated.tap_mut(
                 |Mino {
-                     center: (tet_x, tet_y),
+                     coordinate: (tet_x, tet_y),
                      ..
                  }| {
                     *tet_x = tet_x.wrapping_add_signed(x as isize);
@@ -281,7 +281,7 @@ mod test {
             active: Mino {
                 variant: MinoVariant::T,
                 direction: Direction::Down,
-                center: (5, 20),
+                coordinate: (5, 20),
             },
             queue: PieceQueue::meaningless(),
             cells: empty_board(),
@@ -297,7 +297,7 @@ mod test {
             active: Mino {
                 variant: MinoVariant::T,
                 direction: Direction::Right,
-                center: (1, 2),
+                coordinate: (1, 2),
             },
             queue: PieceQueue::meaningless(),
             // the flat-top tki made with garbage cells built with tspin on the left
@@ -306,7 +306,7 @@ mod test {
         };
 
         tki_board.rotate_active(Spin::CW);
-        assert_eq!(tki_board.active.center, (2, 1));
+        assert_eq!(tki_board.active.coordinate, (2, 1));
 
         let mut tst_board = Board {
             cells: board_from_string("__________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________#_______________####_#########__########_#####"),
@@ -314,13 +314,13 @@ mod test {
             active: Mino {
                 variant: MinoVariant::T,
                 direction: Direction::Up,
-                center: (5, 3)
+                coordinate: (5, 3)
             },
             hold: Hold::Empty,
         };
 
         tst_board.rotate_active(Spin::CW);
-        assert_eq!(tst_board.active.center, (4, 1))
+        assert_eq!(tst_board.active.coordinate, (4, 1))
     }
 
     #[test]
@@ -336,7 +336,7 @@ mod test {
                 active: Mino {
                     variant: MinoVariant::J,
                     direction: Direction::Down,
-                    center: (4, 7),
+                    coordinate: (4, 7),
                 },
                 hold: Hold::Empty,
             };
@@ -355,7 +355,7 @@ mod test {
                 active: Mino {
                     variant: MinoVariant::T,
                     direction: Direction::Right,
-                    center: (4, 3),
+                    coordinate: (4, 3),
                 },
                 hold: Hold::Empty,
             };

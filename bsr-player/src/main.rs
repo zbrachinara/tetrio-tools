@@ -43,7 +43,7 @@ async fn main() {
         active: Mino {
             variant: MinoVariant::T,
             direction: Direction::Up,
-            center: (5, 22),
+            coordinate: (5, 22),
         },
     };
 

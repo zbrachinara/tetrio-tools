@@ -17,6 +17,24 @@ use self::storage::BoardStorage;
 
 mod storage;
 
+pub enum Hold {
+    Empty,
+    Active(MinoVariant),
+    NotActive(MinoVariant),
+}
+
+impl Hold {
+    fn activate(&mut self) {
+        match self {
+            Self::NotActive(x) => {
+                let p = std::mem::replace(x, MinoVariant::I); // arbitrary piece, could be anything
+                *self = Self::Active(p);
+            }
+            _ => (),
+        }
+    }
+}
+
 /// Holds the state of the tetrio board, which can be updated through the issuing of commands.
 /// The board does not keep a buffer of the commands, but transforms the commands it is issued
 /// into actions, which are returned immediately. This is used to externally build up a sequence
@@ -27,8 +45,7 @@ pub struct Board {
     pub cells: BoardStorage<Cell>,
     pub queue: PieceQueue,
     pub active: Mino,
-    hold: Option<MinoVariant>, //TODO: Combine hold fields
-    hold_available: bool,
+    hold: Hold,
 }
 
 impl Board {
@@ -51,8 +68,7 @@ impl Board {
             cells,
             queue,
             active,
-            hold: None,
-            hold_available: true,
+            hold: Hold::Empty,
         }
     }
 
@@ -69,24 +85,23 @@ impl Board {
 
     /// Holds a piece if that is possible.
     pub fn hold(&mut self) -> Option<Action> {
-        self.hold_available.then(|| {
-            match self.hold {
-                Some(ref mut held) => {
-                    // `held` refers to two things in this case. In the epxression it refers to the
-                    // variant of mino previously in the hold queue, and in the desination it
-                    // becomes the piece that was previously active but now held
-                    *held = std::mem::replace(&mut self.active, Mino::from(*held)).variant
-                }
-                None => self.hold = Some(self.cycle_piece().variant),
+        match self.hold {
+            Hold::Empty => {
+                self.hold = Hold::NotActive(self.cycle_piece().variant);
+                Some(Action::Hold)
             }
-            self.hold_available = false;
-            Action::Hold
-        })
+            Hold::Active(held) => {
+                self.hold =
+                    Hold::NotActive(std::mem::replace(&mut self.active, Mino::from(held)).variant);
+                Some(Action::Hold)
+            }
+            Hold::NotActive(_) => None,
+        }
     }
 
     /// Drops the active tetromino into the lowest possible position within the columns it takes up.
     pub fn drop_active(&mut self) -> Vec<Action> {
-        self.hold_available = true;
+        self.hold();
 
         let dropping = self.cycle_piece();
         let kind: Cell = dropping.variant.into();
@@ -221,7 +236,7 @@ mod test {
 
     use itertools::Itertools;
 
-    use super::{storage::BoardStorage, Board};
+    use super::{storage::BoardStorage, Board, Hold};
     use crate::{board::Cell, rng::PieceQueue};
 
     use bsr_tools::tetromino::{Direction, Mino, MinoVariant, Spin};
@@ -270,8 +285,7 @@ mod test {
             },
             queue: PieceQueue::meaningless(),
             cells: empty_board(),
-            hold: None,
-            hold_available: true,
+            hold: Hold::Empty,
         };
 
         board.rotate_active(Spin::CW);
@@ -288,8 +302,7 @@ mod test {
             queue: PieceQueue::meaningless(),
             // the flat-top tki made with garbage cells built with tspin on the left
             cells: board_from_string("___________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________###____#__####___#___########_#######"),
-            hold: None,
-            hold_available: true,
+            hold: Hold::Empty,
         };
 
         tki_board.rotate_active(Spin::CW);
@@ -303,8 +316,7 @@ mod test {
                 direction: Direction::Up,
                 center: (5, 3)
             },
-            hold: None,
-            hold_available: true,
+            hold: Hold::Empty,
         };
 
         tst_board.rotate_active(Spin::CW);
@@ -326,8 +338,7 @@ mod test {
                     direction: Direction::Down,
                     center: (4, 7),
                 },
-                hold: None,
-                hold_available: true,
+                hold: Hold::Empty,
             };
 
             b.drop_active();
@@ -346,8 +357,7 @@ mod test {
                     direction: Direction::Right,
                     center: (4, 3),
                 },
-                hold: None,
-                hold_available: true,
+                hold: Hold::Empty,
             };
 
             println!("{:?}", b.drop_active());

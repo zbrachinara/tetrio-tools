@@ -1,10 +1,10 @@
 #![allow(unused)]
 
 use bsr_tools::{action::Action, tetromino::Spin};
+use ttrm::event::{GameOptions, KeyEvent, Key, Event, EventData, Game};
 
 use crate::{
     board::Board,
-    data::event::{Event, EventData, Game, GameOptions, Key, KeyEvent},
 };
 
 struct Settings {

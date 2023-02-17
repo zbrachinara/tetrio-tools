@@ -10,7 +10,8 @@ bsr-tools = { path = "../bsr-tools"}
 
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-tagged-hybrid = { path = "../tagged-hybrid" }
+# tagged-hybrid = { path = "../tagged-hybrid" }
+ttrm = { path = "../ttrm" }
 anyhow = "1.0"
 
 itertools = "0.10"

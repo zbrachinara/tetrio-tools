@@ -647,8 +647,8 @@ dependencies = [
  "phf",
  "serde",
  "serde_json",
- "tagged-hybrid 0.1.0",
  "tap",
+ "ttrm",
 ]
 
 [[package]]

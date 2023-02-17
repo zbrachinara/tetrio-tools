@@ -1,14 +1,13 @@
 #![feature(drain_filter)]
 
 use anyhow::Result;
-pub use data::TTRM;
+use ttrm::Ttrm;
 
 mod board;
-pub mod data;
 mod reconstruct;
 mod rng;
 
-pub fn parse_replay<'a>(content: &'a str) -> Result<TTRM<'a>> {
+pub fn parse_replay<'a>(content: &'a str) -> Result<Ttrm<'a>> {
     Ok(serde_json::from_str(content)?)
 }
 

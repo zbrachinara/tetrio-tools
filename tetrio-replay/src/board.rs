@@ -2,7 +2,10 @@
 
 use std::iter;
 
-use gridly::prelude::{Column, Grid, GridBounds, GridMut, Row};
+use gridly::{
+    prelude::{Column, Direction, Grid, GridBounds, GridMut, Row},
+    vector::Rows,
+};
 use itertools::Itertools;
 use tap::Tap;
 
@@ -99,6 +102,25 @@ impl Board {
         }
     }
 
+    /// Tests for whether the active piece is about to lock -- that is, one of its cells is just
+    /// above a filled cell. If this is the case, the tetromino will not be allowed to drop any
+    /// farther.
+    pub fn active_will_lock(&self) -> bool {
+        self.will_lock(&self.active)
+    }
+
+    /// Tests for whether the given mino is in a locking position -- that is, one of its cells is
+    /// just above a filled cell. If this is the case, the tetromino will not be allowed to drop any
+    /// farther, and, if not hard dropped, the locking countdown will begin.
+    fn will_lock(&self, mino: &Mino) -> bool {
+
+        dbg!(mino);
+        mino.position()
+            .0
+            .iter()
+            .any(|&(x, y)| self.cell(x, y - 1).map(|c| !c.is_empty()).unwrap_or(true))
+    }
+
     /// Drops the active tetromino into the lowest possible position within the columns it takes up.
     pub fn drop_active(&mut self) -> Vec<Action> {
         self.hold();
@@ -107,17 +129,17 @@ impl Board {
         let kind: Cell = dropping.variant.into();
         let height = dropping.coordinate.1;
 
-        let checkable_positions = (0..=height).rev().map(|y| {
-            dropping.clone().tap_mut(|a| {
-                let (x, _) = a.coordinate;
-                a.coordinate = (x, y);
+        let dropped = (0..=height)
+            .rev()
+            .map(|y| {
+                dropping.clone().tap_mut(|a| {
+                    let (x, _) = a.coordinate;
+                    a.coordinate = (x, y);
+                    dbg!(a.coordinate);
+                })
             })
-        });
-
-        let dropped = checkable_positions
+            .find(|mino| self.will_lock(mino))
             .map(|mino| mino.position())
-            .take_while(|position| self.test_empty(&position))
-            .last()
             .unwrap(); // valid because the mino's current position is guaranteed valid
 
         // populate the cells which have been dropped into

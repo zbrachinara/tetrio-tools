@@ -73,14 +73,14 @@ fn center_of_mass_rotation(
     up_position: [(i8, i8); 4],
 ) -> [((MinoVariant, Direction), [(i8, i8); 4]); 4] {
     [
-        rotation_table!(piece:0 => {up_position.clone()}), // normal
+        rotation_table!(piece:0 => {up_position}), // normal
         rotation_table!(piece:1 => {
-            up_position.clone().tap_mut(|positions| { positions
+            up_position.tap_mut(|positions| { positions
                 .iter_mut().for_each(|coords| *coords = (coords.1, -coords.0))
             })
         }),
         rotation_table!(piece:2_i8 => {
-            up_position.clone().tap_mut(|positions| { positions
+            up_position.tap_mut(|positions| { positions
                 .iter_mut().for_each(|coords| *coords = (-coords.0, -coords.1))
             })
         }),
@@ -97,10 +97,10 @@ fn static_rotation(
     position: [(i8, i8); 4],
 ) -> [(TetrominoState, [(i8, i8); 4]); 4] {
     [
-        rotation_table!(piece:0 => {position.clone()}),
-        rotation_table!(piece:1 => {position.clone()}),
-        rotation_table!(piece:2 => {position.clone()}),
-        rotation_table!(piece:3 => {position.clone()}),
+        rotation_table!(piece:0 => {position}),
+        rotation_table!(piece:1 => {position}),
+        rotation_table!(piece:2 => {position}),
+        rotation_table!(piece:3 => {position}),
     ]
 }
 
@@ -134,7 +134,7 @@ pub static SRS_PLUS: Lazy<KickTable> = Lazy::new(|| {
 
     [J, L, T, S, Z]
         .into_iter()
-        .map(|variant| {
+        .flat_map(|variant| {
             // srs standard kicks
             [
                 kick_table!(variant:0>>1 => [(-1, 0), (-1, 1), (0, -2), (-1, -2)]),
@@ -147,7 +147,6 @@ pub static SRS_PLUS: Lazy<KickTable> = Lazy::new(|| {
                 kick_table!(variant:0>>3 => [(1, 0), (1, 1), (0, -2), (1, -2)]),
             ]
         })
-        .flatten()
         // the following rotations are specific to SRS+
         .chain([
             // I CW/CCW rotation kick table

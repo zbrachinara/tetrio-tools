@@ -2,10 +2,7 @@
 
 use std::iter;
 
-use gridly::{
-    prelude::{Column, Direction, Grid, GridBounds, GridMut, Row},
-    vector::Rows,
-};
+use gridly::prelude::{Column, Grid, GridBounds, GridMut, Row};
 use itertools::Itertools;
 use tap::Tap;
 
@@ -28,12 +25,9 @@ pub enum Hold {
 
 impl Hold {
     fn activate(&mut self) {
-        match self {
-            Self::NotActive(x) => {
-                let p = std::mem::replace(x, MinoVariant::I); // arbitrary piece, could be anything
-                *self = Self::Active(p);
-            }
-            _ => (),
+        if let Self::NotActive(x) = self {
+            let p = std::mem::replace(x, MinoVariant::I); // arbitrary piece, could be anything
+            *self = Self::Active(p);
         }
     }
 }
@@ -56,7 +50,7 @@ impl Board {
     ///
     /// The format of the matrix is the same as the format found in ttr and ttrm files -- that is,
     /// as a two-dimensional matrix.
-    pub fn new(piece_seed: u64, game: &Vec<Vec<Option<&str>>>) -> Self {
+    pub fn new(piece_seed: u64, game: &[Vec<Option<&str>>]) -> Self {
         let mut queue = PieceQueue::seeded(piece_seed, 5);
         let cells = BoardStorage::new_from_rows_unchecked(
             game.iter()
@@ -113,7 +107,6 @@ impl Board {
     /// just above a filled cell. If this is the case, the tetromino will not be allowed to drop any
     /// farther, and, if not hard dropped, the locking countdown will begin.
     fn will_lock(&self, mino: &Mino) -> bool {
-
         dbg!(mino);
         mino.position()
             .0
@@ -166,7 +159,7 @@ impl Board {
                     // move newly dropped cells to the actual row after line clears
                     dropped_cells
                         .iter_mut()
-                        .filter_map(|(_, y)| (*y == row).then(|| y))
+                        .filter_map(|(_, y)| (*y == row).then_some(y))
                         .for_each(|y| *y = real_row);
                     real_row += 1;
                     None
@@ -225,7 +218,7 @@ impl Board {
     /// implemented later). Does not test whether the next piece is allowed to spawn after
     /// placement of this piece.
     fn test_legal<const N: usize>(&self, positions: &Positions<N>) -> bool {
-        positions.iter().any(|&(_, y)| y < 20 && y >= 0)
+        positions.iter().any(|&(_, y)| (0..20).contains(&y))
     }
 
     /// Tests whether or not the positions passed in intersect with the wall or other filled cells

@@ -1,11 +1,9 @@
 #![allow(unused)]
 
 use bsr_tools::{action::Action, tetromino::Spin};
-use ttrm::event::{GameOptions, KeyEvent, Key, Event, EventData, Game};
+use ttrm::event::{Event, EventData, Game, GameOptions, Key, KeyEvent};
 
-use crate::{
-    board::Board,
-};
+use crate::board::Board;
 
 struct Settings {
     gravity: f64,
@@ -44,13 +42,8 @@ impl<'a, 'b> From<&'a GameOptions<'b>> for Settings {
 }
 
 #[rustfmt::skip]
-enum ShiftDirection { None, Left, Right }
-
-impl Default for ShiftDirection {
-    fn default() -> Self {
-        ShiftDirection::None
-    }
-}
+#[derive(Default)]
+enum ShiftDirection { #[default] None, Left, Right }
 
 /// Holds the entire state of the game. These are:
 /// * Board state
@@ -175,6 +168,6 @@ where
     }
 }
 
-fn reconstruct<'a>(event_stream: &Vec<Event<'a>>) -> Result<Vec<Action>, String> {
+fn reconstruct(event_stream: &[Event]) -> Result<Vec<Action>, String> {
     Controller::read_game(event_stream.iter())?.stream()
 }

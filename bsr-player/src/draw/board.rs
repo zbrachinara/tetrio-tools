@@ -96,7 +96,7 @@ pub fn draw_board(board: &Board, legal_region: usize, scale: f32) {
 
     let Vector { columns, .. } = board.cells.dimensions();
     let origin = (
-        screen_width() / 2. - (columns.0 as f32 * size / 2.) as f32,
+        screen_width() / 2. - (columns.0 as f32 * size / 2.),
         screen_height() / 2. + legal_region as f32 * size / 2.,
     );
 

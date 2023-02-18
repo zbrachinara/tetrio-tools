@@ -67,7 +67,7 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
                 .flat_map(|fld| type_lifetimes(&fld.ty))
                 .collect::<HashSet<_>>()
                 .pipe(|lifetimes| {
-                    (lifetimes.len() > 0).then(|| {
+                    (!lifetimes.is_empty()).then(|| {
                         let it = lifetimes.iter();
                         Some(quote!(<#(#it),*>))
                     })
@@ -108,13 +108,10 @@ fn hybrid_tagged_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
     let data_variants = variants.clone().tap_mut(|variants| {
         variants.iter_mut().for_each(|variant| {
             variant.attrs.clear();
-            match variant.fields {
-                Fields::Named(ref mut f) => {
-                    for field in &mut f.named {
-                        field.attrs.clear();
-                    }
+            if let Fields::Named(ref mut f) = variant.fields {
+                for field in &mut f.named {
+                    field.attrs.clear();
                 }
-                _ => (),
             }
         })
     });
@@ -308,7 +305,7 @@ fn attr_args(attr: TokenStream2) -> HashMap<String, TokenTree> {
     attr.into_iter()
         .group_by(|tk| !matches!(tk, TokenTree::Punct(p) if p.as_char() == ','))
         .into_iter()
-        .filter_map(|(cond, c)| cond.then(|| c))
+        .filter_map(|(cond, c)| cond.then_some(c))
         .map(|mut triple| {
             let ident = triple.next();
             let eq_sign = triple.next();
@@ -329,15 +326,13 @@ fn attr_args(attr: TokenStream2) -> HashMap<String, TokenTree> {
 /// This function *will* produce duplicate items! Don't forget to dedup before using!
 fn type_lifetimes(ty: &Type) -> SmallVec<[Lifetime; 8]> {
     match ty {
-        Type::Array(a) => type_lifetimes(&*a.elem),
-        Type::Group(g) => type_lifetimes(&*g.elem),
+        Type::Array(a) => type_lifetimes(&a.elem),
+        Type::Group(g) => type_lifetimes(&g.elem),
         Type::ImplTrait(t) => type_param_lifetimes(t.bounds.iter()),
-        Type::Paren(p) => type_lifetimes(&*p.elem),
+        Type::Paren(p) => type_lifetimes(&p.elem),
         Type::Path(p) => path_lifetimes(&p.path),
-        Type::Reference(r) => {
-            type_lifetimes(&*r.elem).tap_mut(|vec| vec.extend(r.lifetime.clone()))
-        }
-        Type::Slice(s) => type_lifetimes(&*s.elem),
+        Type::Reference(r) => type_lifetimes(&r.elem).tap_mut(|vec| vec.extend(r.lifetime.clone())),
+        Type::Slice(s) => type_lifetimes(&s.elem),
         Type::TraitObject(t) => type_param_lifetimes(t.bounds.iter()),
         Type::Tuple(tup) => tup
             .elems
@@ -417,19 +412,19 @@ mod test {
             ),
         );
 
-        println!("{}", macro_out)
+        println!("{macro_out}")
     }
 
     #[test]
     fn extract_lifetimes() {
         type_lifetimes(&parse_quote!(&'a Str<'b>)).tap(|vec| {
-            assert!(vec.iter().find(|x| x.ident.to_string() == "a").is_some());
-            assert!(vec.iter().find(|x| x.ident.to_string() == "b").is_some());
+            assert!(vec.iter().any(|x| x.ident == "a"));
+            assert!(vec.iter().any(|x| x.ident == "b"));
         });
 
         type_lifetimes(&parse_quote!(impl Derive + Debug + Struct<'a> + 'b)).tap(|vec| {
-            assert!(vec.iter().find(|x| x.ident.to_string() == "a").is_some());
-            assert!(vec.iter().find(|x| x.ident.to_string() == "b").is_some());
+            assert!(vec.iter().any(|x| x.ident == "a"));
+            assert!(vec.iter().any(|x| x.ident == "b"));
         });
     }
 }

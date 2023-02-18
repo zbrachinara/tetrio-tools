@@ -7,7 +7,7 @@ mod board;
 mod reconstruct;
 mod rng;
 
-pub fn parse_replay<'a>(content: &'a str) -> Result<Ttrm<'a>> {
+pub fn parse_replay(content: &str) -> Result<Ttrm> {
     Ok(serde_json::from_str(content)?)
 }
 

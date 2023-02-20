@@ -42,6 +42,7 @@ pub struct Board {
     pub cells: BoardStorage<Cell>,
     pub queue: PieceQueue,
     pub active: Mino,
+    pub gravity_state: f32,
     hold: Hold,
 }
 
@@ -65,6 +66,7 @@ impl Board {
             cells,
             queue,
             active,
+            gravity_state: 0.0,
             hold: Hold::Empty,
         }
     }
@@ -300,6 +302,7 @@ mod test {
             },
             queue: PieceQueue::meaningless(),
             cells: empty_board(),
+            gravity_state: 0.0,
             hold: Hold::Empty,
         };
 
@@ -317,6 +320,7 @@ mod test {
             queue: PieceQueue::meaningless(),
             // the flat-top tki made with garbage cells built with tspin on the left
             cells: board_from_string("___________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________###____#__####___#___########_#######"),
+            gravity_state: 0.0,
             hold: Hold::Empty,
         };
 
@@ -331,6 +335,7 @@ mod test {
                 direction: Direction::Up,
                 coordinate: (5, 3)
             },
+            gravity_state: 0.0,
             hold: Hold::Empty,
         };
 
@@ -353,6 +358,7 @@ mod test {
                     direction: Direction::Down,
                     coordinate: (4, 7),
                 },
+                gravity_state: 0.0,
                 hold: Hold::Empty,
             };
 
@@ -372,6 +378,7 @@ mod test {
                     direction: Direction::Right,
                     coordinate: (4, 3),
                 },
+                gravity_state: 0.0,
                 hold: Hold::Empty,
             };
 

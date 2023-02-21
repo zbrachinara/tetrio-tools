@@ -42,6 +42,9 @@ pub struct Board {
     pub cells: BoardStorage<Cell>,
     pub queue: PieceQueue,
     pub active: Mino,
+    /// A value signifying how much time has passed since the active piece has most recently fallen
+    /// (by any amount). If this piece surpasses a certain threshold, the excess is used to
+    /// calculate how far this piece should fall, and/or whether or not it should lock in place 
     pub gravity_state: f32,
     hold: Hold,
 }
@@ -191,6 +194,8 @@ impl Board {
         });
 
         accepted_kick.map(|&(x, y)| {
+            self.gravity_state = 0.0;
+
             self.active = rotated.tap_mut(
                 |Mino {
                      coordinate: (tet_x, tet_y),

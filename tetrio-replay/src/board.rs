@@ -45,7 +45,7 @@ pub struct Board {
     /// A value signifying how much time has passed since the active piece has most recently fallen
     /// (by any amount). If this piece surpasses a certain threshold, the excess is used to
     /// calculate how far this piece should fall, and/or whether or not it should lock in place
-    pub gravity_state: f32,
+    pub gravity_state: f64,
     hold: Hold,
 }
 
@@ -101,10 +101,37 @@ impl Board {
         }
     }
 
-    pub fn soft_drop_active(&mut self, first_frame: u64, last_frame: u64, drop_force: f64) -> Vec<Action> {
-        todo!()
-    }
+    pub fn soft_drop_active(
+        &mut self,
+        mut first_frame: u64,
+        last_frame: u64,
+        drop_force: f64,
+    ) -> Vec<Action> {
+        let mut out = Vec::new();
 
+        while first_frame < last_frame {
+            let frames_left = (1. - self.gravity_state) / drop_force;
+            if frames_left < 1.0 {
+                // the active piece will instantly drop multiple cells, so calculate how many cells
+                // the piece will drop within the frame
+                first_frame += 1;
+                todo!()
+            } else {
+                // The active piece will drop by one cell after a calculated number of frames
+                self.active.coordinate.1 -= 1;
+                first_frame += frames_left.trunc() as u64;
+                out.push(Action {
+                    kind: ActionKind::Reposition {
+                        piece: self.active.clone(),
+                    },
+                    frame: first_frame,
+                });
+                self.gravity_state = frames_left.fract();
+            };
+        }
+
+        out
+    }
 
     /// Tests for whether the active piece is about to lock -- that is, one of its cells is just
     /// above a filled cell. If this is the case, the tetromino will not be allowed to drop any

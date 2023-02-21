@@ -66,7 +66,7 @@ struct Controller<It> {
 /// drop).
 #[derive(Default)]
 struct State {
-    gravity_counter: f32,
+    soft_dropping: bool,
     shift_counter: f32,
     last_frame: u64,
     shifting: ShiftDirection,
@@ -78,17 +78,27 @@ impl State {
     fn handle_keys(
         &mut self,
         board: &mut Board,
+        settings: &Settings,
         stream: &mut Vec<Action>,
         event: &KeyEvent,
         down: bool,
         frame: u64,
     ) {
+
+        let drop_force = if self.soft_dropping {
+            settings.sdf
+        } else {
+            settings.gravity
+        };
+
+        stream.extend(board.soft_drop_active(self.last_frame, frame, drop_force));
+
         if down {
             match event.key {
                 // holdable keypresses
                 Key::Left => todo!(),
                 Key::Right => todo!(),
-                Key::SoftDrop => todo!(),
+                Key::SoftDrop => self.soft_dropping = true,
                 // single keypresses
                 Key::Clockwise => {
                     stream.extend(board.rotate_active(Spin::CW).map(|u| u.attach_frame(frame)))
@@ -116,7 +126,7 @@ impl State {
                 // holdable keypresses
                 Key::Left => todo!(),
                 Key::Right => todo!(),
-                Key::SoftDrop => todo!(),
+                Key::SoftDrop => self.soft_dropping = false,
                 // single keypresses
                 _ => (),
             }
@@ -174,6 +184,7 @@ where
                 EventData::KeyDown { ref key_event } => {
                     self.state.handle_keys(
                         &mut self.board,
+                        &self.settings,
                         &mut stream,
                         key_event,
                         true,
@@ -182,6 +193,7 @@ where
                 }
                 EventData::KeyUp { ref key_event } => self.state.handle_keys(
                     &mut self.board,
+                    &self.settings,
                     &mut stream,
                     key_event,
                     false,

@@ -101,7 +101,7 @@ impl Board {
         }
     }
 
-    pub fn soft_drop_active(first_frame: u64, last_frame: u64, drop_force: f32) -> Vec<Action> {
+    pub fn soft_drop_active(&mut self, first_frame: u64, last_frame: u64, drop_force: f64) -> Vec<Action> {
         todo!()
     }
 

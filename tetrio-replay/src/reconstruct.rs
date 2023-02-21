@@ -121,6 +121,8 @@ impl State {
                 _ => (),
             }
         }
+
+        self.last_frame = frame;
     }
 }
 

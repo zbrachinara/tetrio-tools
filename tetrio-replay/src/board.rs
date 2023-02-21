@@ -8,7 +8,7 @@ use tap::Tap;
 
 use crate::rng::PieceQueue;
 use bsr_tools::{
-    action::{ActionKind, Action},
+    action::{Action, ActionKind},
     kick_table::Positions,
     tetromino::{Cell, Mino, MinoVariant, Spin},
 };
@@ -44,7 +44,7 @@ pub struct Board {
     pub active: Mino,
     /// A value signifying how much time has passed since the active piece has most recently fallen
     /// (by any amount). If this piece surpasses a certain threshold, the excess is used to
-    /// calculate how far this piece should fall, and/or whether or not it should lock in place 
+    /// calculate how far this piece should fall, and/or whether or not it should lock in place
     pub gravity_state: f32,
     hold: Hold,
 }
@@ -101,14 +101,10 @@ impl Board {
         }
     }
 
-
-    pub fn soft_drop(frames_passed: usize, sdf: f32) -> Vec<Action> {
+    pub fn soft_drop_active(first_frame: u64, last_frame: u64, drop_force: f32) -> Vec<Action> {
         todo!()
     }
 
-    pub fn apply_gravity(frames_passed: usize, gravity: f32) -> Vec<Action> {
-        todo!()
-    }
 
     /// Tests for whether the active piece is about to lock -- that is, one of its cells is just
     /// above a filled cell. If this is the case, the tetromino will not be allowed to drop any

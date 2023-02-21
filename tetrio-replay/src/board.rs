@@ -8,7 +8,7 @@ use tap::Tap;
 
 use crate::rng::PieceQueue;
 use bsr_tools::{
-    action::Action,
+    action::{ActionKind, Action},
     kick_table::Positions,
     tetromino::{Cell, Mino, MinoVariant, Spin},
 };
@@ -81,21 +81,21 @@ impl Board {
     }
 
     /// Shifts the active tetromino by the given amount of cells.
-    fn shift(&mut self, cells: i8) -> Option<Action> {
+    fn shift(&mut self, cells: i8) -> Option<ActionKind> {
         unimplemented!()
     }
 
     /// Holds a piece if that is possible.
-    pub fn hold(&mut self) -> Option<Action> {
+    pub fn hold(&mut self) -> Option<ActionKind> {
         match self.hold {
             Hold::Empty => {
                 self.hold = Hold::NotActive(self.cycle_piece().variant);
-                Some(Action::Hold)
+                Some(ActionKind::Hold)
             }
             Hold::Active(held) => {
                 self.hold =
                     Hold::NotActive(std::mem::replace(&mut self.active, Mino::from(held)).variant);
-                Some(Action::Hold)
+                Some(ActionKind::Hold)
             }
             Hold::NotActive(_) => None,
         }
@@ -129,7 +129,7 @@ impl Board {
     }
 
     /// Drops the active tetromino into the lowest possible position within the columns it takes up.
-    pub fn drop_active(&mut self) -> Vec<Action> {
+    pub fn drop_active(&mut self) -> Vec<ActionKind> {
         self.hold();
 
         let dropping = self.cycle_piece();
@@ -166,7 +166,7 @@ impl Board {
                     // discard position entries on that row
                     dropped_cells.drain_filter(|(_, y)| *y == row);
 
-                    Some(Action::LineClear {
+                    Some(ActionKind::LineClear {
                         row: real_row as u8,
                     })
                 } else {
@@ -181,7 +181,7 @@ impl Board {
             })
             .collect_vec()
             .tap_mut(|ve| {
-                ve.extend(dropped_cells.into_iter().map(|(x, y)| Action::Cell {
+                ve.extend(dropped_cells.into_iter().map(|(x, y)| ActionKind::Cell {
                     position: (x as u8, y as u8),
                     kind: kind.clone(),
                 }));
@@ -191,7 +191,7 @@ impl Board {
     /// Attempts to rotate the active tetromino on the board.
     ///
     /// For now, assumes SRS+
-    pub fn rotate_active(&mut self, spin: Spin) -> Option<Action> {
+    pub fn rotate_active(&mut self, spin: Spin) -> Option<ActionKind> {
         let rotated = self.active.rotate(spin);
 
         let true_rotation = rotated.position();
@@ -214,7 +214,7 @@ impl Board {
                     *tet_y = tet_y.wrapping_add_signed(y as isize);
                 },
             );
-            Action::Reposition {
+            ActionKind::Reposition {
                 piece: self.active.clone(),
             }
         })

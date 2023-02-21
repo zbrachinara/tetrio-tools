@@ -1,6 +1,9 @@
 #![allow(unused)]
 
-use bsr_tools::{action::Action, tetromino::Spin};
+use bsr_tools::{
+    action::{Action, ActionKind},
+    tetromino::Spin,
+};
 use ttrm::event::{Event, EventData, Game, GameOptions, Key, KeyEvent};
 
 use crate::board::Board;
@@ -65,6 +68,7 @@ struct Controller<It> {
 struct State {
     gravity_counter: f32,
     shift_counter: f32,
+    last_frame: u64,
     shifting: ShiftDirection,
 }
 
@@ -77,6 +81,7 @@ impl State {
         stream: &mut Vec<Action>,
         event: &KeyEvent,
         down: bool,
+        frame: u64,
     ) {
         if down {
             match event.key {
@@ -85,11 +90,26 @@ impl State {
                 Key::Right => todo!(),
                 Key::SoftDrop => todo!(),
                 // single keypresses
-                Key::Clockwise => stream.extend(board.rotate_active(Spin::CW)),
-                Key::CounterClockwise => stream.extend(board.rotate_active(Spin::CCW)),
-                Key::Flip => stream.extend(board.rotate_active(Spin::Flip)),
-                Key::Hold => stream.extend(board.hold()),
-                Key::HardDrop => stream.extend(board.drop_active()),
+                Key::Clockwise => {
+                    stream.extend(board.rotate_active(Spin::CW).map(|u| u.attach_frame(frame)))
+                }
+                Key::CounterClockwise => stream.extend(
+                    board
+                        .rotate_active(Spin::CCW)
+                        .map(|u| u.attach_frame(frame)),
+                ),
+                Key::Flip => stream.extend(
+                    board
+                        .rotate_active(Spin::Flip)
+                        .map(|u| u.attach_frame(frame)),
+                ),
+                Key::Hold => stream.extend(board.hold().map(|u| u.attach_frame(frame))),
+                Key::HardDrop => stream.extend(
+                    board
+                        .drop_active()
+                        .iter()
+                        .map(|u| u.clone().attach_frame(frame)),
+                ),
             }
         } else {
             match event.key {
@@ -150,13 +170,21 @@ where
                 EventData::Full { .. } => (),
                 EventData::Targets => (),
                 EventData::KeyDown { ref key_event } => {
-                    self.state
-                        .handle_keys(&mut self.board, &mut stream, key_event, true);
+                    self.state.handle_keys(
+                        &mut self.board,
+                        &mut stream,
+                        key_event,
+                        true,
+                        event.frame,
+                    );
                 }
-                EventData::KeyUp { ref key_event } => {
-                    self.state
-                        .handle_keys(&mut self.board, &mut stream, key_event, false)
-                }
+                EventData::KeyUp { ref key_event } => self.state.handle_keys(
+                    &mut self.board,
+                    &mut stream,
+                    key_event,
+                    false,
+                    event.frame,
+                ),
                 EventData::InGameEvent { ref event } => todo!(),
                 EventData::End => todo!(),
             }

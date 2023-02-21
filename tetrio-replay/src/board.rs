@@ -101,6 +101,15 @@ impl Board {
         }
     }
 
+
+    pub fn soft_drop(frames_passed: usize, sdf: f32) -> Vec<Action> {
+        todo!()
+    }
+
+    pub fn apply_gravity(frames_passed: usize, gravity: f32) -> Vec<Action> {
+        todo!()
+    }
+
     /// Tests for whether the active piece is about to lock -- that is, one of its cells is just
     /// above a filled cell. If this is the case, the tetromino will not be allowed to drop any
     /// farther.

@@ -199,6 +199,7 @@ impl Board {
             .filter_map(|row| {
                 if self.is_filled(real_row).unwrap() {
                     // clear the row
+                    // TODO Make this an action
                     self.cells.clear_line(real_row as usize);
                     // discard position entries on that row
                     dropped_cells.drain_filter(|(_, y)| *y == row);

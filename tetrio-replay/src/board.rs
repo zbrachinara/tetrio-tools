@@ -119,14 +119,14 @@ impl Board {
             } else {
                 // The active piece will drop by one cell after a calculated number of frames
                 self.active.coordinate.1 -= 1;
-                first_frame += frames_left.trunc() as u64;
+                first_frame += frames_left.ceil() as u64;
                 out.push(Action {
                     kind: ActionKind::Reposition {
                         piece: self.active.clone(),
                     },
                     frame: first_frame,
                 });
-                self.gravity_state = frames_left.fract();
+                self.gravity_state = (1 - frames_left.fract()) / drop_force;
             };
         }
 

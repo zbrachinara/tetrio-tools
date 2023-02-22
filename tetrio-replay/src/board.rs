@@ -126,7 +126,7 @@ impl Board {
                     },
                     frame: first_frame,
                 });
-                self.gravity_state = (1 - frames_left.fract()) / drop_force;
+                self.gravity_state = (1. - frames_left.fract()) / drop_force;
             };
         }
 

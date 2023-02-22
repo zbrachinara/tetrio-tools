@@ -103,29 +103,30 @@ impl Board {
 
     pub fn soft_drop_active(
         &mut self,
-        mut first_frame: u64,
-        last_frame: u64,
+        mut first_subframe: u64,
+        last_subframe: u64,
         drop_force: f64,
     ) -> Vec<Action> {
         let mut out = Vec::new();
 
-        while first_frame < last_frame {
-            if drop_force < 1.0 {
+        while first_subframe < last_subframe {
+            if drop_force < 1. {
                 // The active piece will drop by one cell after a calculated number of frames
-                let frames_left = (1. - self.gravity_state) / drop_force;
+                // TODO detect time collision and possible locking
+                let frames_left = (1. - self.gravity_state) * 10. / drop_force;
                 self.active.coordinate.1 -= 1;
-                first_frame += frames_left.ceil() as u64;
+                first_subframe += frames_left.ceil() as u64;
                 out.push(Action {
                     kind: ActionKind::Reposition {
                         piece: self.active.clone(),
                     },
-                    frame: first_frame,
+                    frame: first_subframe / 10,
                 });
-                self.gravity_state = (1. - frames_left.fract()) * drop_force;
+                self.gravity_state = (1. - frames_left.fract()) * drop_force / 10.;
             } else {
                 // the active piece will instantly drop multiple cells, so calculate how many cells
-                // the piece will drop within the frame
-                first_frame += 1;
+                // the piece will drop within the frame, or, if the piece will begin locking before
+                // the frame ends, on which subframe that happens and where
                 todo!()
             }
         }

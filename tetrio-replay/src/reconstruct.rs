@@ -68,7 +68,7 @@ struct Controller<It> {
 struct State {
     soft_dropping: bool,
     shift_counter: f32,
-    last_frame: u64,
+    last_subframe: u64,
     shifting: ShiftDirection,
 }
 
@@ -91,7 +91,8 @@ impl State {
             settings.gravity
         };
 
-        stream.extend(board.soft_drop_active(self.last_frame, frame, drop_force));
+        let subframe = frame * 10 + (event.subframe.as_f64().unwrap() * 10.).round() as u64;
+        stream.extend(board.soft_drop_active(self.last_subframe, subframe, drop_force));
 
         if down {
             match event.key {
@@ -132,7 +133,7 @@ impl State {
             }
         }
 
-        self.last_frame = frame;
+        self.last_subframe = subframe;
     }
 }
 

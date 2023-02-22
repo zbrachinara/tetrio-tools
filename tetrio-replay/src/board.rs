@@ -161,26 +161,32 @@ impl Board {
             .any(|&(x, y)| self.cell(x, y - 1).map(|c| !c.is_empty()).unwrap_or(true))
     }
 
-    /// Drops the active tetromino into the lowest possible position within the columns it takes up.
-    pub fn drop_active(&mut self) -> Vec<ActionKind> {
-        self.hold();
-
-        let dropping = self.cycle_piece();
-        let kind: Cell = dropping.variant.into();
-        let height = dropping.coordinate.1;
-
-        let dropped = (0..=height)
+    /// Given the current mino, returns a copy of the mino for which calling [Self::will_lock] on it
+    /// returns true (that is, gives the mino back at a position at which it would lock). Panics
+    /// when the mino is not within the bounds of the board (sometimes. I'm not motivated enough to
+    /// figure out the exact bounds where it will panic, so this is an overgeneralization).
+    fn will_lock_at(&self, mino: &Mino) -> Mino {
+        (0..=mino.coordinate.1)
             .rev()
             .map(|y| {
-                dropping.clone().tap_mut(|a| {
+                mino.clone().tap_mut(|a| {
                     let (x, _) = a.coordinate;
                     a.coordinate = (x, y);
                     dbg!(a.coordinate);
                 })
             })
             .find(|mino| self.will_lock(mino))
-            .map(|mino| mino.position())
-            .unwrap(); // valid because the mino's current position is guaranteed valid
+            .unwrap() // valid if the mino's current position is guaranteed valid
+    }
+
+    /// Drops the active tetromino into the lowest possible position within the columns it takes up.
+    pub fn drop_active(&mut self) -> Vec<ActionKind> {
+        self.hold();
+
+        let dropping = self.cycle_piece();
+        let kind: Cell = dropping.variant.into();
+
+        let dropped = self.will_lock_at(&dropping).position();
 
         // populate the cells which have been dropped into
         dropped.iter().for_each(|position| {

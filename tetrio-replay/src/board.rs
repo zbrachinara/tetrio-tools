@@ -181,8 +181,6 @@ impl Board {
 
     /// Drops the active tetromino into the lowest possible position within the columns it takes up.
     pub fn drop_active(&mut self) -> Vec<ActionKind> {
-        self.hold();
-
         let dropping = self.cycle_piece();
         let kind: Cell = dropping.variant.into();
 

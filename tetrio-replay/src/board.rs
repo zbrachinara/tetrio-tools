@@ -136,6 +136,28 @@ impl Board {
                 // the active piece will instantly drop multiple cells, so calculate how many cells
                 // the piece will drop within the frame, or, if the piece will begin locking before
                 // the frame ends, on which subframe that happens and where
+
+                let drop_size = self.gravity_state + drop_force / 10.;
+                let cells_dropped = drop_size.trunc() as usize;
+                let excess_state = drop_size.fract();
+                let locks_at = self.will_lock_at(&self.active).coordinate.1; // TODO may be valid to compute this once
+
+                if cells_dropped >= locks_at {
+                    // The piece will start locking before the frame has passed, so drop only to the
+                    // point where the piece will begin locking, and let locking logic take over
+                    // from there
+                } else {
+                    self.gravity_state = excess_state;
+                    self.active.coordinate.1 += cells_dropped;
+                    first_subframe += 10;
+                    out.push(Action {
+                        kind: ActionKind::Reposition {
+                            piece: self.active.clone(),
+                        },
+                        frame: first_subframe / 10,
+                    })
+                }
+
                 todo!()
             }
         }
@@ -172,7 +194,6 @@ impl Board {
                 mino.clone().tap_mut(|a| {
                     let (x, _) = a.coordinate;
                     a.coordinate = (x, y);
-                    dbg!(a.coordinate);
                 })
             })
             .find(|mino| self.will_lock(mino))

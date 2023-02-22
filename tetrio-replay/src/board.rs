@@ -110,14 +110,14 @@ impl Board {
         let mut out = Vec::new();
 
         while first_frame < last_frame {
-            let frames_left = (1. - self.gravity_state) / drop_force;
-            if frames_left < 1.0 {
+            if drop_force < 1.0 {
                 // the active piece will instantly drop multiple cells, so calculate how many cells
                 // the piece will drop within the frame
                 first_frame += 1;
                 todo!()
             } else {
                 // The active piece will drop by one cell after a calculated number of frames
+                let frames_left = (1. - self.gravity_state) / drop_force;
                 self.active.coordinate.1 -= 1;
                 first_frame += frames_left.ceil() as u64;
                 out.push(Action {
@@ -126,7 +126,7 @@ impl Board {
                     },
                     frame: first_frame,
                 });
-                self.gravity_state = (1. - frames_left.fract()) / drop_force;
+                self.gravity_state = (1. - frames_left.fract()) * drop_force;
             };
         }
 

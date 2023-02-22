@@ -110,19 +110,28 @@ impl Board {
         let mut out = Vec::new();
 
         while first_subframe < last_subframe {
+            // TODO detect locking
             if drop_force < 1. {
                 // The active piece will drop by one cell after a calculated number of frames
-                // TODO detect time collision and possible locking
                 let frames_left = (1. - self.gravity_state) * 10. / drop_force;
-                self.active.coordinate.1 -= 1;
-                first_subframe += frames_left.ceil() as u64;
-                out.push(Action {
-                    kind: ActionKind::Reposition {
-                        piece: self.active.clone(),
-                    },
-                    frame: first_subframe / 10,
-                });
-                self.gravity_state = (1. - frames_left.fract()) * drop_force / 10.;
+                let frames_to_pass = frames_left.ceil() as u64;
+
+                if first_subframe + frames_to_pass > last_subframe {
+                    // the piece will not fall to the next cell before the piece is finished falling
+                    // for this time period, so only update the gravity state
+                    self.gravity_state +=
+                        (last_subframe - first_subframe) as f64 * drop_force / 10.;
+                } else {
+                    self.active.coordinate.1 -= 1;
+                    first_subframe += frames_to_pass;
+                    out.push(Action {
+                        kind: ActionKind::Reposition {
+                            piece: self.active.clone(),
+                        },
+                        frame: first_subframe / 10,
+                    });
+                    self.gravity_state = (1. - frames_left.fract()) * drop_force / 10.;
+                }
             } else {
                 // the active piece will instantly drop multiple cells, so calculate how many cells
                 // the piece will drop within the frame, or, if the piece will begin locking before

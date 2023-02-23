@@ -137,7 +137,7 @@ impl Board {
                 // the piece will drop within the frame, or, if the piece will begin locking before
                 // the frame ends, on which subframe that happens and where
 
-                let drop_size = self.gravity_state + drop_force / 10.;
+                let drop_size = self.gravity_state + drop_force;
                 let cells_dropped = drop_size.trunc() as usize;
                 let excess_state = drop_size.fract();
                 let locks_after =

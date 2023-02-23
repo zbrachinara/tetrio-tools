@@ -137,7 +137,11 @@ impl Board {
                 // the piece will drop within the frame, or, if the piece will begin locking before
                 // the frame ends, on which subframe that happens and where
 
-                let drop_size = self.gravity_state + drop_force;
+                // the mino may not be able to drop the full 10 subframes if it encounters a time
+                // limit, so find out how much time it has to travel here
+                let subframes_counted = std::cmp::min(10, last_subframe - first_subframe);
+
+                let drop_size = self.gravity_state + subframes_counted as f64 * drop_force / 10.;
                 let cells_dropped = drop_size.trunc() as usize;
                 let excess_state = drop_size.fract();
                 let locks_after =
@@ -158,15 +162,16 @@ impl Board {
                 } else {
                     self.gravity_state = excess_state;
                     self.active.coordinate.1 += cells_dropped;
-                    first_subframe += 10;
-                    out.push(Action {
-                        kind: ActionKind::Reposition {
-                            piece: self.active.clone(),
-                        },
-                        frame: first_subframe / 10,
-                    })
+                    first_subframe += subframes_counted;
+                    if cells_dropped > 0 {
+                        out.push(Action {
+                            kind: ActionKind::Reposition {
+                                piece: self.active.clone(),
+                            },
+                            frame: first_subframe / 10,
+                        })
+                    }
                 }
-
             }
         }
 

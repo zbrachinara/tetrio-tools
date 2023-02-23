@@ -147,6 +147,14 @@ impl Board {
                     // The piece will start locking before the frame has passed, so drop only to the
                     // point where the piece will begin locking, and let locking logic take over
                     // from there
+
+                    let subframes_until_drop =
+                        ((locks_after as f64 - self.gravity_state) * 10. / drop_force).ceil();
+                    assert!(subframes_until_drop <= 10.0); // Should be true because otherwise the tetromino should be able to clear a frame without locking
+
+                    self.active.coordinate.1 += locks_after;
+                    self.gravity_state = locks_after as f64 - subframes_until_drop * drop_force;
+                    first_subframe += subframes_until_drop as u64
                 } else {
                     self.gravity_state = excess_state;
                     self.active.coordinate.1 += cells_dropped;
@@ -159,7 +167,6 @@ impl Board {
                     })
                 }
 
-                todo!()
             }
         }
 

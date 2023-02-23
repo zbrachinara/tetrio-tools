@@ -140,9 +140,10 @@ impl Board {
                 let drop_size = self.gravity_state + drop_force / 10.;
                 let cells_dropped = drop_size.trunc() as usize;
                 let excess_state = drop_size.fract();
-                let locks_at = self.will_lock_at(&self.active).coordinate.1; // TODO may be valid to compute this once
+                let locks_after =
+                    self.active.coordinate.1 - self.will_lock_at(&self.active).coordinate.1; // TODO will_lock_at may be valid to compute once insie this function
 
-                if cells_dropped >= locks_at {
+                if cells_dropped >= locks_after {
                     // The piece will start locking before the frame has passed, so drop only to the
                     // point where the piece will begin locking, and let locking logic take over
                     // from there

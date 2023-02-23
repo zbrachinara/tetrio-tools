@@ -225,39 +225,32 @@ impl Board {
             *self.cell_mut(position.0, position.1).unwrap() = kind.clone();
         });
 
-        let mut real_row = 0;
         // here we check every row, not just the ones dropped into, because tetrio can behave
         // like that (custom boards)
-        let mut dropped_cells = dropped.0.to_vec();
+        let dropped_cells = dropped.0.into_iter().map(|(x, y)| ActionKind::Cell {
+            position: (x as u8, y as u8),
+            kind: kind.clone(),
+        });
+        dropped_cells.chain(self.clear_lines()).collect_vec()
+    }
+
+    fn clear_lines(&mut self) -> impl Iterator<Item = ActionKind> + '_ {
         (0..self.cells.num_rows().0)
-            .filter_map(|row| {
-                if self.is_filled(real_row).unwrap() {
+            .scan(0, |real_row, _| {
+                Some(if self.is_filled(*real_row).unwrap() {
                     // clear the row
-                    // TODO Make this an action
-                    self.cells.clear_line(real_row as usize);
-                    // discard position entries on that row
-                    dropped_cells.drain_filter(|(_, y)| *y == row);
+                    self.cells.clear_line(*real_row as usize);
 
                     Some(ActionKind::LineClear {
-                        row: real_row as u8,
+                        row: *real_row as u8,
                     })
                 } else {
-                    // move newly dropped cells to the actual row after line clears
-                    dropped_cells
-                        .iter_mut()
-                        .filter_map(|(_, y)| (*y == row).then_some(y))
-                        .for_each(|y| *y = real_row);
-                    real_row += 1;
+                    // this row affects the indices of the rows above since it will not be removed
+                    *real_row += 1;
                     None
-                }
+                })
             })
-            .collect_vec()
-            .tap_mut(|ve| {
-                ve.extend(dropped_cells.into_iter().map(|(x, y)| ActionKind::Cell {
-                    position: (x as u8, y as u8),
-                    kind: kind.clone(),
-                }));
-            })
+            .flatten()
     }
 
     /// Attempts to rotate the active tetromino on the board.

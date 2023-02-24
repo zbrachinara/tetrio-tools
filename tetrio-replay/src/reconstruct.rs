@@ -15,6 +15,7 @@ struct Settings {
     arr: f64,
     sdf: f64,
     dcd: f64,
+    lock_delay: u64,
 }
 
 impl Default for Settings {
@@ -27,6 +28,7 @@ impl Default for Settings {
             arr: 2.,
             sdf: 6.,
             dcd: 1.,
+            lock_delay: 30,
         }
     }
 }
@@ -40,6 +42,7 @@ impl<'a, 'b> From<&'a GameOptions<'b>> for Settings {
             arr: options.handling.arr,
             sdf: options.handling.sdf,
             dcd: options.handling.dcd,
+            lock_delay: options.lock_time
         }
     }
 }
@@ -92,7 +95,7 @@ impl State {
         };
 
         let subframe = frame * 10 + (event.subframe.as_f64().unwrap() * 10.).round() as u64;
-        stream.extend(board.soft_drop_active(self.last_subframe, subframe, drop_force));
+        stream.extend(board.soft_drop_active(self.last_subframe, subframe, drop_force, settings.lock_delay));
 
         if down {
             match event.key {

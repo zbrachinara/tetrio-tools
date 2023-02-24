@@ -106,12 +106,14 @@ impl Board {
         mut first_subframe: u64,
         last_subframe: u64,
         drop_force: f64,
+        lock_frames: u64
     ) -> Vec<Action> {
         let mut out = Vec::new();
 
         while first_subframe < last_subframe {
-            // TODO detect locking
-            if drop_force < 1. {
+            if self.active_will_lock() {
+
+            } else if drop_force < 1. {
                 // The active piece will drop by one cell after a calculated number of frames
                 let frames_left = (1. - self.gravity_state) * 10. / drop_force;
                 let frames_to_pass = frames_left.ceil() as u64;

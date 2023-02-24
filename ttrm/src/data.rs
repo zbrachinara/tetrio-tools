@@ -229,7 +229,7 @@ pub mod event {
         #[serde(rename = "lockresets")]
         pub lock_resets: Number,
         #[serde(rename = "locktime")]
-        pub lock_time: Number,
+        pub lock_time: u64,
         pub manual_allowed: bool,
         #[serde(rename = "minoskin")]
         pub tetromino_skin: TetrominoSkin<'a>,

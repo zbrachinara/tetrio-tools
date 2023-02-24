@@ -103,7 +103,10 @@ impl Board {
         }
     }
 
-    pub fn soft_drop_active(
+    /// The drop that happens when "no input is happening", such as when soft drop is being held or
+    /// when the player is not manipulating the mino at all (natural gravity)
+    // TODO handle gravity acceleration
+    pub fn passive_drop(
         &mut self,
         mut first_subframe: u64,
         last_subframe: u64,

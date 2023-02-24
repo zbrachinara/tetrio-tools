@@ -94,7 +94,7 @@ impl State {
         };
 
         let subframe = frame * 10 + (event.subframe.as_f64().unwrap() * 10.).round() as u64;
-        stream.extend(board.soft_drop_active(
+        stream.extend(board.passive_drop(
             self.last_subframe,
             subframe,
             drop_force,

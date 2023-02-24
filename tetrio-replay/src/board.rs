@@ -46,6 +46,7 @@ pub struct Board {
     /// (by any amount). If this piece surpasses a certain threshold, the excess is used to
     /// calculate how far this piece should fall, and/or whether or not it should lock in place
     pub gravity_state: f64,
+    lock_count: u64,
     hold: Hold,
 }
 
@@ -70,6 +71,7 @@ impl Board {
             queue,
             active,
             gravity_state: 0.0,
+            lock_count: 0,
             hold: Hold::Empty,
         }
     }
@@ -112,7 +114,18 @@ impl Board {
 
         while first_subframe < last_subframe {
             if self.active_will_lock() {
-
+                if last_subframe - first_subframe + self.lock_count >= lock_frames * 10 {
+                    first_subframe += lock_frames * 10;
+                    out.extend(self.drop_active().into_iter().map(|kind| {
+                        Action {
+                            kind,
+                            frame: first_subframe / 10,
+                        }
+                    }));
+                } else {
+                    self.lock_count += last_subframe - first_subframe;
+                    break; // all remaining subframes have been processed
+                }
             } else if drop_force < 1. {
                 // The active piece will drop by one cell after a calculated number of frames
                 let frames_left = (1. - self.gravity_state) * 10. / drop_force;
@@ -384,6 +397,7 @@ mod test {
             queue: PieceQueue::meaningless(),
             cells: empty_board(),
             gravity_state: 0.0,
+            lock_count: 0,
             hold: Hold::Empty,
         };
 
@@ -402,6 +416,7 @@ mod test {
             // the flat-top tki made with garbage cells built with tspin on the left
             cells: board_from_string("___________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________###____#__####___#___########_#######"),
             gravity_state: 0.0,
+            lock_count: 0,
             hold: Hold::Empty,
         };
 
@@ -417,6 +432,7 @@ mod test {
                 coordinate: (5, 3)
             },
             gravity_state: 0.0,
+            lock_count: 0,
             hold: Hold::Empty,
         };
 
@@ -440,6 +456,7 @@ mod test {
                     coordinate: (4, 7),
                 },
                 gravity_state: 0.0,
+                lock_count: 0,
                 hold: Hold::Empty,
             };
 
@@ -460,6 +477,7 @@ mod test {
                     coordinate: (4, 3),
                 },
                 gravity_state: 0.0,
+                lock_count: 0,
                 hold: Hold::Empty,
             };
 

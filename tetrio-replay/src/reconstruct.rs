@@ -42,7 +42,7 @@ impl<'a, 'b> From<&'a GameOptions<'b>> for Settings {
             arr: options.handling.arr,
             sdf: options.handling.sdf,
             dcd: options.handling.dcd,
-            lock_delay: options.lock_time
+            lock_delay: options.lock_time,
         }
     }
 }
@@ -87,7 +87,6 @@ impl State {
         down: bool,
         frame: u64,
     ) {
-
         let drop_force = if self.soft_dropping {
             settings.sdf
         } else {
@@ -95,7 +94,12 @@ impl State {
         };
 
         let subframe = frame * 10 + (event.subframe.as_f64().unwrap() * 10.).round() as u64;
-        stream.extend(board.soft_drop_active(self.last_subframe, subframe, drop_force, settings.lock_delay));
+        stream.extend(board.soft_drop_active(
+            self.last_subframe,
+            subframe,
+            drop_force,
+            settings.lock_delay,
+        ));
 
         if down {
             match event.key {

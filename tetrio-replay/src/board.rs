@@ -6,7 +6,10 @@ use gridly::prelude::{Column, Grid, GridBounds, GridMut, Row};
 use itertools::Itertools;
 use tap::Tap;
 
-use crate::{reconstruct::Settings, rng::PieceQueue};
+use crate::{
+    reconstruct::{Settings, State},
+    rng::PieceQueue,
+};
 use bsr_tools::{
     action::{Action, ActionKind},
     kick_table::Positions,
@@ -111,8 +114,18 @@ impl Board {
         mut first_subframe: u64,
         last_subframe: u64,
         settings: &Settings,
+        key_state: &State,
     ) -> Vec<Action> {
-        unimplemented!()
+        (first_subframe..last_subframe)
+            .flat_map(|_| {
+                self.gravity_state += if key_state.soft_dropping {
+                    settings.sdf
+                } else {
+                    settings.gravity
+                } / 10.;
+                Some(todo!())
+            })
+            .collect_vec()
     }
 
     /// The drop that happens when "no input is happening", such as when soft drop is being held or

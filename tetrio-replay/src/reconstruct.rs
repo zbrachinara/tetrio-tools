@@ -9,13 +9,13 @@ use ttrm::event::{Event, EventData, Game, GameOptions, Key, KeyEvent};
 use crate::board::Board;
 
 pub struct Settings {
-    gravity: f64,
-    gravity_increase: f64,
-    das: f64,
-    arr: f64,
-    sdf: f64,
-    dcd: f64,
-    lock_delay: u64,
+    pub gravity: f64,
+    pub gravity_increase: f64,
+    pub das: f64,
+    pub arr: f64,
+    pub sdf: f64,
+    pub dcd: f64,
+    pub lock_delay: u64,
 }
 
 impl Default for Settings {
@@ -49,7 +49,7 @@ impl<'a, 'b> From<&'a GameOptions<'b>> for Settings {
 
 #[rustfmt::skip]
 #[derive(Default)]
-enum ShiftDirection { #[default] None, Left, Right }
+pub enum ShiftDirection { #[default] None, Left, Right }
 
 /// Holds the entire state of the game. These are:
 /// * Board state
@@ -68,11 +68,11 @@ struct Controller<It> {
 /// been felt multiple times or depend on states which have activated previously (such as hard
 /// drop).
 #[derive(Default)]
-struct State {
-    soft_dropping: bool,
-    shift_counter: f32,
-    last_subframe: u64,
-    shifting: ShiftDirection,
+pub struct State {
+    pub soft_dropping: bool,
+    pub shift_counter: f32,
+    pub last_subframe: u64,
+    pub shifting: ShiftDirection,
 }
 
 impl State {

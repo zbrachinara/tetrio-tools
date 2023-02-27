@@ -123,6 +123,12 @@ impl Board {
                 } else {
                     settings.gravity
                 } / 10.;
+
+
+                if self.gravity_state.trunc() > 1.0 {
+                    // TODO modification of the mino y coordinate
+                    self.gravity_state = self.gravity_state.fract();
+                }
                 Some(todo!())
             })
             .collect_vec()

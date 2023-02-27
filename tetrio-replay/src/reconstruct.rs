@@ -8,7 +8,7 @@ use ttrm::event::{Event, EventData, Game, GameOptions, Key, KeyEvent};
 
 use crate::board::Board;
 
-struct Settings {
+pub struct Settings {
     gravity: f64,
     gravity_increase: f64,
     das: f64,

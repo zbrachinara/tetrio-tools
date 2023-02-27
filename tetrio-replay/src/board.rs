@@ -6,7 +6,7 @@ use gridly::prelude::{Column, Grid, GridBounds, GridMut, Row};
 use itertools::Itertools;
 use tap::Tap;
 
-use crate::rng::PieceQueue;
+use crate::{reconstruct::Settings, rng::PieceQueue};
 use bsr_tools::{
     action::{Action, ActionKind},
     kick_table::Positions,
@@ -103,6 +103,18 @@ impl Board {
         }
     }
 
+    /// A function which handles all passive effects which happen between events, such as auto-shift
+    /// and gravity/soft-drop. These effects must be handled together because each of them changes
+    /// the position of the mino, which in turn changes which shifts and drops are possible.
+    pub fn passive_effects(
+        &mut self,
+        mut first_subframe: u64,
+        last_subframe: u64,
+        settings: &Settings,
+    ) -> Vec<Action> {
+        unimplemented!()
+    }
+
     /// The drop that happens when "no input is happening", such as when soft drop is being held or
     /// when the player is not manipulating the mino at all (natural gravity)
     // TODO handle gravity acceleration
@@ -111,7 +123,7 @@ impl Board {
         mut first_subframe: u64,
         last_subframe: u64,
         drop_force: f64,
-        lock_frames: u64
+        lock_frames: u64,
     ) -> Vec<Action> {
         let mut out = Vec::new();
 
@@ -119,11 +131,9 @@ impl Board {
             if self.active_will_lock() {
                 if last_subframe - first_subframe + self.lock_count >= lock_frames * 10 {
                     first_subframe += lock_frames * 10;
-                    out.extend(self.drop_active().into_iter().map(|kind| {
-                        Action {
-                            kind,
-                            frame: first_subframe / 10,
-                        }
+                    out.extend(self.drop_active().into_iter().map(|kind| Action {
+                        kind,
+                        frame: first_subframe / 10,
                     }));
                 } else {
                     self.lock_count += last_subframe - first_subframe;

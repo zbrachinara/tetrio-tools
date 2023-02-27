@@ -111,13 +111,13 @@ impl Board {
     /// the position of the mino, which in turn changes which shifts and drops are possible.
     pub fn passive_effects(
         &mut self,
-        mut first_subframe: u64,
+        first_subframe: u64,
         last_subframe: u64,
         settings: &Settings,
         key_state: &State,
     ) -> Vec<Action> {
         (first_subframe..last_subframe)
-            .flat_map(|_| {
+            .flat_map(|subframe| {
                 self.gravity_state += if key_state.soft_dropping {
                     settings.sdf
                 } else {

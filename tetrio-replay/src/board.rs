@@ -118,15 +118,17 @@ impl Board {
     ) -> Vec<Action> {
         (first_subframe..last_subframe)
             .flat_map(|subframe| {
+                // TODO handle gravity acceleration
                 self.gravity_state += if key_state.soft_dropping {
                     settings.sdf
                 } else {
                     settings.gravity
                 } / 10.;
 
-
                 if self.gravity_state.trunc() > 1.0 {
-                    // TODO modification of the mino y coordinate
+                    let locks_at = self.will_lock_at(&self.active).coord.1;
+                    self.active.coord.1 -= self.gravity_state.trunc() as usize;
+                    self.active.coord.1 = std::cmp::max(self.active.coord.1, locks_at);
                     self.gravity_state = self.gravity_state.fract();
                 }
                 Some(todo!())
@@ -191,8 +193,7 @@ impl Board {
                 let drop_size = self.gravity_state + subframes_counted as f64 * drop_force / 10.;
                 let cells_dropped = drop_size.trunc() as usize;
                 let excess_state = drop_size.fract();
-                let locks_after =
-                    self.active.coord.1 - self.will_lock_at(&self.active).coord.1; // TODO will_lock_at may be valid to compute once insie this function
+                let locks_after = self.active.coord.1 - self.will_lock_at(&self.active).coord.1; // TODO will_lock_at may be valid to compute once insie this function
 
                 if cells_dropped >= locks_after {
                     // The piece will start locking before the frame has passed, so drop only to the

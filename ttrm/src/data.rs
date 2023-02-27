@@ -319,13 +319,26 @@ pub mod event {
         pub piece: Option<&'a str>,
     }
 
+    /// Describes timings which relate to the effect of player controls. All floating-point values
+    /// have a precision of 0.1
     #[derive(Debug, Clone, Serialize, Deserialize)]
     pub struct Handling {
+        /// From tetrio: "Automatic Repeat Rate: the speed at which tetrominoes move when holding
+        /// down movement keys, measured in frames per movement."
         pub arr: f64,
+        /// From tetrio: "If enabled, DAS charge is cancelled when you change directions."
         pub cancel: bool,
+        /// From tetrio: "Delayed Auto Shift: the time between the initial keypress and the start of
+        /// its automatic repeat movement, measured in frames."
         pub das: f64,
+        /// From tetrio: "DAS Cut Delay: if not 0, any ongoing DAS movement will pause for a set
+        /// amount of time after dropping/rotating a piece, measured in frames."
         pub dcd: f64,
+        /// From tetrio: "If enabled, when a piece locks on its own, the hard drop key becomes
+        /// unavailable for a few frame. This prevents accidental hard drops."
         pub safelock: bool,
+        /// From tetrio: "Soft Drop Factor: the factor with which soft drops change the gravity
+        /// speed."
         pub sdf: f64,
     }
 

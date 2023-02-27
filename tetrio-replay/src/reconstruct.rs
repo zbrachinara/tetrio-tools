@@ -70,7 +70,9 @@ struct Controller<It> {
 #[derive(Default)]
 pub struct State {
     pub soft_dropping: bool,
-    pub shift_counter: f32,
+    /// The subframe on which either the left or right key was pressed. This should *not* be used in
+    /// order to calculate the first shift left or right, but instead to calculate the DAS
+    pub shift_began: u64, 
     pub last_subframe: u64,
     pub shifting: ShiftDirection,
 }
@@ -104,8 +106,16 @@ impl State {
         if down {
             match event.key {
                 // holdable keypresses
-                Key::Left => todo!(),
-                Key::Right => todo!(),
+                Key::Left => {
+                    self.shift_began = subframe;
+                    board.shift(-1);
+                    self.shifting = ShiftDirection::Left;
+                },
+                Key::Right => {
+                    self.shift_began = subframe;
+                    board.shift(1);
+                    self.shifting = ShiftDirection::Right;
+                },
                 Key::SoftDrop => self.soft_dropping = true,
                 // single keypresses
                 Key::Clockwise => {
@@ -132,8 +142,7 @@ impl State {
         } else {
             match event.key {
                 // holdable keypresses
-                Key::Left => todo!(),
-                Key::Right => todo!(),
+                Key::Left | Key::Right => self.shifting = ShiftDirection::None,
                 Key::SoftDrop => self.soft_dropping = false,
                 // single keypresses
                 _ => (),

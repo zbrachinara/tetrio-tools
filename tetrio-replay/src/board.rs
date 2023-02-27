@@ -169,7 +169,7 @@ impl Board {
                     self.gravity_state +=
                         (last_subframe - first_subframe) as f64 * drop_force / 10.;
                 } else {
-                    self.active.coordinate.1 -= 1;
+                    self.active.coord.1 -= 1;
                     first_subframe += frames_to_pass;
                     out.push(Action {
                         kind: ActionKind::Reposition {
@@ -192,7 +192,7 @@ impl Board {
                 let cells_dropped = drop_size.trunc() as usize;
                 let excess_state = drop_size.fract();
                 let locks_after =
-                    self.active.coordinate.1 - self.will_lock_at(&self.active).coordinate.1; // TODO will_lock_at may be valid to compute once insie this function
+                    self.active.coord.1 - self.will_lock_at(&self.active).coord.1; // TODO will_lock_at may be valid to compute once insie this function
 
                 if cells_dropped >= locks_after {
                     // The piece will start locking before the frame has passed, so drop only to the
@@ -203,12 +203,12 @@ impl Board {
                         ((locks_after as f64 - self.gravity_state) * 10. / drop_force).ceil();
                     assert!(subframes_until_drop <= 10.0); // Should be true because otherwise the tetromino should be able to clear a frame without locking
 
-                    self.active.coordinate.1 += locks_after;
+                    self.active.coord.1 += locks_after;
                     self.gravity_state = locks_after as f64 - subframes_until_drop * drop_force;
                     first_subframe += subframes_until_drop as u64
                 } else {
                     self.gravity_state = excess_state;
-                    self.active.coordinate.1 += cells_dropped;
+                    self.active.coord.1 += cells_dropped;
                     first_subframe += subframes_counted;
                     if cells_dropped > 0 {
                         out.push(Action {
@@ -248,12 +248,12 @@ impl Board {
     /// when the mino is not within the bounds of the board (sometimes. I'm not motivated enough to
     /// figure out the exact bounds where it will panic, so this is an overgeneralization).
     fn will_lock_at(&self, mino: &Mino) -> Mino {
-        (0..=mino.coordinate.1)
+        (0..=mino.coord.1)
             .rev()
             .map(|y| {
                 mino.clone().tap_mut(|a| {
-                    let (x, _) = a.coordinate;
-                    a.coordinate = (x, y);
+                    let (x, _) = a.coord;
+                    a.coord = (x, y);
                 })
             })
             .find(|mino| self.will_lock(mino))
@@ -319,7 +319,7 @@ impl Board {
 
             self.active = rotated.tap_mut(
                 |Mino {
-                     coordinate: (tet_x, tet_y),
+                     coord: (tet_x, tet_y),
                      ..
                  }| {
                     *tet_x = tet_x.wrapping_add_signed(x as isize);
@@ -424,7 +424,7 @@ mod test {
             active: Mino {
                 variant: MinoVariant::T,
                 direction: Direction::Down,
-                coordinate: (5, 20),
+                coord: (5, 20),
             },
             queue: PieceQueue::meaningless(),
             cells: empty_board(),
@@ -442,7 +442,7 @@ mod test {
             active: Mino {
                 variant: MinoVariant::T,
                 direction: Direction::Right,
-                coordinate: (1, 2),
+                coord: (1, 2),
             },
             queue: PieceQueue::meaningless(),
             // the flat-top tki made with garbage cells built with tspin on the left
@@ -453,7 +453,7 @@ mod test {
         };
 
         tki_board.rotate_active(Spin::CW);
-        assert_eq!(tki_board.active.coordinate, (2, 1));
+        assert_eq!(tki_board.active.coord, (2, 1));
 
         let mut tst_board = Board {
             cells: board_from_string("__________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________#_______________####_#########__########_#####"),
@@ -461,7 +461,7 @@ mod test {
             active: Mino {
                 variant: MinoVariant::T,
                 direction: Direction::Up,
-                coordinate: (5, 3)
+                coord: (5, 3)
             },
             gravity_state: 0.0,
             lock_count: 0,
@@ -469,7 +469,7 @@ mod test {
         };
 
         tst_board.rotate_active(Spin::CW);
-        assert_eq!(tst_board.active.coordinate, (4, 1))
+        assert_eq!(tst_board.active.coord, (4, 1))
     }
 
     #[test]
@@ -485,7 +485,7 @@ mod test {
                 active: Mino {
                     variant: MinoVariant::J,
                     direction: Direction::Down,
-                    coordinate: (4, 7),
+                    coord: (4, 7),
                 },
                 gravity_state: 0.0,
                 lock_count: 0,
@@ -506,7 +506,7 @@ mod test {
                 active: Mino {
                     variant: MinoVariant::T,
                     direction: Direction::Right,
-                    coordinate: (4, 3),
+                    coord: (4, 3),
                 },
                 gravity_state: 0.0,
                 lock_count: 0,

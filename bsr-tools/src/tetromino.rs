@@ -111,7 +111,7 @@ pub struct Mino {
     /// sometimes be used as the "center of rotation", but its most useful property is that it
     /// is the final degree of freedom that determines the absolute position of the tetromino
     /// relative to the board after its variant and direction.
-    pub coordinate: (usize, usize),
+    pub coord: (usize, usize),
 }
 
 impl From<MinoVariant> for Mino {
@@ -119,7 +119,7 @@ impl From<MinoVariant> for Mino {
         Self {
             variant,
             direction: Direction::Up,
-            coordinate: (5, 22), //TODO: Find out if the piece actually spawns here initially
+            coord: (5, 22), //TODO: Find out if the piece actually spawns here initially
         }
     }
 }
@@ -131,7 +131,7 @@ impl Mino {
                 .get(&(self.variant, self.direction))
                 .unwrap()
                 .map(|(x, y)| (x as isize, y as isize)),
-        ) + self.coordinate
+        ) + self.coord
     }
 
     pub fn kick(&self, at: Spin) -> Option<&Vec<(i8, i8)>> {

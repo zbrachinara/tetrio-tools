@@ -87,6 +87,16 @@ impl Board {
 
     /// Shifts the active tetromino by the given amount of cells.
     pub fn shift(&mut self, cells: i8) -> Option<ActionKind> {
+        let limit = self
+            .active
+            .coord
+            .0
+            .saturating_add_signed(cells as isize)
+            .clamp(0, self.cells.num_columns().0 as usize);
+
+        (self.active.coord.0..limit)
+            .map(|x| self.active.clone().tap_mut(|piece| piece.coord.0 = x))
+            .find_or_last(|piece| self.intersects(&piece));
         unimplemented!()
     }
 
@@ -123,7 +133,8 @@ impl Board {
                     settings.sdf as f64
                 } else {
                     1.
-                } * settings.gravity / 10.;
+                } * settings.gravity
+                    / 10.;
 
                 if self.gravity_state.trunc() > 1.0 {
                     let locks_at = self.will_lock_at(&self.active).coord.1;
@@ -230,18 +241,22 @@ impl Board {
     /// above a filled cell. If this is the case, the tetromino will not be allowed to drop any
     /// farther.
     pub fn active_will_lock(&self) -> bool {
-        self.will_lock(&self.active)
+        self.will_lock(self.active.clone())
+    }
+
+    /// Tests if the given mino intersects a filled cell on the board
+    pub fn intersects(&self, mino: &Mino) -> bool {
+        mino.position()
+            .0
+            .iter()
+            .any(|&(x, y)| self.cell(x, y).map(|c| !c.is_empty()).unwrap_or(true))
     }
 
     /// Tests for whether the given mino is in a locking position -- that is, one of its cells is
     /// just above a filled cell. If this is the case, the tetromino will not be allowed to drop any
     /// farther, and, if not hard dropped, the locking countdown will begin.
-    fn will_lock(&self, mino: &Mino) -> bool {
-        dbg!(mino);
-        mino.position()
-            .0
-            .iter()
-            .any(|&(x, y)| self.cell(x, y - 1).map(|c| !c.is_empty()).unwrap_or(true))
+    fn will_lock(&self, mino: Mino) -> bool {
+        self.intersects(&mino.tap_mut(|mino| mino.coord.1 -= 1))
     }
 
     /// Given the current mino, returns a copy of the mino for which calling [Self::will_lock] on it
@@ -257,7 +272,7 @@ impl Board {
                     a.coord = (x, y);
                 })
             })
-            .find(|mino| self.will_lock(mino))
+            .find(|mino| self.will_lock(mino.clone()))
             .unwrap() // valid if the mino's current position is guaranteed valid
     }
 

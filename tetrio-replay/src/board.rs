@@ -120,10 +120,10 @@ impl Board {
             .flat_map(|subframe| {
                 // TODO handle gravity acceleration
                 self.gravity_state += if key_state.soft_dropping {
-                    settings.sdf
+                    settings.sdf as f64
                 } else {
-                    settings.gravity
-                } / 10.;
+                    1.
+                } * settings.gravity / 10.;
 
                 if self.gravity_state.trunc() > 1.0 {
                     let locks_at = self.will_lock_at(&self.active).coord.1;

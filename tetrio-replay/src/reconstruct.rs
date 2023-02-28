@@ -11,10 +11,10 @@ use crate::board::Board;
 pub struct Settings {
     pub gravity: f64,
     pub gravity_increase: f64,
-    pub das: f64,
-    pub arr: f64,
-    pub sdf: f64,
-    pub dcd: f64,
+    pub das: u64,
+    pub arr: u64,
+    pub sdf: u64,
+    pub dcd: u64,
     pub lock_delay: u64,
 }
 
@@ -24,10 +24,10 @@ impl Default for Settings {
             gravity: 0.01,
             // TODO: Find tetrio defaults for below fields
             gravity_increase: Default::default(),
-            das: 10.,
-            arr: 2.,
-            sdf: 6.,
-            dcd: 1.,
+            das: 100,
+            arr: 20,
+            sdf: 60,
+            dcd: 10,
             lock_delay: 30,
         }
     }
@@ -38,10 +38,10 @@ impl<'a, 'b> From<&'a GameOptions<'b>> for Settings {
         Self {
             gravity: options.gravity,
             gravity_increase: options.gravity_increase,
-            das: options.handling.das,
-            arr: options.handling.arr,
-            sdf: options.handling.sdf,
-            dcd: options.handling.dcd,
+            das: (options.handling.das * 10.).round() as u64,
+            arr: (options.handling.arr * 10.).round() as u64,
+            sdf: options.handling.sdf as u64,
+            dcd: (options.handling.dcd * 10.).round() as u64,
             lock_delay: options.lock_time,
         }
     }
@@ -89,11 +89,12 @@ impl State {
         down: bool,
         frame: u64,
     ) {
-        let drop_force = if self.soft_dropping {
-            settings.sdf
-        } else {
-            settings.gravity
-        };
+        // let drop_force = if self.soft_dropping {
+        //     settings.sdf
+        // } else {
+        //     settings.gravity
+        // };
+        let drop_force = settings.gravity;
 
         let subframe = frame * 10 + (event.subframe.as_f64().unwrap() * 10.).round() as u64;
         stream.extend(board.passive_drop(

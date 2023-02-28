@@ -95,8 +95,8 @@ impl Board {
             .clamp(0, self.cells.num_columns().0 as usize);
 
         (self.active.coord.0..limit)
-            .map(|x| self.active.clone().tap_mut(|piece| piece.coord.0 = x))
-            .find_or_last(|piece| self.intersects(&piece));
+            .map(|x| self.active.tap_mut(|piece| piece.coord.0 = x))
+            .find_or_last(|piece| self.intersects(piece));
         unimplemented!()
     }
 
@@ -185,9 +185,7 @@ impl Board {
                     self.active.coord.1 -= 1;
                     first_subframe += frames_to_pass;
                     out.push(Action {
-                        kind: ActionKind::Reposition {
-                            piece: self.active.clone(),
-                        },
+                        kind: ActionKind::Reposition { piece: self.active },
                         frame: first_subframe / 10,
                     });
                     self.gravity_state = (1. - frames_left.fract()) * drop_force / 10.;
@@ -224,9 +222,7 @@ impl Board {
                     first_subframe += subframes_counted;
                     if cells_dropped > 0 {
                         out.push(Action {
-                            kind: ActionKind::Reposition {
-                                piece: self.active.clone(),
-                            },
+                            kind: ActionKind::Reposition { piece: self.active },
                             frame: first_subframe / 10,
                         })
                     }
@@ -241,7 +237,7 @@ impl Board {
     /// above a filled cell. If this is the case, the tetromino will not be allowed to drop any
     /// farther.
     pub fn active_will_lock(&self) -> bool {
-        self.will_lock(self.active.clone())
+        self.will_lock(self.active)
     }
 
     /// Tests if the given mino intersects a filled cell on the board
@@ -267,12 +263,12 @@ impl Board {
         (0..=mino.coord.1)
             .rev()
             .map(|y| {
-                mino.clone().tap_mut(|a| {
+                (*mino).tap_mut(|a| {
                     let (x, _) = a.coord;
                     a.coord = (x, y);
                 })
             })
-            .find(|mino| self.will_lock(mino.clone()))
+            .find(|mino| self.will_lock(*mino))
             .unwrap() // valid if the mino's current position is guaranteed valid
     }
 
@@ -342,9 +338,7 @@ impl Board {
                     *tet_y = tet_y.wrapping_add_signed(y as isize);
                 },
             );
-            ActionKind::Reposition {
-                piece: self.active.clone(),
-            }
+            ActionKind::Reposition { piece: self.active }
         })
     }
 

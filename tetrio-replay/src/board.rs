@@ -94,6 +94,7 @@ impl Board {
             .saturating_add_signed(cells as isize)
             .clamp(0, self.cells.num_columns().0 as usize);
 
+        let final_position =
         // ranges are inclusive since the tetromino can at least occupy its current position
         if self.active.coord.0 < shift_to {
             itertools::Either::Left(self.active.coord.0..=shift_to)
@@ -101,8 +102,11 @@ impl Board {
             itertools::Either::Right((shift_to..=self.active.coord.0).rev())
         }
         .map(|x| self.active.tap_mut(|piece| piece.coord.0 = x))
-        .find_or_last(|piece| self.intersects(piece));
-        unimplemented!()
+        .tuple_windows()
+        .find_map(|(m1, m2)| self.intersects(&m2).then_some(m1))
+        .unwrap_or_else(|| self.active.tap_mut(|piece| piece.coord.0 = shift_to));
+
+        todo!()
     }
 
     /// Holds a piece if that is possible.

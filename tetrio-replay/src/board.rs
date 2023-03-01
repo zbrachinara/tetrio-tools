@@ -149,6 +149,7 @@ impl Board {
                 let mut out = Vec::new();
 
                 if (subframe - (key_state.shift_began + settings.das)) % settings.arr == 0 {
+                    // TODO: Don't emit this action if it isn't necessary
                     out.extend(
                         match key_state.shifting {
                             ShiftDirection::None => None,

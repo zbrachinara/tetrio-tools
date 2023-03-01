@@ -7,7 +7,7 @@ use itertools::Itertools;
 use tap::Tap;
 
 use crate::{
-    reconstruct::{Settings, State},
+    reconstruct::{Settings, ShiftDirection, State},
     rng::PieceQueue,
 };
 use bsr_tools::{
@@ -107,7 +107,7 @@ impl Board {
         .unwrap_or_else(|| self.active.tap_mut(|piece| piece.coord.0 = shift_to));
 
         // TODO: return None when the position has not changed
-        Some(ActionKind::Reposition { piece: self.active})
+        Some(ActionKind::Reposition { piece: self.active })
     }
 
     /// Holds a piece if that is possible.
@@ -146,13 +146,27 @@ impl Board {
                 } * settings.gravity
                     / 10.;
 
+                let mut out = Vec::new();
+
+                if (subframe - (key_state.shift_began + settings.das)) % settings.arr == 0 {
+                    out.extend(
+                        match key_state.shifting {
+                            ShiftDirection::None => None,
+                            ShiftDirection::Left => self.shift(-1),
+                            ShiftDirection::Right => self.shift(1),
+                        }
+                        .map(|action| action.attach_frame(subframe / 10)),
+                    );
+                }
+
                 if self.gravity_state.trunc() > 1.0 {
                     let locks_at = self.will_lock_at(&self.active).coord.1;
                     self.active.coord.1 -= self.gravity_state.trunc() as usize;
                     self.active.coord.1 = std::cmp::max(self.active.coord.1, locks_at);
                     self.gravity_state = self.gravity_state.fract();
                 }
-                Some(todo!())
+
+                out
             })
             .collect_vec()
     }

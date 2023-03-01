@@ -155,7 +155,7 @@ impl Board {
                             ShiftDirection::Left => self.shift(-1),
                             ShiftDirection::Right => self.shift(1),
                         }
-                        .map(|action| action.attach_frame(subframe / 10)),
+                        .map(|action| action.attach_frame((subframe + 9) / 10)),
                     );
                 }
 

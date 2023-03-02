@@ -72,7 +72,7 @@ pub struct State {
     pub soft_dropping: bool,
     /// The subframe on which either the left or right key was pressed. This should *not* be used in
     /// order to calculate the first shift left or right, but instead to calculate the DAS
-    pub shift_began: u64, 
+    pub shift_began: u64,
     pub last_subframe: u64,
     pub shifting: ShiftDirection,
 }
@@ -89,34 +89,22 @@ impl State {
         down: bool,
         frame: u64,
     ) {
-        // let drop_force = if self.soft_dropping {
-        //     settings.sdf
-        // } else {
-        //     settings.gravity
-        // };
-        let drop_force = settings.gravity;
-
-        let subframe = frame * 10 + (event.subframe.as_f64().unwrap() * 10.).round() as u64;
-        stream.extend(board.passive_drop(
-            self.last_subframe,
-            subframe,
-            drop_force,
-            settings.lock_delay,
-        ));
+        let current_subframe = frame * 10 + (event.subframe.as_f64().unwrap() * 10.).round() as u64;
+        stream.extend(board.passive_effects(current_subframe, settings, self));
 
         if down {
             match event.key {
                 // holdable keypresses
                 Key::Left => {
-                    self.shift_began = subframe;
+                    self.shift_began = current_subframe;
                     board.shift(-1);
                     self.shifting = ShiftDirection::Left;
-                },
+                }
                 Key::Right => {
-                    self.shift_began = subframe;
+                    self.shift_began = current_subframe;
                     board.shift(1);
                     self.shifting = ShiftDirection::Right;
-                },
+                }
                 Key::SoftDrop => self.soft_dropping = true,
                 // single keypresses
                 Key::Clockwise => {
@@ -150,7 +138,7 @@ impl State {
             }
         }
 
-        self.last_subframe = subframe;
+        self.last_subframe = current_subframe;
     }
 }
 

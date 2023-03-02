@@ -145,7 +145,7 @@ impl Board {
                 } * settings.gravity
                     / 10.;
 
-                let mut out = Vec::new();
+                let mut out = None;
 
                 let shift_size = if settings.arr == 0 {
                     self.cells.num_columns().0 as i8
@@ -156,14 +156,12 @@ impl Board {
                 };
                 if shift_size != 0 {
                     // TODO: Don't emit this action if it isn't necessary
-                    out.extend(
-                        match key_state.shifting {
-                            ShiftDirection::None => None,
-                            ShiftDirection::Left => self.shift(-shift_size),
-                            ShiftDirection::Right => self.shift(shift_size),
-                        }
-                        .map(|action| action.attach_frame((subframe + 9) / 10)),
-                    );
+                    out = match key_state.shifting {
+                        ShiftDirection::None => None,
+                        ShiftDirection::Left => self.shift(-shift_size),
+                        ShiftDirection::Right => self.shift(shift_size),
+                    }
+                    .or(out);
                 }
 
                 if self.gravity_state.trunc() > 1.0 {
@@ -171,9 +169,10 @@ impl Board {
                     self.active.coord.1 -= self.gravity_state.trunc() as usize;
                     self.active.coord.1 = std::cmp::max(self.active.coord.1, locks_at);
                     self.gravity_state = self.gravity_state.fract();
+                    out = Some(ActionKind::Reposition { piece: self.active })
                 }
 
-                out
+                out.map(|action| action.attach_frame((subframe + 9) / 10))
             })
             .collect_vec()
     }

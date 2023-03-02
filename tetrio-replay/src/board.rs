@@ -147,13 +147,20 @@ impl Board {
 
                 let mut out = Vec::new();
 
-                if (subframe - (key_state.shift_began + settings.das)) % settings.arr == 0 {
+                let shift_size = if settings.arr == 0 {
+                    self.cells.num_columns().0 as i8
+                } else if (subframe - (key_state.shift_began + settings.das)) % settings.arr == 0 {
+                    1
+                } else {
+                    0
+                };
+                if shift_size != 0 {
                     // TODO: Don't emit this action if it isn't necessary
                     out.extend(
                         match key_state.shifting {
                             ShiftDirection::None => None,
-                            ShiftDirection::Left => self.shift(-1),
-                            ShiftDirection::Right => self.shift(1),
+                            ShiftDirection::Left => self.shift(-shift_size),
+                            ShiftDirection::Right => self.shift(shift_size),
                         }
                         .map(|action| action.attach_frame((subframe + 9) / 10)),
                     );

@@ -49,7 +49,8 @@ pub struct Board {
     /// (by any amount). If this piece surpasses a certain threshold, the excess is used to
     /// calculate how far this piece should fall, and/or whether or not it should lock in place
     pub gravity_state: f64,
-    lock_count: u64,
+    /// How many times the piece is able to avoid locking until it is forced to lock immediately
+    lock_count: u8,
     hold: Hold,
 }
 

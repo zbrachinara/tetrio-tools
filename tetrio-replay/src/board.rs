@@ -75,7 +75,7 @@ impl Board {
             queue,
             active,
             gravity_state: 0.0,
-            lock_count: 0,
+            lock_count: 16,
             hold: Hold::Empty,
         }
     }
@@ -87,7 +87,7 @@ impl Board {
     }
 
     /// Shifts the active tetromino by the given amount of cells.
-    pub fn shift(&mut self, cells: i8) -> Option<ActionKind> {
+    pub fn shift(&mut self, cells: i8) -> Vec<ActionKind> {
         let shift_to = self
             .active
             .coord
@@ -95,7 +95,7 @@ impl Board {
             .saturating_add_signed(cells as isize)
             .clamp(0, self.cells.num_columns().0 as usize);
 
-        self.active =
+        let new_position =
         // ranges are inclusive since the tetromino can at least occupy its current position
         if self.active.coord.0 < shift_to {
             itertools::Either::Left(self.active.coord.0..=shift_to)
@@ -108,7 +108,7 @@ impl Board {
         .unwrap_or_else(|| self.active.tap_mut(|piece| piece.coord.0 = shift_to));
 
         // TODO: return None when the position has not changed
-        Some(ActionKind::Reposition { piece: self.active })
+        self.reposition(new_position)
     }
 
     /// Holds a piece if that is possible.
@@ -146,7 +146,7 @@ impl Board {
                 } * settings.gravity
                     / 10.;
 
-                let mut out = None;
+                let mut out = Vec::new();
 
                 let shift_size = if settings.arr == 0 {
                     self.cells.num_columns().0 as i8
@@ -157,23 +157,25 @@ impl Board {
                 };
                 if shift_size != 0 {
                     // TODO: Don't emit this action if it isn't necessary
-                    out = match key_state.shifting {
-                        ShiftDirection::None => None,
+                    out.extend(match key_state.shifting {
+                        ShiftDirection::None => Vec::new(),
                         ShiftDirection::Left => self.shift(-shift_size),
                         ShiftDirection::Right => self.shift(shift_size),
-                    }
-                    .or(out);
+                    });
                 }
 
                 if self.gravity_state.trunc() > 1.0 {
                     let locks_at = self.will_lock_at(&self.active).coord.1;
-                    self.active.coord.1 -= self.gravity_state.trunc() as usize;
-                    self.active.coord.1 = std::cmp::max(self.active.coord.1, locks_at);
+                    let mut new_position = self.active;
+                    new_position.coord.1 -= self.gravity_state.trunc() as usize;
+                    new_position.coord.1 = std::cmp::max(new_position.coord.1, locks_at);
                     self.gravity_state = self.gravity_state.fract();
-                    out = Some(ActionKind::Reposition { piece: self.active })
+                    out.extend(self.reposition(new_position))
                 }
 
-                out.map(|action| action.attach_frame((subframe + 9) / 10))
+                out.into_iter()
+                    .map(|action| action.attach_frame((subframe + 9) / 10))
+                    .collect_vec()
             })
             .collect_vec()
     }
@@ -217,8 +219,21 @@ impl Board {
             .unwrap() // valid if the mino's current position is guaranteed valid
     }
 
+    fn reposition(&mut self, to: Mino) -> Vec<ActionKind> {
+        if self.active_will_lock() {
+            self.lock_count -= 1;
+        }
+        self.active = to;
+        if self.lock_count == 0 {
+            self.drop_active()
+        } else {
+            Vec::new()
+        }
+    }
+
     /// Drops the active tetromino into the lowest possible position within the columns it takes up.
     pub fn drop_active(&mut self) -> Vec<ActionKind> {
+        self.lock_count = 16;
         let dropping = self.cycle_piece();
         let kind: Cell = dropping.variant.into();
 
@@ -260,7 +275,7 @@ impl Board {
     /// Attempts to rotate the active tetromino on the board.
     ///
     /// For now, assumes SRS+
-    pub fn rotate_active(&mut self, spin: Spin) -> Option<ActionKind> {
+    pub fn rotate_active(&mut self, spin: Spin) -> Vec<ActionKind> {
         let rotated = self.active.rotate(spin);
 
         let true_rotation = rotated.position();
@@ -271,20 +286,22 @@ impl Board {
             self.test_empty(&testing)
         });
 
-        accepted_kick.map(|&(x, y)| {
-            self.gravity_state = 0.0;
+        accepted_kick
+            .map(|&(x, y)| {
+                self.gravity_state = 0.0;
 
-            self.active = rotated.tap_mut(
-                |Mino {
-                     coord: (tet_x, tet_y),
-                     ..
-                 }| {
-                    *tet_x = tet_x.wrapping_add_signed(x as isize);
-                    *tet_y = tet_y.wrapping_add_signed(y as isize);
-                },
-            );
-            ActionKind::Reposition { piece: self.active }
-        })
+                let new_position = rotated.tap_mut(
+                    |Mino {
+                         coord: (tet_x, tet_y),
+                         ..
+                     }| {
+                        *tet_x = tet_x.wrapping_add_signed(x as isize);
+                        *tet_y = tet_y.wrapping_add_signed(y as isize);
+                    },
+                );
+                self.reposition(new_position)
+            })
+            .unwrap_or(Vec::new())
     }
 
     /// Tests if a row is filled, and therefore should be cleared. Returns `None` if the given

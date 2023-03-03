@@ -97,27 +97,32 @@ impl State {
                 // holdable keypresses
                 Key::Left => {
                     self.shift_began = current_subframe;
-                    board.shift(-1);
+                    stream.extend(board.shift(-1).into_iter().map(|u| u.attach_frame(frame)));
                     self.shifting = ShiftDirection::Left;
                 }
                 Key::Right => {
                     self.shift_began = current_subframe;
-                    board.shift(1);
+                    stream.extend(board.shift(1).into_iter().map(|u| u.attach_frame(frame)));
                     self.shifting = ShiftDirection::Right;
                 }
                 Key::SoftDrop => self.soft_dropping = true,
                 // single keypresses
-                Key::Clockwise => {
-                    stream.extend(board.rotate_active(Spin::CW).map(|u| u.attach_frame(frame)))
-                }
+                Key::Clockwise => stream.extend(
+                    board
+                        .rotate_active(Spin::CW)
+                        .into_iter()
+                        .map(|u| u.attach_frame(frame)),
+                ),
                 Key::CounterClockwise => stream.extend(
                     board
                         .rotate_active(Spin::CCW)
+                        .into_iter()
                         .map(|u| u.attach_frame(frame)),
                 ),
                 Key::Flip => stream.extend(
                     board
                         .rotate_active(Spin::Flip)
+                        .into_iter()
                         .map(|u| u.attach_frame(frame)),
                 ),
                 Key::Hold => stream.extend(board.hold().map(|u| u.attach_frame(frame))),

@@ -15,7 +15,7 @@ pub struct Ttr<'a> {
     #[serde(rename = "gametype")]
     pub game_type: &'a str,
     #[serde(rename = "customtype")]
-    pub custom_type: &'a str,
+    pub custom_type: Option<&'a str>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

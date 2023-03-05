@@ -13,7 +13,7 @@ pub enum Event<'a> {
     Full {
         #[serde(rename = "aggregatestats")]
         aggregate_stats: AggregateStats,
-        assumptions: Value,
+        assumptions: Option<Value>,
         fire: Number,
         game: Game<'a>,
         #[serde(rename = "gameoverreason")]
@@ -112,12 +112,12 @@ pub enum Key {
 pub struct GameOptions<'a> {
     #[serde(rename = "allow180")]
     pub allow_180: bool,
-    pub allow_harddrop: bool,
-    pub are: Number,
+    pub allow_harddrop: Option<bool>,
+    pub are: Option<Number>,
     #[serde(rename = "b2bchaining")]
-    pub b2b_chaining: bool,
+    pub b2b_chaining: Option<bool>,
     #[serde(rename = "bagtype")]
-    pub bag_type: &'a str, // change to enum
+    pub bag_type: Option<&'a str>, // change to enum
     #[serde(rename = "boardbuffer")]
     pub board_buffer: Number,
     #[serde(rename = "boardheight")]
@@ -126,98 +126,149 @@ pub struct GameOptions<'a> {
     pub board_skin: &'a str,
     #[serde(rename = "boardwidth")]
     pub board_width: Number,
-    pub clutch: bool,
+    pub clutch: Option<bool>,
     pub countdown: bool,
-    /// how many counts before GO (for example, countdown_count = 3 means 3, 2, 1, GO, and game starts immediately on GO)
-    pub countdown_count: Number,
+    /// How many counts before GO (for example, countdown_count = 3 means 3, 2, 1, GO, and game
+    /// starts immediately on GO). Seems to only be present in multiplayer matches, presumably
+    /// because in tetra league, the first match has five counts while the rest have three.
+    pub countdown_count: Option<Number>,
     /// the amount of time between two counts measured in milliseconds
     pub countdown_interval: Number,
-    pub display_fire: bool,
-    pub display_hold: bool,
-    pub display_next: bool,
-    pub display_shadow: bool,
-    pub display_username: bool,
-    pub forfeit_time: Number,
+    pub display_fire: Option<bool>,
+    pub display_hold: Option<bool>,
+    pub display_next: Option<bool>,
+    pub display_shadow: Option<bool>,
+    pub display_username: Option<bool>,
+    pub display_replay: Option<bool>,
+    pub forfeit_time: Option<Number>,
+    pub display_progress: Option<bool>,
     #[serde(rename = "fullinterval")]
-    pub full_interval: Number,
+    pub full_interval: Option<Number>,
     #[serde(rename = "fulloffset")]
-    pub full_offset: Number,
+    pub full_offset: Option<Number>,
     #[serde(rename = "g")]
     pub gravity: f64,
     #[serde(rename = "garbagecap")]
     pub garbage_cap: Number,
     #[serde(rename = "garbagecapincrease")]
-    pub garbage_cap_increase: Number,
+    pub garbage_cap_increase: Option<Number>,
     #[serde(rename = "garbagecapmax")]
-    pub garbage_cap_max: Number,
+    pub garbage_cap_max: Option<Number>,
     #[serde(rename = "garbageincrease")]
-    pub garbage_increase: Number,
+    pub garbage_increase: Option<Number>,
     #[serde(rename = "garbagemargin")]
-    pub garbage_margin: Number,
+    pub garbage_margin: Option<Number>,
     #[serde(rename = "garbagemultiplier")]
-    pub garbage_multiplier: Number,
+    pub garbage_multiplier: Option<Number>,
     #[serde(rename = "garbagespeed")]
     pub garbage_speed: Number,
     #[serde(rename = "ghostskin")]
     pub ghost_skin: &'a str,
+    #[serde(rename = "gbase")]
+    pub gravity_base: Option<Number>,
+    #[serde(rename = "gspeed")]
+    pub gravity_speed: Option<Number>,
     #[serde(rename = "gincrease")]
-    pub gravity_increase: f64,
+    pub gravity_increase: Option<f64>,
     #[serde(rename = "gmargin")]
-    pub gravity_margin: Number,
-    pub handling: Handling,
+    pub gravity_margin: Option<Number>,
+    pub handling: Option<Handling>,
     #[serde(rename = "hasgarbage")]
-    pub has_garbage: bool,
+    pub has_garbage: Option<bool>,
     #[serde(rename = "infinitemovement")]
-    pub infinite_movement: bool,
+    pub infinite_movement: Option<bool>,
     pub kickset: &'a str,
     #[serde(rename = "latencypreference")]
-    pub latency_preference: &'a str, //TODO: Probably has to do with passthrough, but should check
-    pub lineclear_are: Number,
+    pub latency_preference: Option<&'a str>, //TODO: Probably has to do with passthrough, but should check
+    pub lineclear_are: Option<Number>,
     #[serde(rename = "lockresets")]
-    pub lock_resets: Number,
+    pub lock_resets: Option<Number>, // TODO should default to 16, but could depend on the gamemode
     #[serde(rename = "locktime")]
-    pub lock_time: u64,
-    pub manual_allowed: bool,
+    pub lock_time: Option<u64>, // TODO should default to 30, but could depend on the gamemode
+    pub manual_allowed: Option<bool>,
     #[serde(rename = "minoskin")]
     pub tetromino_skin: TetrominoSkin<'a>,
     pub mission: Option<&'a str>,
-    pub mission_type: &'a str,
+    pub mission_type: Option<&'a str>,
     #[serde(rename = "neverstopbgm")]
-    pub loop_bgm: bool,
+    pub loop_bgm: Option<bool>,
+    #[serde(rename = "bgmnoreset")]
+    pub bgm_no_reset: Option<bool>, // TODO compare with neverstopbgm (could be the same or opposite thing)
     #[serde(rename = "nextcount")]
     pub next_count: Number,
     pub objective: Value, // TODO: confirm -- this probably refers to lines cleared to finish in singleplayer games and such
     #[serde(rename = "onfail")]
-    pub on_fail: Value, // TODO: Find the types of these
+    pub on_fail: Option<Value>, // TODO: Find the types of these
     #[serde(rename = "onfinish")]
-    pub on_finish: Value,
+    pub on_finish: Option<Value>,
     #[serde(rename = "oninteraction")]
-    pub on_interaction: Value,
-    pub passthrough: bool,
+    pub on_interaction: Option<Value>,
+    pub passthrough: Option<bool>,
     pub physical: bool,
     #[serde(rename = "precountdown")]
     pub pre_countdown: Number,
     #[serde(rename = "prestart")]
     pub pre_start: Number,
-    pub room_handling: bool,
-    pub room_handling_arr: Number,
-    pub room_handling_das: Number,
-    pub room_handling_sdf: Number,
+    // TODO check if room handling can be grouped together
+    pub room_handling: Option<bool>,
+    pub room_handling_arr: Option<Number>,
+    pub room_handling_das: Option<Number>,
+    pub room_handling_sdf: Option<Number>,
     pub seed: u64,
     pub seed_random: bool,
-    pub slot_bar1: &'a str,
+    pub slot_bar1: Option<&'a str>,
+    pub slot_bar2: Option<&'a str>,
     pub slot_counter1: Option<&'a str>,
     pub slot_counter2: Option<&'a str>,
     pub slot_counter3: Option<&'a str>,
     pub slot_counter4: Option<&'a str>,
     pub slot_counter5: Option<&'a str>,
     #[serde(rename = "spinbonuses")]
-    pub spin_bonuses: &'a str,
-    pub stock: Number,
-    pub username: &'a str,
-    pub version: Number,
+    pub spin_bonuses: Option<&'a str>,
+    pub stock: Option<Number>,
+    pub username: Option<&'a str>,
+    pub version: Number, // TODO Use this!!!
     #[serde(rename = "zoominto")]
     pub zoom_into: &'a str,
+    #[serde(rename = "anchorseed")]
+    pub anchor_seed: Option<bool>,
+    pub can_retry: Option<bool>,
+    /// Option on forty-line games (maybe blitz as well) to indicate whether or not player used pro
+    /// mode (turns on indicators for time left in blitz and lines left to clear in forty-line)
+    #[serde(rename = "pro")]
+    pub pro_mode: Option<bool>,
+    /// Option on forty-line and blitz games to indicate if the player has stride mode turned on.
+    /// This option allows the player to reset the game with less effort, having the effect of a
+    /// quicker countdown to open the game
+    pub stride: Option<bool>,
+    pub no_szo: Option<bool>,
+    #[serde(rename = "combotable")]
+    pub combo_table: Option<&'a str>,
+    #[serde(rename = "garbageblocking")]
+    pub garbage_blocking: Option<&'a str>,
+    pub levels: Option<bool>,
+    #[serde(rename = "masterlevels")]
+    pub master_levels: Option<bool>,
+    #[serde(rename = "startinglevel")]
+    pub starting_level: Option<Number>,
+    #[serde(rename = "levelspeed")]
+    pub level_speed: Option<Number>,
+    #[serde(rename = "levelstatic")]
+    pub level_static: Option<bool>,
+    #[serde(rename = "levelstaticspeed")]
+    pub level_static_speed: Option<Number>,
+    #[serde(rename = "x_resulttype")]
+    pub custom_metric: Option<&'a str>,
+    #[serde(rename = "objective_type")]
+    pub custom_objective: Option<&'a str>, 
+    pub objective_count: Option<Number>,
+    pub objective_time: Option<Number>,
+    #[serde(rename = "topoutisclear")]
+    pub topout_clear: Option<bool>,
+    pub absolute_lines: Option<bool>,
+    pub song: Option<&'a str>,
+    pub pro_alert: Option<bool>,
+    pub pro_retry: Option<bool>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

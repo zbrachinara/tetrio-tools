@@ -35,15 +35,28 @@ impl Default for Settings {
 
 impl<'a, 'b> From<&'a GameOptions<'b>> for Settings {
     fn from(options: &'a GameOptions<'b>) -> Self {
-        Self {
+        let mut settings = Self {
             gravity: options.gravity,
-            gravity_increase: options.gravity_increase,
-            das: (options.handling.das * 10.).round() as u64,
-            arr: (options.handling.arr * 10.).round() as u64,
-            sdf: options.handling.sdf as u64,
-            dcd: (options.handling.dcd * 10.).round() as u64,
-            lock_delay: options.lock_time,
+            gravity_increase: options.gravity_increase.unwrap_or(0.0),
+            // das: options
+            //     .handling
+            //     .map(|h| (h.das * 10.).round() as u64)
+            //     .unwrap_or(Settings::default().das),
+            // arr: (options.handling.arr * 10.).round() as u64,
+            // sdf: options.handling.sdf as u64,
+            // dcd: (options.handling.dcd * 10.).round() as u64,
+            lock_delay: options.lock_time.unwrap_or(30),
+            ..Default::default()
+        };
+
+        if let Some(ref handling) = options.handling {
+            settings.das = (handling.das * 10.).round() as u64;
+            settings.arr = (handling.arr * 10.).round() as u64;
+            settings.sdf = handling.sdf as u64;
+            settings.dcd = (handling.dcd * 10.).round() as u64;
         }
+
+        settings
     }
 }
 

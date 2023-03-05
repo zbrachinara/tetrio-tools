@@ -22,8 +22,7 @@ impl Default for Settings {
     fn default() -> Self {
         Self {
             gravity: 0.01,
-            // TODO: Find tetrio defaults for below fields
-            gravity_increase: Default::default(),
+            gravity_increase: 0.0,
             das: 100,
             arr: 20,
             sdf: 60,
@@ -38,13 +37,6 @@ impl<'a, 'b> From<&'a GameOptions<'b>> for Settings {
         let mut settings = Self {
             gravity: options.gravity,
             gravity_increase: options.gravity_increase.unwrap_or(0.0),
-            // das: options
-            //     .handling
-            //     .map(|h| (h.das * 10.).round() as u64)
-            //     .unwrap_or(Settings::default().das),
-            // arr: (options.handling.arr * 10.).round() as u64,
-            // sdf: options.handling.sdf as u64,
-            // dcd: (options.handling.dcd * 10.).round() as u64,
             lock_delay: options.lock_time.unwrap_or(30),
             ..Default::default()
         };

@@ -1,12 +1,21 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Number;
 
-use crate::User;
+use crate::{User, Replay};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Ttr<'a> {
     #[serde(borrow)]
     pub user: User<'a>,
+    #[serde(rename = "endcontext")]
+    pub end_context: EndContext,
+    #[serde(rename = "ts")]
+    pub timestamp: &'a str,
+    pub data: Replay<'a>,
+    #[serde(rename = "gametype")]
+    pub game_type: &'a str,
+    #[serde(rename = "customtype")]
+    pub custom_type: &'a str,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

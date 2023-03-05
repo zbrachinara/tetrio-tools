@@ -226,6 +226,6 @@ where
     }
 }
 
-fn reconstruct(event_stream: &[Event]) -> Result<Vec<Action>, String> {
+pub fn reconstruct(event_stream: &[Event]) -> Result<Vec<Action>, String> {
     Controller::read_game(event_stream.iter())?.stream()
 }

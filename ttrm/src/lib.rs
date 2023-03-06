@@ -1,7 +1,6 @@
-
-mod ttrm;
-mod ttr;
 pub mod event;
+mod ttr;
+mod ttrm;
 
-pub use ttrm::*;
 pub use ttr::*;
+pub use ttrm::*;

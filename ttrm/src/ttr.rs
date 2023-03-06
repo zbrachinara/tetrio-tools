@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Number;
 
-use crate::{User, Replay};
+use crate::{Replay, User};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Ttr<'a> {

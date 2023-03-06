@@ -216,7 +216,7 @@ where
                     event.frame,
                 ),
                 EventData::InGameEvent { ref event } => (), // TODO add back in when working with multi games
-                EventData::End {}=> todo!(),
+                EventData::End {} => (),
             }
 
             unimplemented!("game parsing")

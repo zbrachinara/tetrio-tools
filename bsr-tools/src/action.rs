@@ -12,7 +12,7 @@ pub enum ActionKind {
     /// Updates the state of the active mino. The possibility of this update is not checked, so
     /// reposition at your own risk
     Reposition { piece: Mino },
-    /// Removes a line at the given row 
+    /// Removes a line at the given row
     LineClear { row: u8 },
     /// Changes a cell at the given position. This is not limited to spawning a cell, and can also
     /// mark one's removal

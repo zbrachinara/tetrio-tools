@@ -263,7 +263,7 @@ checksum = "8d542c1a317036c45c2aa1cf10cc9d403ca91eb2d333ef1a4917e5cb10628bd0"
 dependencies = [
  "byteorder",
  "ogg",
- "smallvec 0.6.14",
+ "smallvec",
 ]
 
 [[package]]
@@ -564,12 +564,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "smallvec"
-version = "1.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a507befe795404456341dfab10cef66ead4c041f62b8b11bbb92bffe5d0953e0"
-
-[[package]]
 name = "strum"
 version = "0.24.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -600,19 +594,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
-]
-
-[[package]]
-name = "tagged-hybrid"
-version = "0.1.0"
-dependencies = [
- "heck",
- "itertools",
- "proc-macro2",
- "quote",
- "smallvec 1.10.0",
- "syn",
- "tap",
 ]
 
 [[package]]

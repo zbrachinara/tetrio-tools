@@ -616,21 +616,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tagged-hybrid"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cb93fe421d21d773db34353acf2ff736911bb71b1cf7162cce088de56cc446bc"
-dependencies = [
- "heck",
- "itertools",
- "proc-macro2",
- "quote",
- "smallvec 1.10.0",
- "syn",
- "tap",
-]
-
-[[package]]
 name = "tap"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -663,7 +648,6 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_json",
- "tagged-hybrid 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

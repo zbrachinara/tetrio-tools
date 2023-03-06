@@ -1,15 +1,18 @@
 use serde::{Deserialize, Serialize};
 use serde_json::{Number, Value};
-use tagged_hybrid::hybrid_tagged;
 
-#[hybrid_tagged(
-    fields = {frame: u64},
-    tag = "type",
-    struct_attrs = { #[derive(Debug)]}
-)]
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Event<'a> {
+    pub frame: u64,
+    #[serde(borrow, flatten)]
+    pub data: EventData<'a>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "lowercase")]
-pub enum Event<'a> {
-    Start,
+#[serde(tag = "type", content = "data")]
+pub enum EventData<'a> {
+    Start {},
     Full {
         #[serde(rename = "aggregatestats")]
         aggregate_stats: AggregateStats,
@@ -26,7 +29,7 @@ pub enum Event<'a> {
         successful: bool,
         targets: Vec<Value>, // TODO: probably string, but have to check
     },
-    Targets,
+    Targets {}, // TODO fill in fields
     KeyDown {
         #[serde(flatten)]
         key_event: KeyEvent,
@@ -40,7 +43,7 @@ pub enum Event<'a> {
         #[serde(flatten)]
         event: InteractionContainer,
     },
-    End,
+    End {},
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -50,17 +53,19 @@ pub struct InteractionContainer {
     pub data: Interaction,
 }
 
-#[hybrid_tagged(
-    fields = {
-        sender: String,
-        sent_frame: Number,
-        cid: Number,
-    },
-    tag = "type",
-    struct_attrs = { #[derive(Debug)]}
-)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct Interaction {
+    pub sender: String,
+    pub sent_frame: Number,
+    pub cid: Number,
+    #[serde(flatten)]
+    pub data: InteractionData,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(rename_all = "snake_case")]
-pub enum Interaction {
+#[serde(tag = "type", content = "data")]
+pub enum InteractionData {
     #[serde(rename = "interaction")]
     InteractionDo {
         #[serde(flatten)]
@@ -71,6 +76,28 @@ pub enum Interaction {
         data: Garbage,
     },
 }
+
+// #[hybrid_tagged(
+//     fields = {
+//         sender: String,
+//         sent_frame: Number,
+//         cid: Number,
+//     },
+//     tag = "type",
+//     struct_attrs = { #[derive(Debug)]}
+// )]
+// #[serde(rename_all = "snake_case")]
+// pub enum Interaction {
+//     #[serde(rename = "interaction")]
+//     InteractionDo {
+//         #[serde(flatten)]
+//         data: Garbage,
+//     },
+//     InteractionConfirm {
+//         #[serde(flatten)]
+//         data: Garbage,
+//     },
+// }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Garbage {
@@ -260,7 +287,7 @@ pub struct GameOptions<'a> {
     #[serde(rename = "x_resulttype")]
     pub custom_metric: Option<&'a str>,
     #[serde(rename = "objective_type")]
-    pub custom_objective: Option<&'a str>, 
+    pub custom_objective: Option<&'a str>,
     pub objective_count: Option<Number>,
     pub objective_time: Option<Number>,
     #[serde(rename = "topoutisclear")]

@@ -194,9 +194,9 @@ where
             initial_frame = event.frame;
 
             match event.data {
-                EventData::Start => unreachable!(),
+                EventData::Start {} => unreachable!(),
                 EventData::Full { .. } => (),
-                EventData::Targets => (),
+                EventData::Targets { .. } => (),
                 EventData::KeyDown { ref key_event } => {
                     self.state.handle_keys(
                         &mut self.board,
@@ -215,8 +215,8 @@ where
                     false,
                     event.frame,
                 ),
-                EventData::InGameEvent { ref event } => todo!(),
-                EventData::End => todo!(),
+                EventData::InGameEvent { ref event } => (), // TODO add back in when working with multi games
+                EventData::End {}=> todo!(),
             }
 
             unimplemented!("game parsing")

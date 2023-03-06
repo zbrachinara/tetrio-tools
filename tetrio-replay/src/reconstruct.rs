@@ -218,8 +218,6 @@ where
                 EventData::InGameEvent { ref event } => (), // TODO add back in when working with multi games
                 EventData::End {} => (),
             }
-
-            unimplemented!("game parsing")
         });
 
         Ok(stream)

@@ -199,10 +199,12 @@ impl Board {
     /// just above a filled cell. If this is the case, the tetromino will not be allowed to drop any
     /// farther, and, if not hard dropped, the locking countdown will begin.
     fn will_lock(&self, mino: Mino) -> bool {
-        mino.position()
-            .0
-            .iter()
-            .any(|&(x, y)| y == 0 || self.cell(x, y).map(|c| !c.is_empty()).unwrap_or(true))
+        mino.position().0.iter().any(|&(x, y)| {
+            y.checked_sub(1)
+                .and_then(|y| self.cell(x, y))
+                .map(|c| !c.is_empty())
+                .unwrap_or(true)
+        })
     }
 
     /// Given the current mino, returns a copy of the mino for which calling [Self::will_lock] on it
@@ -359,6 +361,19 @@ mod test {
 
     use bsr_tools::tetromino::{Direction, Mino, MinoVariant, Spin};
 
+    impl Default for Board {
+        fn default() -> Self {
+            Self {
+                cells: BoardStorage::new_empty(),
+                queue: PieceQueue::meaningless(),
+                active: MinoVariant::T.into(),
+                gravity_state: 0.0,
+                lock_count: 16,
+                hold: Hold::Empty,
+            }
+        }
+    }
+
     /// Takes a map exported from [https://tetrio.team2xh.net/?t=editor] and converts it to
     /// a [BoardStorage]
     fn board_from_string(s: &str) -> BoardStorage<Cell> {
@@ -401,11 +416,7 @@ mod test {
                 direction: Direction::Down,
                 coord: (5, 20),
             },
-            queue: PieceQueue::meaningless(),
-            cells: empty_board(),
-            gravity_state: 0.0,
-            lock_count: 0,
-            hold: Hold::Empty,
+            ..Default::default()
         };
 
         board.rotate_active(Spin::CW);
@@ -419,12 +430,9 @@ mod test {
                 direction: Direction::Right,
                 coord: (1, 2),
             },
-            queue: PieceQueue::meaningless(),
             // the flat-top tki made with garbage cells built with tspin on the left
             cells: board_from_string("___________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________###____#__####___#___########_#######"),
-            gravity_state: 0.0,
-            lock_count: 0,
-            hold: Hold::Empty,
+            ..Default::default()
         };
 
         tki_board.rotate_active(Spin::CW);
@@ -432,15 +440,12 @@ mod test {
 
         let mut tst_board = Board {
             cells: board_from_string("__________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________#_______________####_#########__########_#####"),
-            queue: PieceQueue::meaningless(),
             active: Mino {
                 variant: MinoVariant::T,
                 direction: Direction::Up,
                 coord: (5, 3)
             },
-            gravity_state: 0.0,
-            lock_count: 0,
-            hold: Hold::Empty,
+            ..Default::default()
         };
 
         tst_board.rotate_active(Spin::CW);
@@ -456,15 +461,12 @@ mod test {
 
             let mut b = Board {
                 cells: board_initial,
-                queue: PieceQueue::meaningless(),
                 active: Mino {
                     variant: MinoVariant::J,
                     direction: Direction::Down,
                     coord: (4, 7),
                 },
-                gravity_state: 0.0,
-                lock_count: 0,
-                hold: Hold::Empty,
+                ..Default::default()
             };
 
             b.drop_active();
@@ -477,15 +479,12 @@ mod test {
 
             let mut b = Board {
                 cells: board_initial,
-                queue: PieceQueue::meaningless(),
                 active: Mino {
                     variant: MinoVariant::T,
                     direction: Direction::Right,
                     coord: (4, 3),
                 },
-                gravity_state: 0.0,
-                lock_count: 0,
-                hold: Hold::Empty,
+                ..Default::default()
             };
 
             println!("{:?}", b.drop_active());

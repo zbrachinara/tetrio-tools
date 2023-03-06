@@ -29,6 +29,14 @@ impl<T> BoardStorage<T> {
             storage: v,
         }
     }
+
+    #[cfg(test)]
+    pub fn new_empty() -> Self {
+        Self {
+            columns: 0,
+            storage: Vec::new(),
+        }
+    }
 }
 
 impl BoardStorage<Cell> {

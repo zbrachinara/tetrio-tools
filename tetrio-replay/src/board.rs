@@ -199,7 +199,10 @@ impl Board {
     /// just above a filled cell. If this is the case, the tetromino will not be allowed to drop any
     /// farther, and, if not hard dropped, the locking countdown will begin.
     fn will_lock(&self, mino: Mino) -> bool {
-        self.intersects(&mino.tap_mut(|mino| mino.coord.1 -= 1))
+        mino.position()
+            .0
+            .iter()
+            .any(|&(x, y)| y == 0 || self.cell(x, y).map(|c| !c.is_empty()).unwrap_or(true))
     }
 
     /// Given the current mino, returns a copy of the mino for which calling [Self::will_lock] on it

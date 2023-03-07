@@ -225,15 +225,17 @@ impl Board {
     }
 
     fn reposition(&mut self, to: Mino) -> Vec<ActionKind> {
+        let mut out = vec![ActionKind::Reposition { piece: to }];
+
         if self.active_will_lock() {
             self.lock_count -= 1;
         }
         self.active = to;
         if self.lock_count == 0 {
-            self.drop_active()
-        } else {
-            Vec::new()
+            out.extend(self.drop_active());
         }
+
+        out
     }
 
     /// Drops the active tetromino into the lowest possible position within the columns it takes up.

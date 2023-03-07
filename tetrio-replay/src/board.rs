@@ -3,7 +3,7 @@
 use std::iter;
 
 use gridly::prelude::{Column, Grid, GridBounds, GridMut, Row};
-use itertools::Itertools;
+use itertools::{Either, Itertools};
 use tap::Tap;
 
 use crate::{
@@ -284,15 +284,22 @@ impl Board {
         let rotated = self.active.rotate(spin);
 
         let true_rotation = rotated.position();
-        let kicks = self.active.kick(spin).unwrap().clone(); // where SRS+ assumed
+        let kicks = self
+            .active
+            .kick(spin)
+            .cloned()
+            .map(|i| i.into_iter())
+            .ok_or(vec![].into_iter()); // where SRS+ assumed
 
-        let accepted_kick = iter::once(&(0, 0)).chain(kicks.iter()).find(|offset| {
-            let testing = true_rotation.clone() + **offset;
-            self.test_empty(&testing)
-        });
+        let accepted_kick = iter::once((0, 0))
+            .chain(Either::from(kicks))
+            .find(|offset| {
+                let testing = true_rotation.clone() + *offset;
+                self.test_empty(&testing)
+            });
 
         accepted_kick
-            .map(|&(x, y)| {
+            .map(|(x, y)| {
                 self.gravity_state = 0.0;
 
                 let new_position = rotated.tap_mut(

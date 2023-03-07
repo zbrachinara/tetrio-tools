@@ -247,8 +247,8 @@ impl Board {
         let dropped = self.will_lock_at(&dropping).position();
 
         // populate the cells which have been dropped into
-        dropped.iter().for_each(|position| {
-            *self.cell_mut(position.0, position.1).unwrap() = kind.clone();
+        dropped.iter().for_each(|&(x, y)| {
+            *self.cell_mut(x, y).unwrap() = kind.clone();
         });
 
         let dropped_cells = dropped.0.into_iter().map(|(x, y)| ActionKind::Cell {

@@ -251,8 +251,6 @@ impl Board {
             *self.cell_mut(position.0, position.1).unwrap() = kind.clone();
         });
 
-        // here we check every row, not just the ones dropped into, because tetrio can behave
-        // like that (custom boards)
         let dropped_cells = dropped.0.into_iter().map(|(x, y)| ActionKind::Cell {
             position: (x as u8, y as u8),
             kind: kind.clone(),
@@ -260,6 +258,9 @@ impl Board {
         dropped_cells.chain(self.clear_lines()).collect_vec()
     }
 
+    /// Checks each row in the board, and removes any row which is full. Every row is checked, not
+    /// just updated ones, because tetrio can behave like that (for example, on custom boards that
+    /// init with some filled rows)
     fn clear_lines(&mut self) -> impl Iterator<Item = ActionKind> + '_ {
         (0..self.cells.num_rows().0)
             .scan(0, |real_row, _| {

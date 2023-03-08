@@ -15,7 +15,12 @@ fn reconstruct_40l() {
         .truncate(true)
         .write(true)
         .open("40l.out")
-        .and_then(|mut out_file| write!(out_file, "{action_list:?}"))
+        .and_then(|mut out_file| {
+            action_list
+                .clone()
+                .into_iter()
+                .try_for_each(|action| writeln!(out_file, "{action:?}"))
+        })
         .is_err()
     {
         println!(

@@ -28,7 +28,7 @@ impl ActionKind {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Action {
     pub kind: ActionKind,
     pub frame: u64,

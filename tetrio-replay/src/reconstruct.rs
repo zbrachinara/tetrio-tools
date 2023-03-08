@@ -131,7 +131,7 @@ impl State {
                         .into_iter()
                         .map(|u| u.attach_frame(frame)),
                 ),
-                Key::Hold => stream.extend(board.hold().map(|u| u.attach_frame(frame))),
+                Key::Hold => stream.extend(board.hold().into_iter().map(|u| u.attach_frame(frame))),
                 Key::HardDrop => stream.extend(
                     board
                         .drop_active()

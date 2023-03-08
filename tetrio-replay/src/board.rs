@@ -114,18 +114,24 @@ impl Board {
     }
 
     /// Holds a piece if that is possible.
-    pub fn hold(&mut self) -> Option<ActionKind> {
+    pub fn hold(&mut self) -> Vec<ActionKind> {
         match self.hold {
             Hold::Empty => {
                 self.hold = Hold::NotActive(self.cycle_piece().variant);
-                Some(ActionKind::Hold)
+                vec![
+                    ActionKind::Hold,
+                    ActionKind::Reposition { piece: self.active },
+                ]
             }
             Hold::Active(held) => {
                 self.hold =
                     Hold::NotActive(std::mem::replace(&mut self.active, Mino::from(held)).variant);
-                Some(ActionKind::Hold)
+                vec![
+                    ActionKind::Hold,
+                    ActionKind::Reposition { piece: self.active },
+                ]
             }
-            Hold::NotActive(_) => None,
+            Hold::NotActive(_) => vec![],
         }
     }
 

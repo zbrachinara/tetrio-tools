@@ -259,7 +259,13 @@ impl Board {
             position: (x as u8, y as u8),
             kind: kind.clone(),
         });
-        dropped_cells.chain(self.clear_lines()).collect_vec()
+
+        let active = self.active;
+
+        dropped_cells
+            .chain(self.clear_lines())
+            .chain(std::iter::once(ActionKind::Reposition { piece: active }))
+            .collect_vec()
     }
 
     /// Checks each row in the board, and removes any row which is full. Every row is checked, not

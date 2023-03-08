@@ -59,7 +59,7 @@ impl Board {
     ///
     /// The format of the matrix is the same as the format found in ttr and ttrm files -- that is,
     /// as a two-dimensional matrix.
-    pub fn new(piece_seed: u64, game: &[Vec<Option<&str>>]) -> Self {
+    pub fn new(piece_seed: u64, game: &[Vec<Option<&str>>]) -> (Self, Vec<Action>) {
         let mut queue = PieceQueue::seeded(piece_seed, 5);
         let cells = BoardStorage::new_from_rows_unchecked(
             game.iter()
@@ -70,14 +70,17 @@ impl Board {
 
         let active = queue.pop().into();
 
-        Self {
-            cells,
-            queue,
-            active,
-            gravity_state: 0.0,
-            lock_count: 16,
-            hold: Hold::Empty,
-        }
+        (
+            Self {
+                cells,
+                queue,
+                active,
+                gravity_state: 0.0,
+                lock_count: 16,
+                hold: Hold::Empty,
+            },
+            vec![ActionKind::Reposition { piece: active }.attach_frame(0)],
+        )
     }
 
     /// Expends and returns the currently active piece, replacing it with the next piece in the

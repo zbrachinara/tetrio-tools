@@ -66,6 +66,7 @@ struct Controller<It> {
     board: Board,
     settings: Settings,
     state: State,
+    stream: Vec<Action>,
 }
 
 /// Holds the various states of the controller. Since this replay reader reads frames one-by-one
@@ -171,12 +172,14 @@ where
                         },
                     ..
                 }) => {
+                    let (board, stream) = Board::new(options.seed, board);
                     break Some(Self {
                         events: game,
-                        board: Board::new(options.seed, board),
+                        board,
                         settings: options.into(),
                         state: State::default(),
-                    })
+                        stream,
+                    });
                 }
                 None => break None,
                 _ => continue, // keep searching for full data
@@ -186,8 +189,6 @@ where
     }
 
     fn stream(mut self) -> Result<Vec<Action>, String> {
-        let mut stream = Vec::new();
-
         let mut initial_frame = 0;
         self.events.for_each(|event| {
             let frames_passed = event.frame - initial_frame;
@@ -201,7 +202,7 @@ where
                     self.state.handle_keys(
                         &mut self.board,
                         &self.settings,
-                        &mut stream,
+                        &mut self.stream,
                         key_event,
                         true,
                         event.frame,
@@ -210,7 +211,7 @@ where
                 EventData::KeyUp { ref key_event } => self.state.handle_keys(
                     &mut self.board,
                     &self.settings,
-                    &mut stream,
+                    &mut self.stream,
                     key_event,
                     false,
                     event.frame,
@@ -220,7 +221,7 @@ where
             }
         });
 
-        Ok(stream)
+        Ok(self.stream)
     }
 }
 

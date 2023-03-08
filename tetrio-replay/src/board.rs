@@ -107,7 +107,6 @@ impl Board {
         .find_map(|(m1, m2)| self.intersects(&m2).then_some(m1))
         .unwrap_or_else(|| self.active.tap_mut(|piece| piece.coord.0 = shift_to));
 
-        // TODO: return None when the position has not changed
         self.reposition(new_position)
     }
 
@@ -159,7 +158,6 @@ impl Board {
                     .map(|time_after_das| time_after_das % arr == 0)
                     .unwrap_or(false)
                 {
-                    // TODO: Don't emit this action if it isn't necessary
                     out.extend(match key_state.shifting {
                         ShiftDirection::None => Vec::new(),
                         ShiftDirection::Left => self.shift(-shift_size),
@@ -228,16 +226,19 @@ impl Board {
     }
 
     fn reposition(&mut self, to: Mino) -> Vec<ActionKind> {
-        let mut out = vec![ActionKind::Reposition { piece: to }];
+        let mut out = vec![];
 
-        if self.active_will_lock() {
-            self.lock_count -= 1;
+        if to != self.active {
+            if self.active_will_lock() {
+                self.lock_count -= 1;
+            }
+            out.push(ActionKind::Reposition { piece: to });
+            self.active = to;
         }
-        self.active = to;
+
         if self.lock_count == 0 {
             out.extend(self.drop_active());
         }
-
         out
     }
 

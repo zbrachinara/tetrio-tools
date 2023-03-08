@@ -148,14 +148,17 @@ impl Board {
 
                 let mut out = Vec::new();
 
-                let shift_size = if settings.arr == 0 {
-                    self.cells.num_columns().0 as i8
-                } else if (subframe - (key_state.shift_began + settings.das)) % settings.arr == 0 {
-                    1
+                let (arr, shift_size) = if settings.arr == 0 {
+                    (1, self.cells.num_columns().0 as i8)
                 } else {
-                    0
+                    (settings.arr, 1)
                 };
-                if shift_size != 0 {
+
+                if subframe
+                    .checked_sub(key_state.shift_began + settings.das)
+                    .map(|time_after_das| time_after_das % arr == 0)
+                    .unwrap_or(false)
+                {
                     // TODO: Don't emit this action if it isn't necessary
                     out.extend(match key_state.shifting {
                         ShiftDirection::None => Vec::new(),

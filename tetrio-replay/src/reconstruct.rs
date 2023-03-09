@@ -195,7 +195,7 @@ where
             initial_frame = event.frame;
 
             match event.data {
-                EventData::Start {} => unreachable!(),
+                EventData::Start {} => (),
                 EventData::Full { .. } => (),
                 EventData::Targets { .. } => (),
                 EventData::KeyDown { ref key_event } => {

@@ -296,6 +296,16 @@ pub struct GameOptions<'a> {
     pub song: Option<&'a str>,
     pub pro_alert: Option<bool>,
     pub pro_retry: Option<bool>,
+    #[serde(rename = "nolockout")]
+    pub no_lockout: Option<bool>,
+    #[serde(rename = "survivalmode")]
+    pub survival_mode: Option<&'a str>,
+    pub survival_messiness: Option<u64>,
+    pub survival_cap: Option<u64>,
+    pub survival_layer_amt: Option<u64>,
+    pub survival_layer_non: bool,
+    pub survival_layer_min: Option<u64>,
+    pub survival_timer_itv: Option<u64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

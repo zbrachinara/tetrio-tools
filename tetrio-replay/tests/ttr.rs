@@ -25,7 +25,7 @@ fn reconstruct_from_bytes(bytes: &[u8], write_to: &str) -> Result<(), Vec<Action
 }
 
 #[test]
-fn zbrachi_standrad() {
+fn zbrachi_standard() {
     if let Err(action_list) = reconstruct_from_bytes(
         include_bytes!("samples/zbrachi_standard.ttr"),
         "zbrachi_standard.out",

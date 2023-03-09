@@ -174,7 +174,7 @@ impl Board {
                     });
                 }
 
-                if self.gravity_state.trunc() > 1.0 {
+                if self.gravity_state >= 1.0 {
                     let locks_at = self.will_lock_at(&self.active).coord.1;
                     let mut new_position = self.active;
                     new_position.coord.1 -= self.gravity_state.trunc() as usize;

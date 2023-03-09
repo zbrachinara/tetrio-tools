@@ -1,6 +1,5 @@
-use std::fs::{File, OpenOptions};
-use std::io::{self, Write};
-use std::path::Path;
+use std::fs::OpenOptions;
+use std::io::Write;
 
 use bsr_tools::action::Action;
 use tetrio_replay::reconstruct;

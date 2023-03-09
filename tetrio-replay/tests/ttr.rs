@@ -25,6 +25,19 @@ fn reconstruct_from_bytes(bytes: &[u8], write_to: &str) -> Result<(), Vec<Action
 }
 
 #[test]
+fn zbrachi_standrad() {
+    if let Err(action_list) = reconstruct_from_bytes(
+        include_bytes!("samples/zbrachi_standard.ttr"),
+        "zbrachi_standard.out",
+    ) {
+        println!(
+            "Test zbrachi_standard could not open the output file was writing, output going to stderr instead"
+        );
+        eprintln!("zbrachi custom game actions: {action_list:?}");
+    }
+}
+
+#[test]
 fn reconstruct_40l() {
     if let Err(action_list) = reconstruct_from_bytes(include_bytes!("samples/40l.ttr"), "40l.out") {
         println!(

@@ -148,8 +148,12 @@ impl Board {
             .flat_map(|subframe| {
                 // TODO handle gravity acceleration
                 self.gravity_state += if key_state.soft_dropping {
-                    let gravity_base = f64::max(settings.gravity, 0.05);
-                    settings.sdf as f64 * gravity_base
+                    if settings.sdf > 40 {
+                        self.cells.num_rows().0 as f64 * 10.
+                    } else {
+                        let gravity_base = f64::max(settings.gravity, 0.05);
+                        settings.sdf as f64 * gravity_base
+                    }
                 } else {
                     settings.gravity
                 } / 10.;

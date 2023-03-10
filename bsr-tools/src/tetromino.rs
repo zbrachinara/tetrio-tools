@@ -111,7 +111,10 @@ pub struct Mino {
     /// sometimes be used as the "center of rotation", but its most useful property is that it
     /// is the final degree of freedom that determines the absolute position of the tetromino
     /// relative to the board after its variant and direction.
-    pub coord: (usize, usize),
+    ///
+    /// Because the coordinate does not necessarily contain a cell of the mino it is part of, it may
+    /// also be negative
+    pub coord: (isize, isize),
 }
 
 impl From<MinoVariant> for Mino {

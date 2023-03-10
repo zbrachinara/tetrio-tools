@@ -95,8 +95,8 @@ impl Board {
             .active
             .coord
             .0
-            .saturating_add_signed(cells as isize)
-            .clamp(0, self.cells.num_columns().0 as usize);
+            .saturating_add(cells as isize)
+            .clamp(0, self.cells.num_columns().0);
 
         let new_position =
         // ranges are inclusive since the tetromino can at least occupy its current position
@@ -177,7 +177,7 @@ impl Board {
                 if self.gravity_state >= 1.0 {
                     let locks_at = self.will_lock_at(&self.active).coord.1;
                     let mut new_position = self.active;
-                    new_position.coord.1 -= self.gravity_state.trunc() as usize;
+                    new_position.coord.1 -= self.gravity_state.trunc() as isize;
                     new_position.coord.1 = std::cmp::max(new_position.coord.1, locks_at);
                     self.gravity_state = self.gravity_state.fract();
                     out.extend(self.reposition(new_position))
@@ -329,8 +329,8 @@ impl Board {
                          coord: (tet_x, tet_y),
                          ..
                      }| {
-                        *tet_x = tet_x.wrapping_add_signed(x as isize);
-                        *tet_y = tet_y.wrapping_add_signed(y as isize);
+                        *tet_x = tet_x.wrapping_add(x as isize);
+                        *tet_y = tet_y.wrapping_add(y as isize);
                     },
                 );
                 self.reposition(new_position)

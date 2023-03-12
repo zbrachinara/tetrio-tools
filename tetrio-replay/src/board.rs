@@ -50,7 +50,7 @@ pub struct Board {
     /// calculate how far this piece should fall, and/or whether or not it should lock in place
     pub gravity_state: f64,
     /// How many times the piece is able to avoid locking until it is forced to lock immediately
-    lock_count: u8,
+    lock_count: i8,
     hold: Hold,
 }
 
@@ -98,17 +98,37 @@ impl Board {
             .saturating_add(cells as isize)
             .clamp(0, self.cells.num_columns().0);
 
-        let new_position =
+        // let mut lock_resets = if self.active_will_lock() { -1 } else { 0 };
+
+        // let new_position =
         // ranges are inclusive since the tetromino can at least occupy its current position
-        if self.active.coord.0 < shift_to {
+        let shift_through = if self.active.coord.0 < shift_to {
             itertools::Either::Left(self.active.coord.0..=shift_to)
         } else {
             itertools::Either::Right((shift_to..=self.active.coord.0).rev())
         }
         .map(|x| self.active.tap_mut(|piece| piece.coord.0 = x))
         .tuple_windows()
-        .find_map(|(m1, m2)| self.intersects(&m2).then_some(m1))
-        .unwrap_or_else(|| self.active.tap_mut(|piece| piece.coord.0 = shift_to));
+        .enumerate();
+
+        let mut new_position = None;
+
+        for (ix, (m1, m2)) in shift_through {
+            if self.intersects(&m2) {
+                new_position = Some(m1);
+                break;
+            }
+
+            // This if statement is positioned here to avoid being called at the beginning of the
+            // shift (ix != 0) and at the end of the shift (since the loop will break before that
+            // happens)
+            if ix != 0 && self.will_lock(m1) {
+                self.lock_count -= 1;
+            }
+        }
+
+        let new_position =
+            new_position.unwrap_or_else(|| self.active.tap_mut(|piece| piece.coord.0 = shift_to));
 
         self.reposition(new_position)
     }
@@ -249,7 +269,7 @@ impl Board {
             self.active = to;
         }
 
-        if self.lock_count == 0 {
+        if self.lock_count <= 0 {
             out.extend(self.drop_active());
         }
         out

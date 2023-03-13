@@ -1,9 +1,9 @@
-use bsr_tools::tetromino::{Cell, Mino, MinoVariant};
 use gridly::{
     prelude::{Grid, GridBounds},
     vector::Vector,
 };
 use gridly_grids::VecGrid;
+use tetrio_replay::bsr_tools::tetromino::{Cell, Mino, MinoVariant};
 
 use macroquad::prelude::*;
 

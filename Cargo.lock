@@ -74,12 +74,12 @@ dependencies = [
 name = "bsr-player"
 version = "0.1.0"
 dependencies = [
- "bsr-tools",
  "gridly",
  "gridly_grids",
  "itertools",
  "macroquad",
  "tap",
+ "tetrio-replay",
 ]
 
 [[package]]

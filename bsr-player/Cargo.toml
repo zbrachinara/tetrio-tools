@@ -14,4 +14,4 @@ gridly = "0.9"
 
 macroquad = "0.3"
 
-bsr-tools = { path = "../bsr-tools" }
+tetrio-replay = { path = "../tetrio-replay" }

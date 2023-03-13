@@ -1,10 +1,10 @@
 #![allow(unused)]
 
-use bsr_tools::{
+use ttrm::event::{Event, EventData, Game, GameOptions, Key, KeyEvent};
+use viewtris::{
     action::{Action, ActionKind},
     tetromino::Spin,
 };
-use ttrm::event::{Event, EventData, Game, GameOptions, Key, KeyEvent};
 
 use crate::board::Board;
 

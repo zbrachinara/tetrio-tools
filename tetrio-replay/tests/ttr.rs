@@ -1,8 +1,8 @@
 use std::fs::OpenOptions;
 use std::io::Write;
 
-use bsr_tools::action::Action;
 use tetrio_replay::reconstruct;
+use viewtris::action::Action;
 
 fn reconstruct_from_bytes(bytes: &[u8], write_to: &str) -> Result<(), Vec<Action>> {
     let ttr = serde_json::from_slice::<ttrm::Ttr>(bytes)

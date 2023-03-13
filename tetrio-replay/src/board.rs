@@ -10,7 +10,7 @@ use crate::{
     reconstruct::{Settings, ShiftDirection, State},
     rng::PieceQueue,
 };
-use bsr_tools::{
+use viewtris::{
     action::{Action, ActionKind},
     kick_table::Positions,
     tetromino::{Cell, Mino, MinoVariant, Spin},
@@ -412,7 +412,7 @@ mod test {
     use super::{storage::BoardStorage, Board, Hold};
     use crate::{board::Cell, rng::PieceQueue};
 
-    use bsr_tools::tetromino::{Direction, Mino, MinoVariant, Spin};
+    use viewtris::tetromino::{Direction, Mino, MinoVariant, Spin};
 
     impl Default for Board {
         fn default() -> Self {

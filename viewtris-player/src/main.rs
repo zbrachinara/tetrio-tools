@@ -1,5 +1,5 @@
 use draw::board::Board;
-use tetrio_replay::bsr_tools::tetromino::{Cell, Direction, Mino, MinoVariant};
+use tetrio_replay::viewtris::tetromino::{Cell, Direction, Mino, MinoVariant};
 
 use gridly_grids::VecGrid;
 use macroquad::prelude::*;

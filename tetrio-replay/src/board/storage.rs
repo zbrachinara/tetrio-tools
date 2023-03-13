@@ -1,10 +1,10 @@
-use bsr_tools::tetromino::Cell;
 use gridly::{
     prelude::*,
     vector::{Columns, Rows, Vector},
 };
 use itertools::Itertools;
 use std::fmt::Debug;
+use viewtris::tetromino::Cell;
 
 #[derive(PartialEq)]
 pub struct BoardStorage<T> {

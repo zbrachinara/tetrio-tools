@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use bsr_tools::tetromino::MinoVariant;
+use viewtris::tetromino::MinoVariant;
 
 /// The RNG used by tetrio to generate new pieces.
 pub struct Rng {

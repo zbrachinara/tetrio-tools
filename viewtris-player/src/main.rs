@@ -36,13 +36,42 @@ fn open_file() -> Result<Vec<Action>, ()> {
         .ok_or(())
 }
 
+struct GameState {
+    board: Board,
+    actions: Vec<Action>,
+    actions_passed: usize,
+    frame: u32, // 828 days worth of frames 👍
+}
+
+impl GameState {
+    fn empty() -> Self {
+        Self {
+            board: Board::empty(),
+            actions: vec![],
+            actions_passed: 0,
+            frame: 0,
+        }
+    }
+
+    fn with_actions(actions: Vec<Action>) -> Self {
+        Self {
+            board: Board::empty(),
+            actions,
+            actions_passed: 0,
+            frame: 0,
+        }
+    }
+
+    fn draw(&self) {
+        draw::grid::draw_grid(10, 20, 1.0);
+        draw::board::draw_board(&self.board, 20, 1.0);
+        draw_text(&format!("frame {}", self.frame), 10., 26., 16., WHITE);
+    }
+}
+
 #[macroquad::main("bsr player")]
 async fn main() {
-    let mut board = Board::empty();
-    let mut actions = Vec::<Action>::new();
-
-    let mut frame = 0;
-    let mut action_tape_position = 0;
+    let mut game_state = GameState::empty();
 
     loop {
         clear_background(BLACK);
@@ -50,17 +79,12 @@ async fn main() {
         if is_key_pressed(KeyCode::O)
             && (is_key_down(KeyCode::LeftControl) || is_key_down(KeyCode::RightControl))
         {
-            board = Board::empty();
-            frame = 0;
-            action_tape_position = 0;
             if let Ok(new_actions) = open_file() {
-                actions = new_actions;
+                game_state = GameState::with_actions(new_actions)
             }
         }
 
-        draw::grid::draw_grid(10, 20, 1.0);
-        draw::board::draw_board(&board, 20, 1.0);
-        draw_text(&format!("frame {frame}"), 10., 26., 16., WHITE);
+        game_state.draw();
 
         next_frame().await
     }

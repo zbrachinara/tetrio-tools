@@ -67,6 +67,26 @@ impl GameState {
         draw::board::draw_board(&self.board, 20, 1.0);
         draw_text(&format!("frame {}", self.frame), 10., 26., 16., WHITE);
     }
+
+    fn is_finished(&self) -> bool {
+        self.actions_passed >= self.actions.len()
+    }
+
+    fn advance_frame(&mut self) {
+        if !self.is_finished() {
+            self.frame += 1;
+            let mut debug_count = 0;
+            while let Some(action) = self.actions.get(self.actions_passed) {
+                if action.frame > self.frame as u64 {
+                    break;
+                }
+                debug_count += 1;
+                // TODO apply the action
+                self.actions_passed += 1;
+            }
+            println!("frames passed: {debug_count}")
+        }
+    }
 }
 
 #[macroquad::main("bsr player")]
@@ -82,6 +102,10 @@ async fn main() {
             if let Ok(new_actions) = open_file() {
                 game_state = GameState::with_actions(new_actions)
             }
+        }
+
+        if is_key_pressed(KeyCode::Period) {
+            game_state.advance_frame();
         }
 
         game_state.draw();

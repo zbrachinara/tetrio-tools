@@ -1,8 +1,4 @@
-use gridly::{
-    prelude::{Grid, GridBounds},
-    vector::{Columns, Rows, Vector},
-};
-use gridly_grids::VecGrid;
+use itertools::Itertools;
 use tetrio_replay::viewtris::tetromino::{Cell, Mino, MinoVariant};
 
 use macroquad::prelude::*;
@@ -48,14 +44,13 @@ enum MinoColor {
 }
 
 pub struct Board {
-    pub cells: VecGrid<Cell>,
+    pub cells: Vec<Vec<Cell>>,
     pub active: Option<Mino>,
 }
 
 impl Board {
     fn enumerated(&self) -> impl Iterator<Item = ((usize, usize), &Cell)> {
         self.cells
-            .rows()
             .iter()
             .enumerate()
             .flat_map(|(y, row)| row.iter().enumerate().map(move |(x, cell)| ((x, y), cell)))
@@ -63,7 +58,7 @@ impl Board {
 
     pub fn empty() -> Self {
         Self {
-            cells: VecGrid::new_fill_copied((Rows(20), Columns(10)), Cell::Empty).unwrap(),
+            cells: (0..20).map(|_| vec![Cell::Empty; 10]).collect_vec(),
             active: None,
         }
     }
@@ -101,9 +96,9 @@ fn draw_cell(
 pub fn draw_board(board: &Board, legal_region: usize, scale: f32) {
     let size = 30. * scale;
 
-    let Vector { columns, .. } = board.cells.dimensions();
+    let columns = board.cells[0].len();
     let origin = (
-        screen_width() / 2. - (columns.0 as f32 * size / 2.),
+        screen_width() / 2. - (columns as f32 * size / 2.),
         screen_height() / 2. + legal_region as f32 * size / 2.,
     );
 

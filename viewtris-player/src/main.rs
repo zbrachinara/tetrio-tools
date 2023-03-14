@@ -41,6 +41,9 @@ async fn main() {
     let mut board = Board::empty();
     let mut actions = Vec::<Action>::new();
 
+    let mut frame = 0;
+    let mut action_tape_position = 0;
+
     loop {
         clear_background(BLACK);
 
@@ -48,6 +51,8 @@ async fn main() {
             && (is_key_down(KeyCode::LeftControl) || is_key_down(KeyCode::RightControl))
         {
             board = Board::empty();
+            frame = 0;
+            action_tape_position = 0;
             if let Ok(new_actions) = open_file() {
                 actions = new_actions;
             }
@@ -55,6 +60,7 @@ async fn main() {
 
         draw::grid::draw_grid(10, 20, 1.0);
         draw::board::draw_board(&board, 20, 1.0);
+        draw_text(&format!("frame {frame}"), 10., 26., 16., WHITE);
 
         next_frame().await
     }

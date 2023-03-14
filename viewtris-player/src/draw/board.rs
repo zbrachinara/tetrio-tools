@@ -1,6 +1,6 @@
 use gridly::{
     prelude::{Grid, GridBounds},
-    vector::Vector,
+    vector::{Columns, Rows, Vector},
 };
 use gridly_grids::VecGrid;
 use tetrio_replay::viewtris::tetromino::{Cell, Mino, MinoVariant};
@@ -49,7 +49,7 @@ enum MinoColor {
 
 pub struct Board {
     pub cells: VecGrid<Cell>,
-    pub active: Mino,
+    pub active: Option<Mino>,
 }
 
 impl Board {
@@ -59,6 +59,13 @@ impl Board {
             .iter()
             .enumerate()
             .flat_map(|(y, row)| row.iter().enumerate().map(move |(x, cell)| ((x, y), cell)))
+    }
+
+    pub fn empty() -> Self {
+        Self {
+            cells: VecGrid::new_fill_copied((Rows(20), Columns(10)), Cell::Empty).unwrap(),
+            active: None,
+        }
     }
 }
 
@@ -106,12 +113,14 @@ pub fn draw_board(board: &Board, legal_region: usize, scale: f32) {
         }
     }
 
-    for (pos_x, pos_y) in board.active.position().0 {
-        draw_cell(
-            origin,
-            (pos_x as usize, (pos_y - 1) as usize),
-            board.active.variant.into(),
-            size,
-        )
+    if let Some(active) = board.active {
+        for (pos_x, pos_y) in active.position().0 {
+            draw_cell(
+                origin,
+                (pos_x as usize, (pos_y - 1) as usize),
+                active.variant.into(),
+                size,
+            )
+        }
     }
 }

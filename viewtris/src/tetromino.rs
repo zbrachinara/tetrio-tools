@@ -13,7 +13,7 @@ impl From<MinoVariant> for Cell {
 
 /// The possible states that a cell can take up. A Tetromino cell refers to a filled cell with the
 /// color associated with that tetromino
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Cell {
     Tetromino(MinoVariant),
     Garbage,

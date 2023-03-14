@@ -13,5 +13,6 @@ gridly_grids = "0.5"
 gridly = "0.9"
 
 macroquad = "0.3"
+rfd = "0.11"
 
 tetrio-replay = { path = "../tetrio-replay" }

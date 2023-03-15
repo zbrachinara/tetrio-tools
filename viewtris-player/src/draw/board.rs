@@ -1,7 +1,7 @@
 use itertools::Itertools;
 use tetrio_replay::viewtris::{
     action::ActionKind,
-    tetromino::{Cell, Mino, MinoVariant},
+    tetromino::{Cell, Direction, Mino, MinoVariant},
 };
 
 use macroquad::prelude::*;
@@ -121,17 +121,17 @@ fn draw_cell(
 }
 
 pub fn draw_board(board: &Board, legal_region: usize, scale: f32) {
-    let size = 30. * scale;
+    let cell_size = 30. * scale;
 
     let columns = board.cells[0].len();
     let origin = (
-        screen_width() / 2. - (columns as f32 * size / 2.),
-        screen_height() / 2. + legal_region as f32 * size / 2.,
+        screen_width() / 2. - (columns as f32 * cell_size / 2.),
+        screen_height() / 2. + legal_region as f32 * cell_size / 2.,
     );
 
     for ((x, y), cell) in board.enumerated() {
         if let Ok(color) = MinoColor::try_from(cell) {
-            draw_cell(origin, (x as i32, y as i32), color, size)
+            draw_cell(origin, (x as i32, y as i32), color, cell_size)
         }
     }
 
@@ -141,7 +141,24 @@ pub fn draw_board(board: &Board, legal_region: usize, scale: f32) {
                 origin,
                 (pos_x as i32, pos_y as i32),
                 active.variant.into(),
-                size,
+                cell_size,
+            )
+        }
+    }
+
+    if let Some(held) = board.hold {
+        let held_piece = Mino {
+            variant: held,
+            direction: Direction::Up,
+            coord: (0, 0),
+        };
+        let new_origin = (origin.0 - cell_size * 5., origin.1 - cell_size * 17.);
+        for (pos_x, pos_y) in held_piece.position().0 {
+            draw_cell(
+                new_origin,
+                (pos_x as i32, pos_y as i32),
+                held.into(),
+                cell_size,
             )
         }
     }

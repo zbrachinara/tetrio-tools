@@ -122,7 +122,7 @@ impl From<MinoVariant> for Mino {
         Self {
             variant,
             direction: Direction::Up,
-            coord: (5, 22), //TODO: Find out if the piece actually spawns here initially
+            coord: (4, 21),
         }
     }
 }

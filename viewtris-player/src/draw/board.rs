@@ -1,8 +1,7 @@
 use itertools::Itertools;
-use tap::Tap;
 use tetrio_replay::viewtris::{
     action::ActionKind,
-    tetromino::{Cell, Direction, Mino, MinoVariant},
+    tetromino::{Cell, Mino, MinoVariant},
 };
 
 use macroquad::prelude::*;
@@ -50,7 +49,7 @@ enum MinoColor {
 pub struct Board {
     pub cells: Vec<Vec<Cell>>,
     pub active: Option<Mino>,
-    pub hold: Option<Mino>, // TODO draw
+    pub hold: Option<MinoVariant>, // TODO draw
 }
 
 impl Board {
@@ -83,11 +82,10 @@ impl Board {
                 kind,
             } => self.cells[*y as usize][*x as usize] = *kind,
             ActionKind::Hold => {
-                self.active
-                    .map(|m| m.tap_mut(|m| m.direction = Direction::Up));
-                self.hold
-                    .map(|m| m.tap_mut(|m| m.direction = Direction::Up));
-                std::mem::swap(&mut self.active, &mut self.hold);
+                let active = std::mem::take(&mut self.active).map(|u| u.variant);
+                if let Some(replacing_active) = std::mem::replace(&mut self.hold, active) {
+                    self.active = Some(replacing_active.into())
+                }
             }
         }
     }
@@ -141,7 +139,7 @@ pub fn draw_board(board: &Board, legal_region: usize, scale: f32) {
         for (pos_x, pos_y) in active.position().0 {
             draw_cell(
                 origin,
-                (pos_x as i32, (pos_y) as i32),
+                (pos_x as i32, pos_y as i32),
                 active.variant.into(),
                 size,
             )

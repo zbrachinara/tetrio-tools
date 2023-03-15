@@ -49,7 +49,8 @@ enum MinoColor {
 pub struct Board {
     pub cells: Vec<Vec<Cell>>,
     pub active: Option<Mino>,
-    pub hold: Option<MinoVariant>, // TODO draw
+    pub hold: Option<MinoVariant>,
+    pub cleared_rows: Vec<Vec<Cell>>,
 }
 
 impl Board {
@@ -65,6 +66,7 @@ impl Board {
             cells: (0..20).map(|_| vec![Cell::Empty; 10]).collect_vec(),
             active: None,
             hold: None,
+            cleared_rows: vec![],
         }
     }
 
@@ -74,7 +76,8 @@ impl Board {
             ActionKind::Reposition { piece } => self.active = Some(*piece),
             ActionKind::LineClear { row } => {
                 let row = *row as usize;
-                self.cells[row].iter_mut().for_each(|it| *it = Cell::Empty);
+                let discarded_row = std::mem::replace(&mut self.cells[row], vec![Cell::Empty; 10]);
+                self.cleared_rows.push(discarded_row);
                 self.cells[row..].rotate_left(1);
             }
             ActionKind::Cell {
@@ -87,6 +90,25 @@ impl Board {
                     self.active = Some(replacing_active.into())
                 }
             }
+        }
+    }
+
+    pub fn rollback_action(&mut self, action: &ActionKind) {
+        match action {
+            ActionKind::Garbage { column, height } => todo!(),
+            ActionKind::Reposition { piece } => self.active = Some(*piece),
+            ActionKind::LineClear { row } => {
+                let row = *row as usize;
+                self.cells[row..].rotate_right(1);
+                self.cells[row] = self.cleared_rows.pop().unwrap();
+            }
+            ActionKind::Cell {
+                position: (x, y),
+                kind,
+            } => {
+                self.cells[*y as usize][*x as usize] = Cell::Empty; // TODO address assumption that this was empty before
+            }
+            ActionKind::Hold => todo!(), // TODO how to escape the first hold?
         }
     }
 }

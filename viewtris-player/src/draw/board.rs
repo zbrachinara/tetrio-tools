@@ -75,7 +75,7 @@ impl Board {
             ActionKind::LineClear { row } => {
                 let row = *row as usize;
                 self.cells[row].iter_mut().for_each(|it| *it = Cell::Empty);
-                self.cells[row].rotate_left(1);
+                self.cells[row..].rotate_left(1);
             }
             ActionKind::Cell {
                 position: (x, y),

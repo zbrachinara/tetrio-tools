@@ -1,7 +1,8 @@
 use itertools::Itertools;
+use tap::Tap;
 use tetrio_replay::viewtris::{
     action::ActionKind,
-    tetromino::{Cell, Mino, MinoVariant},
+    tetromino::{Cell, Direction, Mino, MinoVariant},
 };
 
 use macroquad::prelude::*;
@@ -82,6 +83,10 @@ impl Board {
                 kind,
             } => self.cells[*y as usize][*x as usize] = *kind,
             ActionKind::Hold => {
+                self.active
+                    .map(|m| m.tap_mut(|m| m.direction = Direction::Up));
+                self.hold
+                    .map(|m| m.tap_mut(|m| m.direction = Direction::Up));
                 std::mem::swap(&mut self.active, &mut self.hold);
             }
         }

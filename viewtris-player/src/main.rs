@@ -1,11 +1,11 @@
 use std::{fs, os::unix::prelude::OsStrExt};
 
-use draw::board::Board;
-
 use macroquad::prelude::*;
+use state::GameState;
 use tetrio_replay::viewtris::action::Action;
 
 mod draw;
+mod state;
 
 fn open_file() -> Result<Vec<Action>, ()> {
     rfd::FileDialog::new()
@@ -34,62 +34,6 @@ fn open_file() -> Result<Vec<Action>, ()> {
             }
         })
         .ok_or(())
-}
-
-struct GameState {
-    board: Board,
-    actions: Vec<Action>,
-    actions_passed: usize,
-    frame: u32, // 828 days worth of frames 👍
-}
-
-impl GameState {
-    fn empty() -> Self {
-        Self {
-            board: Board::empty(),
-            actions: vec![],
-            actions_passed: 0,
-            frame: 0,
-        }
-    }
-
-    fn with_actions(actions: Vec<Action>) -> Self {
-        let mut game_state = Self {
-            board: Board::empty(),
-            actions,
-            actions_passed: 0,
-            frame: 0,
-        };
-        game_state.advance_actions();
-        game_state
-    }
-
-    fn draw(&self) {
-        draw::grid::draw_grid(10, 20, 1.0);
-        draw::board::draw_board(&self.board, 20, 1.0);
-        draw_text(&format!("frame {}", self.frame), 10., 26., 16., WHITE);
-    }
-
-    fn is_finished(&self) -> bool {
-        self.actions_passed >= self.actions.len()
-    }
-
-    fn advance_frame(&mut self) {
-        if !self.is_finished() {
-            self.frame += 1;
-            self.advance_actions();
-        }
-    }
-
-    fn advance_actions(&mut self) {
-        while let Some(action) = self.actions.get(self.actions_passed) {
-            if action.frame > self.frame as u64 {
-                break;
-            }
-            self.board.apply_action(&action.kind);
-            self.actions_passed += 1;
-        }
-    }
 }
 
 #[macroquad::main("bsr player")]

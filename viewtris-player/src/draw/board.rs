@@ -1,5 +1,8 @@
 use itertools::Itertools;
-use tetrio_replay::viewtris::tetromino::{Cell, Mino, MinoVariant};
+use tetrio_replay::viewtris::{
+    action::ActionKind,
+    tetromino::{Cell, Mino, MinoVariant},
+};
 
 use macroquad::prelude::*;
 
@@ -46,6 +49,7 @@ enum MinoColor {
 pub struct Board {
     pub cells: Vec<Vec<Cell>>,
     pub active: Option<Mino>,
+    pub hold: Option<Mino>, // TODO draw
 }
 
 impl Board {
@@ -60,6 +64,26 @@ impl Board {
         Self {
             cells: (0..20).map(|_| vec![Cell::Empty; 10]).collect_vec(),
             active: None,
+            hold: None,
+        }
+    }
+
+    pub fn apply_action(&mut self, action: &ActionKind) {
+        match action {
+            ActionKind::Garbage { column, height } => todo!(),
+            ActionKind::Reposition { piece } => self.active = Some(*piece),
+            ActionKind::LineClear { row } => {
+                let row = *row as usize;
+                self.cells[row].iter_mut().for_each(|it| *it = Cell::Empty);
+                self.cells[row].rotate_left(1);
+            }
+            ActionKind::Cell {
+                position: (x, y),
+                kind,
+            } => self.cells[*y as usize][*x as usize] = *kind,
+            ActionKind::Hold => {
+                std::mem::swap(&mut self.active, &mut self.hold);
+            }
         }
     }
 }

@@ -82,6 +82,7 @@ impl GameState {
                 }
                 debug_count += 1;
                 // TODO apply the action
+                self.board.apply_action(&action.kind);
                 self.actions_passed += 1;
             }
             println!("frames passed: {debug_count}")

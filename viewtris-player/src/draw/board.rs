@@ -90,7 +90,7 @@ impl Board {
 
 fn draw_cell(
     (root_x, root_y): (f32, f32),
-    (pos_x, pos_y): (usize, usize),
+    (pos_x, pos_y): (i32, i32),
     color: MinoColor,
     size: f32,
 ) {
@@ -126,9 +126,9 @@ pub fn draw_board(board: &Board, legal_region: usize, scale: f32) {
         screen_height() / 2. + legal_region as f32 * size / 2.,
     );
 
-    for (pos, cell) in board.enumerated() {
+    for ((x, y), cell) in board.enumerated() {
         if let Ok(color) = MinoColor::try_from(cell) {
-            draw_cell(origin, pos, color, size)
+            draw_cell(origin, (x as i32, y as i32), color, size)
         }
     }
 
@@ -136,7 +136,7 @@ pub fn draw_board(board: &Board, legal_region: usize, scale: f32) {
         for (pos_x, pos_y) in active.position().0 {
             draw_cell(
                 origin,
-                (pos_x as usize, (pos_y - 1) as usize),
+                (pos_x as i32, (pos_y) as i32),
                 active.variant.into(),
                 size,
             )

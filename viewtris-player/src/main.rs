@@ -54,12 +54,14 @@ impl GameState {
     }
 
     fn with_actions(actions: Vec<Action>) -> Self {
-        Self {
+        let mut game_state = Self {
             board: Board::empty(),
             actions,
             actions_passed: 0,
             frame: 0,
-        }
+        };
+        game_state.advance_actions();
+        game_state
     }
 
     fn draw(&self) {
@@ -75,17 +77,17 @@ impl GameState {
     fn advance_frame(&mut self) {
         if !self.is_finished() {
             self.frame += 1;
-            let mut debug_count = 0;
-            while let Some(action) = self.actions.get(self.actions_passed) {
-                if action.frame > self.frame as u64 {
-                    break;
-                }
-                debug_count += 1;
-                // TODO apply the action
-                self.board.apply_action(&action.kind);
-                self.actions_passed += 1;
+            self.advance_actions();
+        }
+    }
+
+    fn advance_actions(&mut self) {
+        while let Some(action) = self.actions.get(self.actions_passed) {
+            if action.frame > self.frame as u64 {
+                break;
             }
-            println!("frames passed: {debug_count}")
+            self.board.apply_action(&action.kind);
+            self.actions_passed += 1;
         }
     }
 }

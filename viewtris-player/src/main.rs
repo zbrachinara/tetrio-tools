@@ -36,7 +36,7 @@ fn open_file() -> Result<Vec<Action>, ()> {
         .ok_or(())
 }
 
-#[macroquad::main("bsr player")]
+#[macroquad::main("Viewtris")]
 async fn main() {
     let mut game_state = GameState::empty();
 

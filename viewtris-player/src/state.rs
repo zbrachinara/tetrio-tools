@@ -58,7 +58,6 @@ impl GameState {
         }
     }
 
-    // TODO: Unable to return to the very first action
     pub fn rewind_frame(&mut self) {
         if self.frame > 0 {
             self.frame -= 1;
@@ -69,9 +68,10 @@ impl GameState {
                 while self.actions_passed > 0 {
                     let action = &self.actions[self.actions_passed - 1];
                     self.board.rollback_action(&action.kind);
-                    self.actions_passed -= 1;
                     if action.frame <= self.frame as u64 {
                         break;
+                    } else {
+                        self.actions_passed -= 1;
                     }
                 }
             }

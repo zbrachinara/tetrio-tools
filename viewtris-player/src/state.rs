@@ -8,6 +8,8 @@ pub struct GameState {
     actions: Vec<Action>,
     actions_passed: usize,
     frame: u32, // 828 days worth of frames 👍
+    /// The time (in macroquad terms) when playing began
+    playing_since: Option<f64>,
 }
 
 impl GameState {
@@ -17,6 +19,7 @@ impl GameState {
             actions: vec![],
             actions_passed: 0,
             frame: 0,
+            playing_since: None,
         }
     }
 
@@ -26,6 +29,7 @@ impl GameState {
             actions,
             actions_passed: 0,
             frame: 0,
+            playing_since: None,
         };
         game_state.advance_actions();
         game_state
@@ -42,6 +46,37 @@ impl GameState {
             16.,
             WHITE,
         );
+    }
+
+    pub fn run_player(&mut self) {
+        if let Some(playing_since) = self.playing_since {
+            let frame = (get_time() - playing_since) * 60.;
+            let new_frame = frame.floor() as u32;
+            let frame_difference = new_frame - self.frame;
+            for _ in 0..frame_difference {
+                self.advance_frame();
+            }
+        }
+    }
+
+    pub fn play(&mut self) {
+        self.playing_since = Some(get_time());
+    }
+
+    pub fn pause(&mut self) {
+        self.playing_since = None;
+    }
+
+    pub fn is_paused(&self) -> bool {
+        self.playing_since.is_none()
+    }
+
+    pub fn toggle_pause(&mut self) {
+        if self.playing_since.is_some() {
+            self.pause();
+        } else {
+            self.play();
+        }
     }
 
     fn is_finished(&self) -> bool {

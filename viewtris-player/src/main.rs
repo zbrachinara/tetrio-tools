@@ -51,14 +51,19 @@ async fn main() {
             }
         }
 
-        if is_key_pressed(KeyCode::Period) {
+        if is_key_pressed(KeyCode::Period) && game_state.is_paused() {
             game_state.advance_frame();
         }
-        if is_key_pressed(KeyCode::Comma) {
+        if is_key_pressed(KeyCode::Comma) && game_state.is_paused() {
             game_state.rewind_frame();
         }
 
+        if is_key_pressed(KeyCode::Space) {
+            game_state.toggle_pause();
+        }
+
         game_state.draw();
+        game_state.run_player();
 
         next_frame().await
     }

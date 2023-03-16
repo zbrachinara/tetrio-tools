@@ -285,12 +285,12 @@ impl Board {
 
         // populate the cells which have been dropped into
         dropped.iter().for_each(|&(x, y)| {
-            *self.cell_mut(x, y).unwrap() = kind.clone();
+            *self.cell_mut(x, y).unwrap() = kind;
         });
 
         let dropped_cells = dropped.0.into_iter().map(|(x, y)| ActionKind::Cell {
             position: (x as u8, y as u8),
-            kind: kind.clone(),
+            kind,
         });
 
         let active = self.active;

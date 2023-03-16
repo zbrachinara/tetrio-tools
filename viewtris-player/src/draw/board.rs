@@ -51,6 +51,7 @@ pub struct Board {
     pub active: Option<Mino>,
     pub hold: Option<MinoVariant>,
     pub cleared_rows: Vec<Vec<Cell>>,
+    holds_passed: u16,
 }
 
 impl Board {
@@ -67,6 +68,7 @@ impl Board {
             active: None,
             hold: None,
             cleared_rows: vec![],
+            holds_passed: 0,
         }
     }
 
@@ -89,6 +91,7 @@ impl Board {
                 if let Some(replacing_active) = std::mem::replace(&mut self.hold, active) {
                     self.active = Some(replacing_active.into())
                 }
+                self.holds_passed += 1;
             }
         }
     }
@@ -107,7 +110,15 @@ impl Board {
             } => {
                 self.cells[*y as usize][*x as usize] = Cell::Empty; // TODO address assumption that this was empty before
             }
-            ActionKind::Hold => todo!(), // TODO how to escape the first hold?
+            ActionKind::Hold if self.holds_passed > 1 => {
+                self.holds_passed -= 1;
+                self.hold = Some(self.active.unwrap().variant);
+            }
+            ActionKind::Hold if self.holds_passed == 1 => {
+                self.holds_passed -= 1;
+                self.hold = None;
+            }
+            ActionKind::Hold => {}
         }
     }
 }

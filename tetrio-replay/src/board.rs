@@ -295,6 +295,11 @@ impl Board {
 
         let active = self.active;
 
+        // reset hold
+        if let Hold::NotActive(piece) = self.hold {
+            self.hold = Hold::Active(piece)
+        }
+
         dropped_cells
             .chain(self.clear_lines())
             .chain(std::iter::once(ActionKind::Reposition { piece: active }))

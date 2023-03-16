@@ -35,6 +35,13 @@ impl GameState {
         draw::grid::draw_grid(10, 20, 1.0);
         draw::board::draw_board(&self.board, 20, 1.0);
         draw_text(&format!("frame {}", self.frame), 10., 26., 16., WHITE);
+        draw_text(
+            &format!("in seconds: {:.3}", self.frame as f32 / 60.),
+            10.,
+            52.,
+            16.,
+            WHITE,
+        );
     }
 
     fn is_finished(&self) -> bool {

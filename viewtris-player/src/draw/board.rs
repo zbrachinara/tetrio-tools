@@ -103,8 +103,7 @@ impl Board {
                 self.cells[row] = self.cleared_rows.pop().unwrap();
             }
             ActionKind::Cell {
-                position: (x, y),
-                kind,
+                position: (x, y), ..
             } => {
                 self.cells[*y as usize][*x as usize] = Cell::Empty; // TODO address assumption that this was empty before
             }

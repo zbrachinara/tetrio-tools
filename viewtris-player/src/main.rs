@@ -54,6 +54,9 @@ async fn main() {
         if is_key_pressed(KeyCode::Period) {
             game_state.advance_frame();
         }
+        if is_key_pressed(KeyCode::Comma) {
+            game_state.rewind_frame();
+        }
 
         game_state.draw();
 

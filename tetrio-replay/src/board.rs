@@ -145,7 +145,7 @@ impl Board {
             }
             Hold::Active(held) => {
                 self.hold =
-                    Hold::NotActive(std::mem::replace(&mut self.active, Mino::from(held)).variant);
+                    Hold::NotActive(std::mem::replace(&mut self.active, held.into()).variant);
                 vec![
                     ActionKind::Hold,
                     ActionKind::Reposition { piece: self.active },

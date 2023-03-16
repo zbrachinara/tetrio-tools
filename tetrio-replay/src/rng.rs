@@ -72,11 +72,6 @@ impl PieceQueue {
         }
     }
 
-    /// Returns a view into the preview window of the queue
-    pub fn window(&self) -> impl Iterator<Item = &MinoVariant> {
-        self.window.iter().take(self.window_size)
-    }
-
     /// Return the next piece held in the queue and generate more pieces if necessary
     pub fn pop(&mut self) -> MinoVariant {
         let ret = self.window.pop_front();

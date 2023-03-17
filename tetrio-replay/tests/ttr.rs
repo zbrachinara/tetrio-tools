@@ -27,7 +27,7 @@ fn reconstruct_from_bytes(bytes: &[u8], write_to: &str) -> Result<(), Vec<Action
 #[test]
 fn zbrachi_standard() {
     if let Err(action_list) = reconstruct_from_bytes(
-        include_bytes!("samples/zbrachi_standard.ttr"),
+        include_bytes!("../../samples/zbrachi_standard.ttr"),
         "zbrachi_standard.out",
     ) {
         println!(
@@ -39,7 +39,9 @@ fn zbrachi_standard() {
 
 #[test]
 fn reconstruct_40l() {
-    if let Err(action_list) = reconstruct_from_bytes(include_bytes!("samples/40l.ttr"), "40l.out") {
+    if let Err(action_list) =
+        reconstruct_from_bytes(include_bytes!("../../samples/40l.ttr"), "40l.out")
+    {
         println!(
             "Test 40l could not open the output file was writing, output going to stderr instead"
         );

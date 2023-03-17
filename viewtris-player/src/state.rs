@@ -65,6 +65,9 @@ impl GameState {
             for _ in 0..frame_difference {
                 self.advance_frame();
             }
+            if self.is_finished() {
+                self.pause()
+            }
         }
     }
 

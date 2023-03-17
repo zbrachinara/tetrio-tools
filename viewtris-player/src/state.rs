@@ -10,7 +10,7 @@ pub struct GameState {
     frame: u32, // 828 days worth of frames 👍
     /// The time (in macroquad terms) when playing began
     playing_since: Option<f64>,
-    paused_on_frame: u32,
+    unpaused_on_frame: u32,
 }
 
 impl Default for GameState {
@@ -21,7 +21,7 @@ impl Default for GameState {
             actions_passed: 0,
             frame: 0,
             playing_since: None,
-            paused_on_frame: 0,
+            unpaused_on_frame: 0,
         }
     }
 }
@@ -61,7 +61,7 @@ impl GameState {
         if let Some(playing_since) = self.playing_since {
             let frame = (get_time() - playing_since) * 60.;
             let new_frame = frame.floor() as u32;
-            let frame_difference = new_frame - (self.frame - self.paused_on_frame);
+            let frame_difference = new_frame - (self.frame - self.unpaused_on_frame);
             for _ in 0..frame_difference {
                 self.advance_frame();
             }
@@ -72,11 +72,11 @@ impl GameState {
     }
 
     pub fn play(&mut self) {
+        self.unpaused_on_frame = self.frame;
         self.playing_since = Some(get_time());
     }
 
     pub fn pause(&mut self) {
-        self.paused_on_frame = self.frame;
         self.playing_since = None;
     }
 

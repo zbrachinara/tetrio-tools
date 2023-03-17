@@ -51,6 +51,10 @@ pub struct Board {
     pub gravity_state: f64,
     /// How many times the piece is able to avoid locking until it is forced to lock immediately
     lock_count: i8,
+    /// The most recent subframe on which the active piece was dropped (specifically, the subframe
+    /// time of the latest call to `Board::drop_active`)
+    last_drop: Option<u64>,
+    last_drop_needs_update: bool, // TODO way too hacky, redo api to fix this
     hold: Hold,
 }
 
@@ -78,6 +82,8 @@ impl Board {
                 gravity_state: 0.0,
                 lock_count: 16,
                 hold: Hold::Empty,
+                last_drop: None,
+                last_drop_needs_update: false,
             },
             vec![ActionKind::Reposition { piece: active }.attach_frame(0)],
         )
@@ -155,6 +161,34 @@ impl Board {
         }
     }
 
+    /// Calculates whether or not DAS has been held long enough to shift the current piece (or, if a
+    /// piece has just been dropped, if auto-shift has been unlocked). If the piece is ready to
+    /// shfit, returns the strength of the shift.
+    fn auto_shift_charge(
+        &self,
+        current_subframe: u64,
+        settings: &Settings,
+        key_state: &State,
+    ) -> Option<i8> {
+        let (arr, shift_size) = if settings.arr == 0 {
+            (1, self.cells.num_columns().0 as i8)
+        } else {
+            (settings.arr, 1)
+        };
+
+        let das_charged = current_subframe
+            .checked_sub(key_state.shift_began + settings.das)
+            .map(|time_after_das| time_after_das % arr == 0)
+            .unwrap_or(false);
+
+        let drop_unlocked = self
+            .last_drop
+            .map(|last_drop| current_subframe - last_drop > 10)
+            .unwrap_or(true);
+
+        (das_charged && drop_unlocked).then_some(shift_size)
+    }
+
     /// A function which handles all passive effects which happen between events, such as auto-shift
     /// and gravity/soft-drop. These effects must be handled together because each of them changes
     /// the position of the mino, which in turn changes which shifts and drops are possible.
@@ -180,17 +214,12 @@ impl Board {
 
                 let mut out = Vec::new();
 
-                let (arr, shift_size) = if settings.arr == 0 {
-                    (1, self.cells.num_columns().0 as i8)
-                } else {
-                    (settings.arr, 1)
-                };
+                if self.last_drop_needs_update {
+                    self.last_drop_needs_update = false;
+                    self.last_drop = Some(subframe)
+                }
 
-                if subframe
-                    .checked_sub(key_state.shift_began + settings.das)
-                    .map(|time_after_das| time_after_das % arr == 0)
-                    .unwrap_or(false)
-                {
+                if let Some(shift_size) = self.auto_shift_charge(subframe, settings, key_state) {
                     out.extend(match key_state.shifting {
                         ShiftDirection::None => Vec::new(),
                         ShiftDirection::Left => self.shift(-shift_size),
@@ -299,6 +328,8 @@ impl Board {
         if let Hold::NotActive(piece) = self.hold {
             self.hold = Hold::Active(piece)
         }
+
+        self.last_drop_needs_update = true;
 
         dropped_cells
             .chain(self.clear_lines())
@@ -428,6 +459,8 @@ mod test {
                 gravity_state: 0.0,
                 lock_count: 16,
                 hold: Hold::Empty,
+                last_drop: None,
+                last_drop_needs_update: false,
             }
         }
     }

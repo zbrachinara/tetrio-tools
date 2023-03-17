@@ -13,8 +13,8 @@ pub struct GameState {
     paused_on_frame: u32,
 }
 
-impl GameState {
-    pub fn empty() -> Self {
+impl Default for GameState {
+    fn default() -> Self {
         Self {
             board: Board::empty(),
             actions: vec![],
@@ -24,15 +24,13 @@ impl GameState {
             paused_on_frame: 0,
         }
     }
+}
 
+impl GameState {
     pub fn with_actions(actions: Vec<Action>) -> Self {
         let mut game_state = Self {
-            board: Board::empty(),
             actions,
-            actions_passed: 0,
-            frame: 0,
-            playing_since: None,
-            paused_on_frame: 0,
+            ..Self::default()
         };
         game_state.advance_actions();
         game_state

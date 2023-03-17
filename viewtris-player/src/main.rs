@@ -38,7 +38,7 @@ fn open_file() -> Result<Vec<Action>, ()> {
 
 #[macroquad::main("Viewtris")]
 async fn main() {
-    let mut game_state = GameState::empty();
+    let mut game_state = GameState::default();
 
     loop {
         clear_background(BLACK);

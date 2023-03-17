@@ -1,10 +1,5 @@
-#![allow(unused)]
-
 use ttrm::event::{Event, EventData, Game, GameOptions, Key, KeyEvent};
-use viewtris::{
-    action::{Action, ActionKind},
-    tetromino::Spin,
-};
+use viewtris::{action::Action, tetromino::Spin};
 
 use crate::board::Board;
 
@@ -191,7 +186,6 @@ where
     fn stream(mut self) -> Result<Vec<Action>, String> {
         let mut initial_frame = 0;
         self.events.for_each(|event| {
-            let frames_passed = event.frame - initial_frame;
             initial_frame = event.frame;
 
             match event.data {
@@ -216,7 +210,7 @@ where
                     false,
                     event.frame,
                 ),
-                EventData::InGameEvent { ref event } => (), // TODO add back in when working with multi games
+                EventData::InGameEvent { .. } => (), // TODO add back in when working with multi games
                 EventData::End {} => (),
             }
         });

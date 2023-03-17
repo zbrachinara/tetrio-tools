@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use std::iter;
 
 use gridly::prelude::{Column, Grid, GridBounds, GridMut, Row};
@@ -104,9 +102,6 @@ impl Board {
             .saturating_add(cells as isize)
             .clamp(0, self.cells.num_columns().0);
 
-        // let mut lock_resets = if self.active_will_lock() { -1 } else { 0 };
-
-        // let new_position =
         // ranges are inclusive since the tetromino can at least occupy its current position
         let shift_through = if self.active.coord.0 < shift_to {
             itertools::Either::Left(self.active.coord.0..=shift_to)
@@ -323,12 +318,7 @@ impl Board {
         });
 
         let active = self.active;
-
-        // reset hold
-        if let Hold::NotActive(piece) = self.hold {
-            self.hold = Hold::Active(piece)
-        }
-
+        self.hold.activate();
         self.last_drop_needs_update = true;
 
         dropped_cells
@@ -405,14 +395,6 @@ impl Board {
             .row(row)
             .ok()
             .map(|row| !row.iter().any(|cell| cell.is_empty()))
-    }
-
-    /// Tests whether or not the current position of the piece, if placed, will end the game
-    /// (i.e. if it is not placed at least partially below 20 lines -- other board heights will be
-    /// implemented later). Does not test whether the next piece is allowed to spawn after
-    /// placement of this piece.
-    fn test_legal<const N: usize>(&self, positions: &Positions<N>) -> bool {
-        positions.iter().any(|&(_, y)| (0..20).contains(&y))
     }
 
     /// Tests whether or not the positions passed in intersect with the wall or other filled cells
@@ -492,11 +474,6 @@ mod test {
         cells.reverse();
 
         BoardStorage::new_from_rows_unchecked(cells)
-    }
-
-    /// Creates a board containing nothing
-    fn empty_board() -> BoardStorage<Cell> {
-        board_from_string("________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________")
     }
 
     #[test]

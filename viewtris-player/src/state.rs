@@ -46,6 +46,14 @@ impl GameState {
             16.,
             WHITE,
         );
+
+        // play/pause indicator
+        if self.is_paused() {
+            draw_rectangle(32.0, 78.0, 16.0, 40.0, WHITE);
+            draw_rectangle(56.0, 78.0, 16.0, 40.0, WHITE);
+        } else {
+            draw_triangle(vec2(32.0, 78.0), vec2(32.0, 118.0), vec2(72.0, 98.0), WHITE);
+        }
     }
 
     pub fn run_player(&mut self) {

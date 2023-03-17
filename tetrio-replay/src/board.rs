@@ -189,9 +189,9 @@ impl Board {
         (das_charged && drop_unlocked).then_some(shift_size)
     }
 
-    /// A function which handles all passive effects which happen between events, such as auto-shift
-    /// and gravity/soft-drop. These effects must be handled together because each of them changes
-    /// the position of the mino, which in turn changes which shifts and drops are possible.
+    /// Handles all passive effects which happen between events, such as auto-shift, gravity, and
+    /// soft-drop. These effects must be handled together because each of them changes the position
+    /// of the mino, which in turn changes which shifts and drops are possible.
     pub fn passive_effects(
         &mut self,
         current_subframe: u64,

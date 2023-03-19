@@ -95,12 +95,7 @@ impl Board {
 
     /// Shifts the active tetromino by the given amount of cells.
     pub fn shift(&mut self, cells: i8) -> Vec<ActionKind> {
-        let shift_to = self
-            .active
-            .coord
-            .0
-            .saturating_add(cells as isize)
-            .clamp(0, self.cells.num_columns().0);
+        let shift_to = self.active.coord.0 + cells as isize;
 
         // ranges are inclusive since the tetromino can at least occupy its current position
         let shift_through = if self.active.coord.0 < shift_to {

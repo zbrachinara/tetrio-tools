@@ -25,6 +25,7 @@ this project would essentially be meaningless:
 
 * hahahaki
 * awsum
+* @vacuus (tetrio)
 * zbrachinara (me)
 
 You may have noticed this contribution from the commit history, but this project used to be called

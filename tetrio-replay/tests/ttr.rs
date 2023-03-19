@@ -45,10 +45,21 @@ fn hahahaki_standard() {
         println!(
             "Test hahahaki_standard could not open the output file was writing, output going to stderr instead"
         );
-        eprintln!("zbrachi custom game actions: {action_list:?}");
+        eprintln!("hahahaki custom game actions: {action_list:?}");
     }
 }
 
+#[test]
+fn vacuus_garbage() {
+    if let Err(action_list) =
+        reconstruct_from_bytes(include_bytes!("../../samples/garbage.ttr"), "garbage.out")
+    {
+        println!(
+            "Test vacuus_garbage could not open the output file was writing, output going to stderr instead"
+        );
+        eprintln!("vacuus custom game actions: {action_list:?}");
+    }
+}
 #[test]
 fn reconstruct_40l() {
     if let Err(action_list) =

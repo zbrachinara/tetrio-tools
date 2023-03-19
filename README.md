@@ -20,8 +20,15 @@ Secondary goals include customizability of the view and accessibility from web.
 
 # Contributions
 
-Replay data from these players has been used to test and develop the project:
+Replay data from these players has been used to test and develop the project. Without these people,
+this project would essentially be meaningless:
 
 * hahahaki
 * awsum
-* zbrachinara
+* zbrachinara (me)
+
+You may have noticed this contribution from the commit history, but this project used to be called
+`tetrio-tools` and the modules used to be called `bsr-tools` and `bsr-player`. Yuck! Thanks to
+suggestions from @IFireGamer, the project has been renamed to `viewtris`, a much simpler name to say
+and an easier name to remember. Just a better name in general! So thanks to him for the awesome
+suggestion.

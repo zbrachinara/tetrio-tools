@@ -3,7 +3,7 @@ use serde_json::{Number, Value};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Event<'a> {
-    pub frame: u64,
+    pub frame: u32,
     #[serde(borrow, flatten)]
     pub data: EventData<'a>,
 }

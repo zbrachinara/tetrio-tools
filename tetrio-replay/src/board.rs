@@ -51,7 +51,7 @@ pub struct Board {
     lock_count: i8,
     /// The most recent subframe on which the active piece was dropped (specifically, the subframe
     /// time of the latest call to `Board::drop_active`)
-    last_drop: Option<u64>,
+    last_drop: Option<u32>,
     last_drop_needs_update: bool, // TODO way too hacky, redo api to fix this
     hold: Hold,
 }
@@ -95,7 +95,7 @@ impl Board {
 
     /// Shifts the active tetromino by the given amount of cells.
     pub fn shift(&mut self, cells: i8) -> Vec<ActionKind> {
-        let shift_to = self.active.coord.0 + cells as isize;
+        let shift_to = self.active.coord.0 + cells as i16;
 
         // ranges are inclusive since the tetromino can at least occupy its current position
         let shift_through = if self.active.coord.0 < shift_to {
@@ -156,7 +156,7 @@ impl Board {
     /// shfit, returns the strength of the shift.
     fn auto_shift_charge(
         &self,
-        current_subframe: u64,
+        current_subframe: u32,
         settings: &Settings,
         key_state: &State,
     ) -> Option<i8> {
@@ -184,7 +184,7 @@ impl Board {
     /// of the mino, which in turn changes which shifts and drops are possible.
     pub fn passive_effects(
         &mut self,
-        current_subframe: u64,
+        current_subframe: u32,
         settings: &Settings,
         key_state: &State,
     ) -> Vec<Action> {
@@ -220,7 +220,7 @@ impl Board {
                 if self.gravity_state >= 1.0 {
                     let locks_at = self.will_lock_at(&self.active).coord.1;
                     let mut new_position = self.active;
-                    new_position.coord.1 -= self.gravity_state.trunc() as isize;
+                    new_position.coord.1 -= self.gravity_state.trunc() as i16;
                     new_position.coord.1 = std::cmp::max(new_position.coord.1, locks_at);
                     self.gravity_state = self.gravity_state.fract();
                     out.extend(self.reposition(new_position))
@@ -374,8 +374,8 @@ impl Board {
                          coord: (tet_x, tet_y),
                          ..
                      }| {
-                        *tet_x = tet_x.wrapping_add(x as isize);
-                        *tet_y = tet_y.wrapping_add(y as isize);
+                        *tet_x += x as i16;
+                        *tet_y += y as i16;
                     },
                 );
                 self.reposition(new_position)

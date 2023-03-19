@@ -6,10 +6,10 @@ use crate::board::Board;
 pub struct Settings {
     pub gravity: f64,
     pub gravity_increase: f64,
-    pub das: u64,
-    pub arr: u64,
-    pub sdf: u64,
-    pub dcd: u64,
+    pub das: u32,
+    pub arr: u32,
+    pub sdf: u32,
+    pub dcd: u32,
     pub lock_delay: u64,
 }
 
@@ -37,10 +37,10 @@ impl<'a, 'b> From<&'a GameOptions<'b>> for Settings {
         };
 
         if let Some(ref handling) = options.handling {
-            settings.das = (handling.das * 10.).round() as u64;
-            settings.arr = (handling.arr * 10.).round() as u64;
-            settings.sdf = handling.sdf as u64;
-            settings.dcd = (handling.dcd * 10.).round() as u64;
+            settings.das = (handling.das * 10.).round() as u32;
+            settings.arr = (handling.arr * 10.).round() as u32;
+            settings.sdf = handling.sdf as u32;
+            settings.dcd = (handling.dcd * 10.).round() as u32;
         }
 
         settings
@@ -73,8 +73,8 @@ pub struct State {
     pub soft_dropping: bool,
     /// The subframe on which either the left or right key was pressed. This should *not* be used in
     /// order to calculate the first shift left or right, but instead to calculate the DAS
-    pub shift_began: u64,
-    pub last_subframe: u64,
+    pub shift_began: u32,
+    pub last_subframe: u32,
     pub shifting: ShiftDirection,
 }
 
@@ -88,9 +88,9 @@ impl State {
         stream: &mut Vec<Action>,
         event: &KeyEvent,
         down: bool,
-        frame: u64,
+        frame: u32,
     ) {
-        let current_subframe = frame * 10 + (event.subframe.as_f64().unwrap() * 10.).round() as u64;
+        let current_subframe = frame * 10 + (event.subframe.as_f64().unwrap() * 10.).round() as u32;
         stream.extend(board.passive_effects(current_subframe, settings, self));
 
         if down {

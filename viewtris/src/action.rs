@@ -23,7 +23,7 @@ pub enum ActionKind {
 }
 
 impl ActionKind {
-    pub fn attach_frame(self, frame: u64) -> Action {
+    pub fn attach_frame(self, frame: u32) -> Action {
         Action { kind: self, frame }
     }
 }
@@ -31,5 +31,5 @@ impl ActionKind {
 #[derive(Debug, Clone)]
 pub struct Action {
     pub kind: ActionKind,
-    pub frame: u64,
+    pub frame: u32,
 }

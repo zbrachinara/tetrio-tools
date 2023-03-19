@@ -24,6 +24,19 @@ impl<const N: usize> Add<(i8, i8)> for Positions<N> {
     }
 }
 
+impl<const N: usize> Add<(i16, i16)> for Positions<N> {
+    type Output = Positions<N>;
+
+    fn add(self, (rhs_x, rhs_y): (i16, i16)) -> Self::Output {
+        self.tap_mut(|arr| {
+            arr.0.iter_mut().for_each(|(x, y)| {
+                *x += rhs_x as isize;
+                *y += rhs_y as isize;
+            })
+        })
+    }
+}
+
 impl<const N: usize> Add<(isize, isize)> for Positions<N> {
     type Output = Positions<N>;
 

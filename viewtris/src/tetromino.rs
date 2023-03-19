@@ -114,7 +114,7 @@ pub struct Mino {
     ///
     /// Because the coordinate does not necessarily contain a cell of the mino it is part of, it may
     /// also be negative
-    pub coord: (isize, isize),
+    pub coord: (i16, i16),
 }
 
 impl From<MinoVariant> for Mino {

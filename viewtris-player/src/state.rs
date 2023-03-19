@@ -105,7 +105,7 @@ impl GameState {
 
     fn advance_actions(&mut self) {
         while let Some(action) = self.actions.get(self.actions_passed) {
-            if action.frame > self.frame as u64 {
+            if action.frame > self.frame {
                 break;
             }
             self.board.apply_action(&action.kind);
@@ -117,13 +117,11 @@ impl GameState {
         if self.frame > 0 {
             self.frame -= 1;
 
-            if self.actions_passed > 0
-                && self.actions[self.actions_passed - 1].frame > self.frame as u64
-            {
+            if self.actions_passed > 0 && self.actions[self.actions_passed - 1].frame > self.frame {
                 while self.actions_passed > 0 {
                     let action = &self.actions[self.actions_passed - 1];
                     self.board.rollback_action(&action.kind);
-                    if action.frame <= self.frame as u64 {
+                    if action.frame <= self.frame {
                         break;
                     } else {
                         self.actions_passed -= 1;

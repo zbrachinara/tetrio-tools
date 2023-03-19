@@ -62,7 +62,7 @@ impl Board {
     /// The format of the matrix is the same as the format found in ttr and ttrm files -- that is,
     /// as a two-dimensional matrix.
     pub fn new(piece_seed: u64, game: &[Vec<Option<&str>>]) -> (Self, Vec<Action>) {
-        let mut queue = PieceQueue::seeded(piece_seed, 5);
+        let mut queue = PieceQueue::seeded(piece_seed);
         let cells = BoardStorage::new_from_rows_unchecked(
             game.iter()
                 .map(|row| row.iter().map(|elem| Cell::from(*elem)).collect_vec())

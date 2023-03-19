@@ -43,47 +43,36 @@ impl Rng {
 
 /// A piece queue which uses the tetrio RNG strategy to generate new pieces.
 pub struct PieceQueue {
-    window: VecDeque<MinoVariant>, //TODO: Determine whether window is necessary
-    window_size: usize,
+    window: VecDeque<MinoVariant>,
     rng: Rng,
 }
 
 impl PieceQueue {
-    /// Creates a dummy piecequeue that won't be used (for tests, for example)
+    /// Creates a dummy piecequeue that won't be used. Meant for usage in tests
     #[cfg(test)] // is meant for tests
     pub fn meaningless() -> Self {
-        Self::seeded(1, 1)
+        Self::seeded(1)
     }
 
     /// Creates a new piece queue with a seed and a preview window size
-    pub fn seeded(seed: u64, window_size: usize) -> Self {
+    pub fn seeded(seed: u64) -> Self {
         let mut rng = Rng::seeded(seed);
-        let mut window = VecDeque::with_capacity(window_size / 7 * 7);
+        let mut window = VecDeque::new();
 
-        while window.len() < window_size {
-            use MinoVariant::*;
-            window.extend(rng.shuffle_array([Z, L, O, S, I, J, T]))
-        }
+        use MinoVariant::*;
+        window.extend(rng.shuffle_array([Z, L, O, S, I, J, T]));
 
-        Self {
-            rng,
-            window,
-            window_size,
-        }
+        Self { rng, window }
     }
 
     /// Return the next piece held in the queue and generate more pieces if necessary
     pub fn pop(&mut self) -> MinoVariant {
         let ret = self.window.pop_front();
-        self.fill();
-        ret.unwrap()
-    }
-
-    /// Add as many pieces as necessary to fill up the display window
-    pub fn fill(&mut self) {
-        if self.window.len() < self.window_size {
-            self.generate()
+        // self.fill();
+        if self.window.is_empty() {
+            self.generate();
         }
+        ret.unwrap()
     }
 
     pub fn generate(&mut self) {

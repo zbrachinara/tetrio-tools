@@ -24,50 +24,29 @@ fn reconstruct_from_bytes(bytes: &[u8], write_to: &str) -> Result<(), Vec<Action
         .map_err(|_| action_list)
 }
 
-#[test]
-fn zbrachi_standard() {
-    if let Err(action_list) = reconstruct_from_bytes(
-        include_bytes!("../../samples/zbrachi_standard.ttr"),
-        "zbrachi_standard.out",
-    ) {
-        println!(
-            "Test zbrachi_standard could not open the output file was writing, output going to stderr instead"
-        );
-        eprintln!("zbrachi custom game actions: {action_list:?}");
-    }
+macro_rules! ttr_test {
+    ($name:tt) => {
+        #[test]
+        fn $name() {
+            if let Err(action_list) = reconstruct_from_bytes(
+                include_bytes!(concat!("../../samples/", stringify!($name), ".ttr")),
+                concat!(stringify!($name), ".out"),
+            ) {
+                println!(concat!(
+                    "Test",
+                    stringify!($name),
+                    " could not open the output file was writing, output going to stderr instead"
+                ));
+                eprintln!(concat!(stringify!($name), " actions: {:?}"), action_list);
+            }
+        }
+    };
 }
 
-#[test]
-fn hahahaki_standard() {
-    if let Err(action_list) =
-        reconstruct_from_bytes(include_bytes!("../../samples/hahahaki.ttr"), "hahahaki.out")
-    {
-        println!(
-            "Test hahahaki_standard could not open the output file was writing, output going to stderr instead"
-        );
-        eprintln!("hahahaki custom game actions: {action_list:?}");
-    }
-}
+ttr_test!(zbrachi_standard);
 
-#[test]
-fn vacuus_garbage() {
-    if let Err(action_list) =
-        reconstruct_from_bytes(include_bytes!("../../samples/garbage.ttr"), "garbage.out")
-    {
-        println!(
-            "Test vacuus_garbage could not open the output file was writing, output going to stderr instead"
-        );
-        eprintln!("vacuus custom game actions: {action_list:?}");
-    }
-}
-#[test]
-fn reconstruct_40l() {
-    if let Err(action_list) =
-        reconstruct_from_bytes(include_bytes!("../../samples/40l.ttr"), "40l.out")
-    {
-        println!(
-            "Test 40l could not open the output file was writing, output going to stderr instead"
-        );
-        eprintln!("40l actions: {action_list:?}");
-    }
-}
+ttr_test!(hahahaki);
+
+ttr_test!(garbage);
+
+ttr_test!(_40l);

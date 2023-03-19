@@ -38,6 +38,18 @@ fn zbrachi_standard() {
 }
 
 #[test]
+fn hahahaki_standard() {
+    if let Err(action_list) =
+        reconstruct_from_bytes(include_bytes!("../../samples/hahahaki.ttr"), "hahahaki.out")
+    {
+        println!(
+            "Test hahahaki_standard could not open the output file was writing, output going to stderr instead"
+        );
+        eprintln!("zbrachi custom game actions: {action_list:?}");
+    }
+}
+
+#[test]
 fn reconstruct_40l() {
     if let Err(action_list) =
         reconstruct_from_bytes(include_bytes!("../../samples/40l.ttr"), "40l.out")

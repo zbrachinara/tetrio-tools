@@ -303,7 +303,7 @@ pub struct GameOptions<'a> {
     pub survival_messiness: Option<u64>,
     pub survival_cap: Option<u64>,
     pub survival_layer_amt: Option<u64>,
-    pub survival_layer_non: bool,
+    pub survival_layer_non: Option<bool>,
     pub survival_layer_min: Option<u64>,
     pub survival_timer_itv: Option<u64>,
 }

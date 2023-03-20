@@ -3,33 +3,68 @@ use tetrio_replay::viewtris::action::Action;
 
 use crate::draw::{self, board::Board};
 
+#[derive(Default)]
 pub struct GameState {
-    board: Board,
-    actions: Vec<Action>,
-    actions_passed: usize,
+    concurrent_replays: Vec<Replay>,
     frame: u32, // 828 days worth of frames 👍
     /// The time (in macroquad terms) when playing began
     playing_since: Option<f64>,
     unpaused_on_frame: u32,
 }
 
-impl Default for GameState {
-    fn default() -> Self {
+struct Replay {
+    board: Board,
+    actions: Vec<Action>,
+    actions_passed: usize,
+}
+
+impl Replay {
+    fn with_actions(actions: Vec<Action>) -> Self {
         Self {
             board: Board::empty(),
-            actions: vec![],
+            actions,
             actions_passed: 0,
-            frame: 0,
-            playing_since: None,
-            unpaused_on_frame: 0,
         }
+    }
+
+    fn is_finished(&self) -> bool {
+        self.actions_passed >= self.actions.len()
+    }
+
+    fn advance_to_frame(&mut self, new_frame: u32) {
+        while let Some(action) = self.actions.get(self.actions_passed) {
+            if action.frame > new_frame {
+                break;
+            }
+            self.board.apply_action(&action.kind);
+            self.actions_passed += 1;
+        }
+    }
+
+    pub fn rewind_to_frame(&mut self, new_frame: u32) {
+        if self.actions_passed > 0 && self.actions[self.actions_passed - 1].frame > new_frame {
+            while self.actions_passed > 0 {
+                let action = &self.actions[self.actions_passed - 1];
+                self.board.rollback_action(&action.kind);
+                if action.frame <= new_frame {
+                    break;
+                } else {
+                    self.actions_passed -= 1;
+                }
+            }
+        }
+    }
+
+    pub fn draw(&self) {
+        draw::grid::draw_grid(10, 20, 1.0);
+        draw::board::draw_board(&self.board, 20, 1.0);
     }
 }
 
 impl GameState {
     pub fn with_actions(actions: Vec<Action>) -> Self {
         let mut game_state = Self {
-            actions,
+            concurrent_replays: vec![Replay::with_actions(actions)],
             ..Self::default()
         };
         game_state.advance_actions();
@@ -37,8 +72,9 @@ impl GameState {
     }
 
     pub fn draw(&self) {
-        draw::grid::draw_grid(10, 20, 1.0);
-        draw::board::draw_board(&self.board, 20, 1.0);
+        for replay in &self.concurrent_replays {
+            replay.draw();
+        }
         draw_text(&format!("frame {}", self.frame), 10., 26., 16., WHITE);
         draw_text(
             &format!("in seconds: {:.3}", self.frame as f32 / 60.),
@@ -93,7 +129,9 @@ impl GameState {
     }
 
     fn is_finished(&self) -> bool {
-        self.actions_passed >= self.actions.len()
+        self.concurrent_replays
+            .iter()
+            .all(|replay| replay.is_finished())
     }
 
     pub fn advance_frame(&mut self) {
@@ -104,12 +142,8 @@ impl GameState {
     }
 
     fn advance_actions(&mut self) {
-        while let Some(action) = self.actions.get(self.actions_passed) {
-            if action.frame > self.frame {
-                break;
-            }
-            self.board.apply_action(&action.kind);
-            self.actions_passed += 1;
+        for replay in &mut self.concurrent_replays {
+            replay.advance_to_frame(self.frame);
         }
     }
 
@@ -117,16 +151,8 @@ impl GameState {
         if self.frame > 0 {
             self.frame -= 1;
 
-            if self.actions_passed > 0 && self.actions[self.actions_passed - 1].frame > self.frame {
-                while self.actions_passed > 0 {
-                    let action = &self.actions[self.actions_passed - 1];
-                    self.board.rollback_action(&action.kind);
-                    if action.frame <= self.frame {
-                        break;
-                    } else {
-                        self.actions_passed -= 1;
-                    }
-                }
+            for replay in &mut self.concurrent_replays {
+                replay.rewind_to_frame(self.frame);
             }
         }
     }

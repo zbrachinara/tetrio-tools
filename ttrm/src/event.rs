@@ -77,28 +77,6 @@ pub enum InteractionData {
     },
 }
 
-// #[hybrid_tagged(
-//     fields = {
-//         sender: String,
-//         sent_frame: Number,
-//         cid: Number,
-//     },
-//     tag = "type",
-//     struct_attrs = { #[derive(Debug)]}
-// )]
-// #[serde(rename_all = "snake_case")]
-// pub enum Interaction {
-//     #[serde(rename = "interaction")]
-//     InteractionDo {
-//         #[serde(flatten)]
-//         data: Garbage,
-//     },
-//     InteractionConfirm {
-//         #[serde(flatten)]
-//         data: Garbage,
-//     },
-// }
-
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Garbage {
     pub amt: Number,

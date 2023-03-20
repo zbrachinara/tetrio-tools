@@ -1,5 +1,6 @@
 use std::{collections::HashMap, ops::Add};
 
+use duplicate::duplicate_item;
 use once_cell::sync::Lazy;
 use tap::Tap;
 
@@ -11,40 +12,21 @@ use crate::tetromino::{Direction, MinoVariant, Rotation};
 #[derive(Debug, Clone)]
 pub struct Positions<const N: usize>(pub [(isize, isize); N]);
 
-impl<const N: usize> Add<(i8, i8)> for Positions<N> {
+#[allow(clippy::unnecessary_cast)]
+#[duplicate_item(
+    ty;
+    [i8];
+    [i16];
+    [isize];
+)]
+impl<const N: usize> Add<(ty, ty)> for Positions<N> {
     type Output = Positions<N>;
 
-    fn add(self, (rhs_x, rhs_y): (i8, i8)) -> Self::Output {
+    fn add(self, (rhs_x, rhs_y): (ty, ty)) -> Self::Output {
         self.tap_mut(|arr| {
             arr.0.iter_mut().for_each(|(x, y)| {
                 *x += rhs_x as isize;
                 *y += rhs_y as isize;
-            })
-        })
-    }
-}
-
-impl<const N: usize> Add<(i16, i16)> for Positions<N> {
-    type Output = Positions<N>;
-
-    fn add(self, (rhs_x, rhs_y): (i16, i16)) -> Self::Output {
-        self.tap_mut(|arr| {
-            arr.0.iter_mut().for_each(|(x, y)| {
-                *x += rhs_x as isize;
-                *y += rhs_y as isize;
-            })
-        })
-    }
-}
-
-impl<const N: usize> Add<(isize, isize)> for Positions<N> {
-    type Output = Positions<N>;
-
-    fn add(self, (rhs_x, rhs_y): (isize, isize)) -> Self::Output {
-        self.tap_mut(|arr| {
-            arr.0.iter_mut().for_each(|(x, y)| {
-                *x += rhs_x;
-                *y += rhs_y;
             })
         })
     }

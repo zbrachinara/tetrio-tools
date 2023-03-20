@@ -10,6 +10,7 @@ use viewtris::action::Action;
 fn reconstruct_from_events(events: &[Event], write_to: &str) -> Result<(), Vec<Action>> {
     let action_list = reconstruct(events).expect("Reconstruction step failed");
 
+    std::fs::create_dir_all("test_out").expect("Could not create the test output directory");
     OpenOptions::new()
         .create(true)
         .truncate(true)
@@ -37,7 +38,7 @@ macro_rules! ttrm_test {
 
             for (i, data) in ttr.data.iter().enumerate() {
                 for (j, replay) in data.replays.iter().enumerate() {
-                    let write_to = format!(concat!(stringify!($name), "_{}_{}.out"), i, j);
+                    let write_to = format!(concat!("test_out/", stringify!($name), "_{}_{}.out"), i, j);
 
                     if let Err(action_list) = reconstruct_from_events(&replay.events, &write_to) {
                         println!(concat!(

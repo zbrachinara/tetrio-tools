@@ -30,10 +30,10 @@ macro_rules! ttr_test {
         fn $name() {
             if let Err(action_list) = reconstruct_from_bytes(
                 include_bytes!(concat!("../../samples/", stringify!($name), ".ttr")),
-                concat!(stringify!($name), ".out"),
+                concat!("test_out/", stringify!($name), ".out"),
             ) {
                 println!(concat!(
-                    "Test",
+                    "Test ",
                     stringify!($name),
                     " could not open the output file was writing, output going to stderr instead"
                 ));

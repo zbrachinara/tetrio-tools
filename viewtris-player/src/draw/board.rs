@@ -64,7 +64,7 @@ impl Board {
 
     pub fn empty() -> Self {
         Self {
-            cells: (0..20).map(|_| vec![Cell::Empty; 10]).collect_vec(),
+            cells: (0..40).map(|_| vec![Cell::Empty; 10]).collect_vec(),
             active: None,
             hold: None,
             cleared_rows: vec![],

@@ -4,7 +4,7 @@ use tetrio_replay::viewtris::action::Action;
 use crate::draw::{self, board::Board};
 
 #[derive(Default)]
-pub struct GameState {
+pub struct ReplayState {
     concurrent_replays: Vec<Replay>,
     frame: u32, // 828 days worth of frames 👍
     /// The time (in macroquad terms) when playing began
@@ -61,7 +61,7 @@ impl Replay {
     }
 }
 
-impl GameState {
+impl ReplayState {
     pub fn with_actions(actions: Vec<Action>) -> Self {
         let mut game_state = Self {
             concurrent_replays: vec![Replay::with_actions(actions)],

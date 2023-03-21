@@ -1,7 +1,7 @@
 use std::{fs, os::unix::prelude::OsStrExt};
 
 use macroquad::prelude::*;
-use state::GameState;
+use state::ReplayState;
 use tetrio_replay::viewtris::action::Action;
 
 mod draw;
@@ -38,7 +38,7 @@ fn open_file() -> Result<Vec<Action>, ()> {
 
 #[macroquad::main("Viewtris")]
 async fn main() {
-    let mut game_state = GameState::default();
+    let mut game_state = ReplayState::default();
 
     loop {
         clear_background(BLACK);
@@ -47,7 +47,7 @@ async fn main() {
             && (is_key_down(KeyCode::LeftControl) || is_key_down(KeyCode::RightControl))
         {
             if let Ok(new_actions) = open_file() {
-                game_state = GameState::with_actions(new_actions)
+                game_state = ReplayState::with_actions(new_actions)
             }
         }
 

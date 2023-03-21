@@ -33,21 +33,19 @@ fn open_file() -> Result<Selection, ()> {
             Some(x) if x.as_bytes() == b"ttrm" => {
                 tetrio_replay::ttrm::ttrm_from_slice(buf.as_slice())
                     .ok()
-                    .and_then(|mut ttrm| {
-                        let replays = std::iter::repeat_with(|| {
-                            ttrm.data
-                                .iter_mut()
-                                .map(|player| {
-                                    player.replays.pop().and_then(|replay| {
-                                        tetrio_replay::reconstruct(&replay.events).ok()
-                                    })
-                                })
-                                .collect::<Option<Vec<_>>>()
-                                .map(ReplayState::with_actions)
-                        })
-                        .take_while(|u| u.is_some())
-                        .flatten()
-                        .collect_vec();
+                    .and_then(|ttrm| {
+                        let replays = ttrm
+                            .data
+                            .iter()
+                            .filter_map(|player| {
+                                player
+                                    .replays
+                                    .iter()
+                                    .map(|replay| tetrio_replay::reconstruct(&replay.events).ok())
+                                    .collect::<Option<Vec<_>>>()
+                                    .map(ReplayState::with_actions)
+                            })
+                            .collect_vec();
 
                         (!replays.is_empty()).then_some(Selection {
                             replays,

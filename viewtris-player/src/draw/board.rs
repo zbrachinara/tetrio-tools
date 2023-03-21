@@ -184,7 +184,7 @@ pub fn draw_board(board: &Board, legal_region: usize, scale: f32, center_x: f32,
             direction: Direction::Up,
             coord: (0, 0),
         };
-        let new_origin = (origin.0 - cell_size * 5., origin.1 - cell_size * 17.);
+        let new_origin = (origin.0 - cell_size * 2.5, origin.1 - cell_size * 17.);
         for (pos_x, pos_y) in held_piece.position().0 {
             draw_cell(
                 new_origin,

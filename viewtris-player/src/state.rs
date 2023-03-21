@@ -77,7 +77,7 @@ impl ReplayState {
         let left = -((self.concurrent_replays.len() - 1) as f32 / 2.);
 
         for (i, replay) in self.concurrent_replays.iter().enumerate() {
-            let x_width = 200.0;
+            let x_width = 850.0;
 
             replay.draw(
                 1.0,

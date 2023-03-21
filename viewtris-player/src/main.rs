@@ -1,13 +1,17 @@
+#![feature(iterator_try_collect)]
+
 use std::{fs, os::unix::prelude::OsStrExt};
 
+use itertools::Itertools;
 use macroquad::prelude::*;
+use selection::Selection;
 use state::ReplayState;
-use tetrio_replay::viewtris::action::Action;
 
 mod draw;
+mod selection;
 mod state;
 
-fn open_file() -> Result<Vec<Action>, ()> {
+fn open_file() -> Result<Selection, ()> {
     rfd::FileDialog::new()
         .pick_file()
         .and_then(|fi| {
@@ -20,12 +24,36 @@ fn open_file() -> Result<Vec<Action>, ()> {
                 tetrio_replay::ttrm::ttr_from_slice(buf.as_slice())
                     .ok()
                     .and_then(|ttr| tetrio_replay::reconstruct(ttr.data.events.as_slice()).ok())
+                    .map(|actions| Selection {
+                        replays: vec![ReplayState::with_actions([actions])],
+                        selected: 0,
+                        in_replay: true,
+                    })
             }
             Some(x) if x.as_bytes() == b"ttrm" => {
                 tetrio_replay::ttrm::ttrm_from_slice(buf.as_slice())
                     .ok()
-                    .and_then(|ttrm| {
-                        tetrio_replay::reconstruct(ttrm.data[0].replays[0].events.as_slice()).ok()
+                    .and_then(|mut ttrm| {
+                        let replays = std::iter::repeat_with(|| {
+                            ttrm.data
+                                .iter_mut()
+                                .map(|player| {
+                                    player.replays.pop().and_then(|replay| {
+                                        tetrio_replay::reconstruct(&replay.events).ok()
+                                    })
+                                })
+                                .collect::<Option<Vec<_>>>()
+                                .map(ReplayState::with_actions)
+                        })
+                        .take_while(|u| u.is_some())
+                        .flatten()
+                        .collect_vec();
+
+                        (!replays.is_empty()).then_some(Selection {
+                            replays,
+                            selected: 0,
+                            in_replay: false,
+                        })
                     })
             }
             _ => {
@@ -38,7 +66,7 @@ fn open_file() -> Result<Vec<Action>, ()> {
 
 #[macroquad::main("Viewtris")]
 async fn main() {
-    let mut game_state = ReplayState::default();
+    let mut menu = Selection::default();
 
     loop {
         clear_background(BLACK);
@@ -47,23 +75,13 @@ async fn main() {
             && (is_key_down(KeyCode::LeftControl) || is_key_down(KeyCode::RightControl))
         {
             if let Ok(new_actions) = open_file() {
-                game_state = ReplayState::with_actions(new_actions)
+                menu = new_actions;
             }
         }
 
-        if is_key_pressed(KeyCode::Period) && game_state.is_paused() {
-            game_state.advance_frame();
-        }
-        if is_key_pressed(KeyCode::Comma) && game_state.is_paused() {
-            game_state.rewind_frame();
-        }
-
-        if is_key_pressed(KeyCode::Space) {
-            game_state.toggle_pause();
-        }
-
-        game_state.draw();
-        game_state.run_player();
+        menu.control();
+        menu.draw();
+        menu.run();
 
         next_frame().await
     }

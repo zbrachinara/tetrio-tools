@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use macroquad::prelude::*;
 use tetrio_replay::viewtris::action::Action;
 
@@ -62,9 +63,13 @@ impl Replay {
 }
 
 impl ReplayState {
-    pub fn with_actions(actions: Vec<Action>) -> Self {
+    pub fn with_actions(actions: impl IntoIterator<Item = Vec<Action>>) -> Self {
+        let replays = actions
+            .into_iter()
+            .map(|action| Replay::with_actions(action))
+            .collect_vec();
         let mut game_state = Self {
-            concurrent_replays: vec![Replay::with_actions(actions)],
+            concurrent_replays: replays,
             ..Self::default()
         };
         game_state.advance_actions();

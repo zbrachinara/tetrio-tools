@@ -152,13 +152,13 @@ fn draw_cell(
     );
 }
 
-pub fn draw_board(board: &Board, legal_region: usize, scale: f32) {
+pub fn draw_board(board: &Board, legal_region: usize, scale: f32, center_x: f32, center_y: f32) {
     let cell_size = 30. * scale;
 
     let columns = board.cells[0].len();
     let origin = (
-        screen_width() / 2. - (columns as f32 * cell_size / 2.),
-        screen_height() / 2. + legal_region as f32 * cell_size / 2.,
+        center_x - (columns as f32 * cell_size / 2.),
+        center_y + legal_region as f32 * cell_size / 2.,
     );
 
     for ((x, y), cell) in board.enumerated() {

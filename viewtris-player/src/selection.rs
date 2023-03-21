@@ -15,7 +15,7 @@ impl Selection {
             self.replays[self.selected].draw()
         } else if self.replays.is_empty() {
             draw_text(
-                "NO REPLAYS\n(open a replay with ctrl+O)",
+                "NO REPLAYS (open a replay with ctrl+O)",
                 100.,
                 100.,
                 32.,

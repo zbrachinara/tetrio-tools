@@ -1,11 +1,11 @@
 use macroquad::prelude::*;
-pub fn draw_grid(width: usize, height: usize, scale: f32) {
+pub fn draw_grid(width: usize, height: usize, scale: f32, center_x: f32, center_y: f32) {
     let size = 30. * scale;
 
-    let width_bound_left = screen_width() / 2. - size * width as f32 / 2.;
-    let width_bound_right = screen_width() / 2. + size * width as f32 / 2.;
-    let height_bound_lower = screen_height() / 2. - size * height as f32 / 2.;
-    let height_bound_upper = screen_height() / 2. + size * height as f32 / 2.;
+    let width_bound_left = center_x - size * width as f32 / 2.;
+    let width_bound_right = center_x + size * width as f32 / 2.;
+    let height_bound_lower = center_y - size * height as f32 / 2.;
+    let height_bound_upper = center_y + size * height as f32 / 2.;
 
     for col in 0..=width {
         let t = col as f32 * size + width_bound_left;

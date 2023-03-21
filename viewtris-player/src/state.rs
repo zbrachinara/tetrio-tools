@@ -56,18 +56,15 @@ impl Replay {
         }
     }
 
-    pub fn draw(&self) {
-        draw::grid::draw_grid(10, 20, 1.0);
-        draw::board::draw_board(&self.board, 20, 1.0);
+    pub fn draw(&self, scale: f32, center_x: f32, center_y: f32) {
+        draw::grid::draw_grid(10, 20, scale, center_x, center_y);
+        draw::board::draw_board(&self.board, 20, scale, center_x, center_y);
     }
 }
 
 impl ReplayState {
     pub fn with_actions(actions: impl IntoIterator<Item = Vec<Action>>) -> Self {
-        let replays = actions
-            .into_iter()
-            .map(|action| Replay::with_actions(action))
-            .collect_vec();
+        let replays = actions.into_iter().map(Replay::with_actions).collect_vec();
         let mut game_state = Self {
             concurrent_replays: replays,
             ..Self::default()
@@ -77,8 +74,16 @@ impl ReplayState {
     }
 
     pub fn draw(&self) {
-        for replay in &self.concurrent_replays {
-            replay.draw();
+        let left = -((self.concurrent_replays.len() - 1) as f32 / 2.);
+
+        for (i, replay) in self.concurrent_replays.iter().enumerate() {
+            let x_width = 200.0;
+
+            replay.draw(
+                1.0,
+                (screen_width() - (left + i as f32) * x_width) / 2.,
+                screen_height() / 2.,
+            );
         }
         draw_text(&format!("frame {}", self.frame), 10., 26., 16., WHITE);
         draw_text(

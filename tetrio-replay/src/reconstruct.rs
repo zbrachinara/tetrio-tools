@@ -1,4 +1,4 @@
-use ttrm::event::{Event, EventData, Game, GameOptions, Key, KeyEvent};
+use ttrm::event::{Event, EventData, Game, GameOptions, InteractionContainer, Key, KeyEvent};
 use viewtris::{action::Action, tetromino::Spin};
 
 use crate::board::Board;
@@ -213,7 +213,9 @@ where
                     false,
                     event.frame,
                 ),
-                EventData::InGameEvent { .. } => (), // TODO add back in when working with multi games
+                EventData::InGameEvent {
+                    event: InteractionContainer { ref data, .. },
+                } => self.board.acknowledge_garbage(&data.data, event.frame),
                 EventData::End {} => (),
             }
         });

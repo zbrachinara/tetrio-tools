@@ -1,8 +1,9 @@
-use std::iter;
+use std::{collections::VecDeque, iter};
 
 use gridly::prelude::{Column, Grid, GridBounds, GridMut, Row};
 use itertools::{Either, Itertools};
 use tap::Tap;
+use ttrm::event::InteractionData;
 
 use crate::{
     reconstruct::{Settings, ShiftDirection, State},
@@ -33,6 +34,13 @@ impl Hold {
     }
 }
 
+#[derive(Clone, Copy, Debug)]
+pub struct Garbage {
+    amt: u16,
+    column: u16,
+    received_frame: u32,
+}
+
 /// Holds the state of the tetrio board, which can be updated through the issuing of commands.
 /// The board does not keep a buffer of the commands, but transforms the commands it is issued
 /// into actions, which are returned immediately. This is used to externally build up a sequence
@@ -54,6 +62,8 @@ pub struct Board {
     last_drop: Option<u32>,
     last_drop_needs_update: bool, // TODO way too hacky, redo api to fix this
     hold: Hold,
+    acknowledged_garbage: VecDeque<Garbage>, // TODO maybe more performant to combine the vecdeques
+    ready_garbage: VecDeque<Garbage>,
 }
 
 impl Board {
@@ -82,6 +92,8 @@ impl Board {
                 hold: Hold::Empty,
                 last_drop: None,
                 last_drop_needs_update: false,
+                acknowledged_garbage: VecDeque::new(),
+                ready_garbage: VecDeque::new(),
             },
             vec![ActionKind::Reposition { piece: active }.attach_frame(0)],
         )
@@ -127,6 +139,19 @@ impl Board {
             new_position.unwrap_or_else(|| self.active.tap_mut(|piece| piece.coord.0 = shift_to));
 
         self.reposition(new_position)
+    }
+
+    pub fn acknowledge_garbage(&mut self, garbage: &InteractionData, frame: u32) {
+        match *garbage {
+            InteractionData::InteractionDo { .. } => (), // ignore for now
+            InteractionData::InteractionConfirm {
+                data: ttrm::event::Garbage { amt, column, .. },
+            } => self.acknowledged_garbage.push_back(Garbage {
+                amt,
+                column,
+                received_frame: frame,
+            }),
+        }
     }
 
     /// Holds a piece if that is possible.
@@ -420,6 +445,8 @@ impl Board {
 #[cfg(test)]
 mod test {
 
+    use std::collections::VecDeque;
+
     use itertools::Itertools;
 
     use super::{storage::BoardStorage, Board, Hold};
@@ -438,6 +465,8 @@ mod test {
                 hold: Hold::Empty,
                 last_drop: None,
                 last_drop_needs_update: false,
+                acknowledged_garbage: VecDeque::new(),
+                ready_garbage: VecDeque::new(),
             }
         }
     }

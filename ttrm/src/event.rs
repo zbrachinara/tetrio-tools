@@ -49,7 +49,7 @@ pub enum EventData<'a> {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct InteractionContainer {
     pub id: Number,
-    pub frame: Number,
+    pub frame: u32,
     pub data: Interaction,
 }
 
@@ -79,10 +79,10 @@ pub enum InteractionData {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Garbage {
-    pub amt: Number,
+    pub amt: u16,
     pub x: Number,
     pub y: Number,
-    pub column: Number,
+    pub column: u16,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -165,8 +165,11 @@ pub struct GameOptions<'a> {
     pub garbage_margin: Option<Number>,
     #[serde(rename = "garbagemultiplier")]
     pub garbage_multiplier: Option<Number>,
+    /// After garbage is acknowledged by a client, there is a delay before it takes effect. After
+    /// garbage takes effect, it will be applied to the board on the next hard drop. This quantity
+    /// describes the delay in number of frames (not subframes)
     #[serde(rename = "garbagespeed")]
-    pub garbage_speed: Number,
+    pub garbage_speed: u32,
     #[serde(rename = "ghostskin")]
     pub ghost_skin: &'a str,
     #[serde(rename = "gbase")]

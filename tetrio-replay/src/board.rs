@@ -173,7 +173,7 @@ impl Board {
 
         let drop_unlocked = self
             .last_drop
-            .map(|last_drop| current_subframe - last_drop > 10)
+            .map(|last_drop| current_subframe - last_drop > settings.dcd)
             .unwrap_or(true);
 
         (das_charged && drop_unlocked).then_some(shift_size)

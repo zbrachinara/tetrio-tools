@@ -66,13 +66,11 @@ impl Selection {
             }
         } else if !self.replays.is_empty() {
             if is_key_pressed(KeyCode::Down) {
-                self.selected += 1;
+                self.selected = (self.selected + 1).clamp(0, self.replays.len() - 1)
             }
             if is_key_pressed(KeyCode::Up) {
-                self.selected -= 1;
+                self.selected = self.selected.saturating_sub(1);
             }
-
-            self.selected = self.selected.clamp(0, self.replays.len());
 
             if is_key_pressed(KeyCode::Space)
                 || is_key_pressed(KeyCode::Enter)

@@ -28,6 +28,11 @@ impl Replay {
         }
     }
 
+    fn reset(&mut self) {
+        self.board = Board::empty();
+        self.actions_passed = 0;
+    }
+
     fn is_finished(&self) -> bool {
         self.actions_passed >= self.actions.len()
     }
@@ -165,5 +170,14 @@ impl ReplayState {
                 replay.rewind_to_frame(self.frame);
             }
         }
+    }
+
+    pub fn reset_to_beginning(&mut self) {
+        self.frame = 0;
+        self.pause();
+        for replay in &mut self.concurrent_replays {
+            replay.reset();
+        }
+        self.advance_actions();
     }
 }

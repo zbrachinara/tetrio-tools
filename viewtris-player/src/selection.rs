@@ -56,10 +56,13 @@ impl Selection {
                 replay.toggle_pause();
             }
 
-            if is_key_pressed(KeyCode::B)
-                && (is_key_down(KeyCode::LeftControl) || is_key_down(KeyCode::RightControl))
-            {
-                self.in_replay = false;
+            if is_key_down(KeyCode::LeftControl) || is_key_down(KeyCode::RightControl) {
+                if is_key_pressed(KeyCode::B) {
+                    self.in_replay = false;
+                }
+                if is_key_pressed(KeyCode::R) {
+                    replay.reset_to_beginning();
+                }
             }
         } else if !self.replays.is_empty() {
             if is_key_pressed(KeyCode::Down) {

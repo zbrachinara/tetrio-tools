@@ -12,11 +12,12 @@ aims to satisfy three (related) goals:
    know what is going on, as simulation of the game is required to read the replay. Viewtris
    attempts to express the game in terms of what you see, while also (WIP) preserving the metadata
    that an ordinary tetris game relies on.
-3. Generality: Viewtris wouldn't have a use without games to generate replays from. I want to
-   support as many block-stacking games as possible, which means being able to emulate and record a
-   variety of mechanics, without intruding too much on the core format.
+3. Code-accessibility: Right now this library is just in rust, but I also want to make it accessible
+   from python and some other popular languages (csharp, browser and node js, jvm-based, etc). In
+   addition, I want to make certain common actions automatable, such as generating replay videos and
+   censoring names
 
-Secondary goals include customizability of the view and accessibility from web.
+Secondary goals include customizability of the view, generality, and accessibility from web.
 
 # Contributions
 

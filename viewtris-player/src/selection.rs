@@ -30,10 +30,13 @@ impl Selection {
             // TODO encode and show information about replay states
             for (i, _) in self.replays.iter().enumerate() {
                 let y = y_root + i as f32 * h;
+                let text = format!("Replay {}", i + 1);
                 if i == self.selected {
-                    draw_rectangle(x, y, w, h, WHITE)
+                    draw_rectangle(x, y, w, h, WHITE);
+                    draw_text(text.as_str(), x + 10., y + h / 2., 16., BLACK);
                 } else {
-                    draw_rectangle_lines(x, y, w, h, 3.0, WHITE)
+                    draw_rectangle_lines(x, y, w, h, 3.0, WHITE);
+                    draw_text(text.as_str(), x + 10., y + h / 2., 16., WHITE);
                 }
             }
 

@@ -1,4 +1,4 @@
-use ttrm::event::{Event, EventData, Game, GameOptions, InteractionContainer, Key, KeyEvent};
+use ttrm::event::{Event, EventData, EventFull, Game, GameOptions, Key, KeyEvent};
 use viewtris::{action::Action, tetromino::Spin};
 
 use crate::board::Board;
@@ -163,14 +163,14 @@ where
 
             match next {
                 Some(Event {
-                    data:
-                        EventData::Full {
-                            options,
-                            game: Game { board, .. },
-                            ..
-                        },
+                    data: EventData::Full { data },
                     ..
                 }) => {
+                    let EventFull {
+                        ref options,
+                        game: Game { ref board, .. },
+                        ..
+                    } = **data;
                     let (board, stream) = Board::new(options.seed, board);
                     break Some(Self {
                         events: game,
@@ -215,8 +215,10 @@ where
                     event.frame,
                 ),
                 EventData::InGameEvent {
-                    event: InteractionContainer { ref data, .. },
-                } => self.board.acknowledge_garbage(&data.data, event.frame),
+                    event: ref ingame_event,
+                } => self
+                    .board
+                    .acknowledge_garbage(&ingame_event.data.data, event.frame),
                 EventData::End {} => (),
             }
         });

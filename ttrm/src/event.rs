@@ -14,20 +14,8 @@ pub struct Event<'a> {
 pub enum EventData<'a> {
     Start {},
     Full {
-        #[serde(rename = "aggregatestats")]
-        aggregate_stats: AggregateStats,
-        assumptions: Option<Value>,
-        fire: Number,
-        game: Game<'a>,
-        #[serde(rename = "gameoverreason")]
-        game_over_reason: Option<&'a str>,
-        killer: Killer<'a>,
-        options: GameOptions<'a>,
-        replay: Value, //TODO: gonna have to see what these structs mean
-        source: Value,
-        stats: Value,
-        successful: bool,
-        targets: Vec<Value>, // TODO: probably string, but have to check
+        #[serde(flatten, borrow)]
+        data: Box<EventFull<'a>>,
     },
     Targets {}, // TODO fill in fields
     KeyDown {
@@ -41,9 +29,27 @@ pub enum EventData<'a> {
     #[serde(rename = "ige")]
     InGameEvent {
         #[serde(flatten)]
-        event: InteractionContainer,
+        event: Box<InteractionContainer>,
     },
     End {},
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct EventFull<'a> {
+    #[serde(rename = "aggregatestats")]
+    pub aggregate_stats: AggregateStats,
+    pub assumptions: Option<Value>,
+    pub fire: Number,
+    pub game: Game<'a>,
+    #[serde(rename = "gameoverreason")]
+    pub game_over_reason: Option<&'a str>,
+    pub killer: Killer<'a>,
+    pub options: GameOptions<'a>,
+    pub replay: Value, //TODO: gonna have to see what these structs mean
+    pub source: Value,
+    pub stats: Value,
+    pub successful: bool,
+    pub targets: Vec<Value>, // TODO: probably string, but have to check
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]

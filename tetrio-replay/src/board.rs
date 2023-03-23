@@ -429,7 +429,7 @@ impl Board {
     ///
     /// For now, assumes SRS+
     pub fn rotate_active(&mut self, spin: Spin) -> Vec<ActionKind> {
-        let rotated = self.active.rotate(spin);
+        let rotated = self.active.rotate(spin); // where SRS+ assumed
 
         let true_rotation = rotated.position();
         let kicks = self
@@ -437,7 +437,7 @@ impl Board {
             .kick(spin)
             .cloned()
             .map(|i| i.into_iter())
-            .ok_or(vec![].into_iter()); // where SRS+ assumed
+            .ok_or(vec![].into_iter());
 
         let accepted_kick = iter::once((0, 0))
             .chain(Either::from(kicks))

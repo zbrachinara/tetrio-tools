@@ -45,6 +45,16 @@ impl BoardStorage<Cell> {
         self.storage[l..].rotate_left(1);
         self.storage.last_mut().unwrap().fill_with(|| Cell::Empty)
     }
+
+    pub fn apply_garbage(&mut self, column: u16, amount: u16) {
+        self.storage.rotate_right(amount as usize);
+        self.storage[0..(amount as usize)]
+            .iter_mut()
+            .for_each(|row| {
+                row.fill(Cell::Garbage);
+                row[column as usize] = Cell::Empty;
+            });
+    }
 }
 
 impl<T> GridBounds for BoardStorage<T> {

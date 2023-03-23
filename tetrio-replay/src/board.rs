@@ -63,7 +63,7 @@ pub struct Board {
     last_drop_needs_update: bool, // TODO way too hacky, redo api to fix this
     hold: Hold,
     acknowledged_garbage: VecDeque<Garbage>, // TODO maybe more performant to combine the vecdeques
-    ready_garbage: VecDeque<Garbage>,
+    queued_garbage: VecDeque<Garbage>,
 }
 
 impl Board {
@@ -93,7 +93,7 @@ impl Board {
                 last_drop: None,
                 last_drop_needs_update: false,
                 acknowledged_garbage: VecDeque::new(),
-                ready_garbage: VecDeque::new(),
+                queued_garbage: VecDeque::new(),
             },
             vec![ActionKind::Reposition { piece: active }.attach_frame(0)],
         )
@@ -215,6 +215,8 @@ impl Board {
     ) -> Vec<Action> {
         (key_state.last_subframe..current_subframe)
             .flat_map(|subframe| {
+                let frame = subframe / 10;
+
                 // TODO handle gravity acceleration
                 self.gravity_state += if key_state.soft_dropping {
                     if settings.sdf > 40 {
@@ -232,6 +234,14 @@ impl Board {
                 if self.last_drop_needs_update {
                     self.last_drop_needs_update = false;
                     self.last_drop = Some(subframe)
+                }
+
+                // activate garbage if ready
+                while let Some(garbage) = self.acknowledged_garbage.get(0) {
+                    if garbage.received_frame + settings.garbage_speed - 1 <= frame {
+                        self.queued_garbage
+                            .push_back(self.acknowledged_garbage.pop_front().unwrap());
+                    }
                 }
 
                 if let Some(shift_size) = self.auto_shift_charge(subframe, settings, key_state) {
@@ -337,6 +347,20 @@ impl Board {
             kind,
         });
 
+        // let new_lines = {
+        //     let cleared_lines = self.clear_lines();
+        //     if cleared_lines.is_empty() {
+        //         self.apply_queued_garbage()
+        //     } else {
+        //         cleared_lines
+        //     }
+        // };
+
+        // dropped_cells
+        //     .chain(new_lines)
+        //     .chain(std::iter::once(ActionKind::Reposition { piece: active }))
+        //     .collect_vec()
+
         let active = self.active;
         self.hold.activate();
         self.last_drop_needs_update = true;
@@ -347,10 +371,44 @@ impl Board {
             .collect_vec()
     }
 
+    fn apply_queued_garbage(&mut self) -> Vec<ActionKind> {
+        let mut out = vec![];
+        let mut counter = 0;
+
+        while let Some(garbage) = self.queued_garbage.get(0) {
+            // TODO get garbage cap from settings
+            if counter + garbage.amt > 8 {
+                let excess = counter + garbage.amt - 8;
+                let applied = garbage.amt - excess;
+
+                out.push(self.apply_garbage((*garbage).tap_mut(|gb| gb.amt = applied)));
+                self.queued_garbage[0].amt = excess;
+                break;
+            } else {
+                let gb = self.queued_garbage.pop_front().unwrap();
+                counter += gb.amt;
+                out.push(self.apply_garbage(gb));
+                if counter == 8 {
+                    break;
+                }
+            }
+        }
+
+        out
+    }
+
+    fn apply_garbage(&mut self, garbage: Garbage) -> ActionKind {
+        self.cells.apply_garbage(garbage.column, garbage.amt);
+        ActionKind::Garbage {
+            column: garbage.column,
+            height: garbage.amt,
+        }
+    }
+
     /// Checks each row in the board, and removes any row which is full. Every row is checked, not
     /// just updated ones, because tetrio can behave like that (for example, on custom boards that
     /// init with some filled rows)
-    fn clear_lines(&mut self) -> impl Iterator<Item = ActionKind> + '_ {
+    fn clear_lines(&mut self) -> Vec<ActionKind> {
         (0..self.cells.num_rows().0)
             .scan(0, |real_row, _| {
                 Some(if self.is_filled(*real_row).unwrap() {
@@ -367,6 +425,7 @@ impl Board {
                 })
             })
             .flatten()
+            .collect_vec()
     }
 
     /// Attempts to rotate the active tetromino on the board.
@@ -466,7 +525,7 @@ mod test {
                 last_drop: None,
                 last_drop_needs_update: false,
                 acknowledged_garbage: VecDeque::new(),
-                ready_garbage: VecDeque::new(),
+                queued_garbage: VecDeque::new(),
             }
         }
     }

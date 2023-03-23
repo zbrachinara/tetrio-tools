@@ -8,7 +8,7 @@ use crate::tetromino::{Cell, Mino};
 #[derive(Debug, Clone)]
 pub enum ActionKind {
     /// Create a new garbage line with a hole at the specified column with the given height.
-    Garbage { column: u8, height: u8 },
+    Garbage { column: u16, height: u16 },
     /// Updates the state of the active mino. The possibility of this update is not checked, so
     /// reposition at your own risk
     Reposition { piece: Mino },

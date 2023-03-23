@@ -74,7 +74,15 @@ impl Board {
 
     pub fn apply_action(&mut self, action: &ActionKind) {
         match action {
-            ActionKind::Garbage { column, height } => todo!(),
+            ActionKind::Garbage { column, height } => {
+                self.cells.rotate_right(*height as usize);
+                self.cells[0..(*height as usize)]
+                    .iter_mut()
+                    .for_each(|row| {
+                        row.fill(Cell::Garbage);
+                        row[(*column) as usize] = Cell::Empty;
+                    });
+            }
             ActionKind::Reposition { piece } => self.active = Some(*piece),
             ActionKind::LineClear { row } => {
                 let row = *row as usize;
@@ -98,7 +106,14 @@ impl Board {
 
     pub fn rollback_action(&mut self, action: &ActionKind) {
         match action {
-            ActionKind::Garbage { column, height } => todo!(),
+            ActionKind::Garbage { height, .. } => {
+                self.cells[0..(*height as usize)]
+                    .iter_mut()
+                    .for_each(|row| {
+                        row.fill(Cell::Empty);
+                    });
+                self.cells.rotate_left(*height as usize)
+            }
             ActionKind::Reposition { piece } => self.active = Some(*piece),
             ActionKind::LineClear { row } => {
                 let row = *row as usize;

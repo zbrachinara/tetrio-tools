@@ -241,6 +241,8 @@ impl Board {
                     if garbage.received_frame + settings.garbage_speed - 1 <= frame {
                         self.queued_garbage
                             .push_back(self.acknowledged_garbage.pop_front().unwrap());
+                    } else {
+                        break;
                     }
                 }
 
@@ -347,26 +349,21 @@ impl Board {
             kind,
         });
 
-        // let new_lines = {
-        //     let cleared_lines = self.clear_lines();
-        //     if cleared_lines.is_empty() {
-        //         self.apply_queued_garbage()
-        //     } else {
-        //         cleared_lines
-        //     }
-        // };
-
-        // dropped_cells
-        //     .chain(new_lines)
-        //     .chain(std::iter::once(ActionKind::Reposition { piece: active }))
-        //     .collect_vec()
-
         let active = self.active;
         self.hold.activate();
         self.last_drop_needs_update = true;
 
+        let new_lines = {
+            let cleared_lines = self.clear_lines();
+            if cleared_lines.is_empty() {
+                self.apply_queued_garbage()
+            } else {
+                cleared_lines
+            }
+        };
+
         dropped_cells
-            .chain(self.clear_lines())
+            .chain(new_lines)
             .chain(std::iter::once(ActionKind::Reposition { piece: active }))
             .collect_vec()
     }

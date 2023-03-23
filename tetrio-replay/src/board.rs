@@ -11,7 +11,7 @@ use crate::{
 };
 use viewtris::{
     action::{Action, ActionKind},
-    kick_table::Positions,
+    positions::Positions,
     tetromino::{Cell, Mino, MinoVariant, Spin},
 };
 

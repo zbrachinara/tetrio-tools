@@ -3,7 +3,10 @@ use std::{fmt::Display, ops::Add, str::FromStr};
 use strum::EnumString;
 use tap::Tap;
 
-use crate::kick_table::{self, Positions, ROTATION_TABLE};
+use crate::{
+    kick_table::{self, ROTATION_TABLE},
+    positions::Positions,
+};
 
 impl From<MinoVariant> for Cell {
     fn from(value: MinoVariant) -> Self {

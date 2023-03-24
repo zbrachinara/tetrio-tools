@@ -2,12 +2,18 @@ use std::{collections::HashMap, ops::Index};
 
 use crate::tetromino::MinoVariant;
 
+#[rustfmt::skip]
+#[derive(Default, PartialEq, Eq, Hash, Clone, Copy, Debug)]
+pub enum Spin {
+    #[default] None, Mini, Full,
+}
+
 pub struct Attack {
     pub combo: Option<u16>,
     pub b2b: Option<u16>,
     pub piece: Option<MinoVariant>,
     pub lines: Option<u8>,
-    pub spin: Option<bool>,
+    pub spin: Option<Spin>,
 }
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
@@ -16,7 +22,7 @@ pub struct AttackKey {
     pub b2b: u16,
     pub piece: MinoVariant,
     pub lines: u8,
-    pub spin: bool,
+    pub spin: Spin,
 }
 
 impl Attack {

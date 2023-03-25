@@ -16,5 +16,6 @@ anyhow = "1.0"
 itertools = "0.10"
 tap = "1.0"
 tinyvec = "1.6"
+if_chain = "1.0"
 
 gridly = "0.9"

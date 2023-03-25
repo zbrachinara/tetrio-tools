@@ -279,7 +279,7 @@ impl Board {
                 }
 
                 out.into_iter()
-                    .map(|action| action.attach_frame((subframe - 1) / 10))
+                    .map(|action| action.attach_frame(subframe / 10))
                     .collect_vec()
             })
             .collect_vec()

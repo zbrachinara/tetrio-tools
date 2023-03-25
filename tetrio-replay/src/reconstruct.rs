@@ -95,7 +95,7 @@ impl State {
         frame: u32,
     ) {
         let current_subframe = frame * 10 + (event.subframe.as_f64().unwrap() * 10.).round() as u32;
-        stream.extend(board.passive_effects(current_subframe, settings, self));
+        stream.extend(board.passive_effects(current_subframe + 1, settings, self));
 
         if down {
             match event.key {

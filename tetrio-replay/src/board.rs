@@ -191,17 +191,32 @@ impl Board {
             (settings.arr, 1)
         };
 
-        let das_charged = current_subframe
-            .checked_sub(key_state.shift_began + settings.das)
+        // let check_das_charged = || {
+        //     current_subframe
+        //         .checked_sub(key_state.shift_began + settings.das)
+        //         .map(|time_after_das| time_after_das % arr == 0)
+        //         .unwrap_or(false)
+        // };
+
+        let das_inertia = if let Some(last_drop) = self.last_drop {
+            if last_drop >= key_state.shift_began + settings.das {
+                // (current_subframe - last_drop - settings.dcd) % arr == 0
+                last_drop + settings.dcd
+            } else {
+                // check_das_charged()
+                key_state.shift_began + settings.das
+            }
+        } else {
+            // check_das_charged()
+            key_state.shift_began + settings.das
+        };
+
+        let charged = current_subframe
+            .checked_sub(das_inertia)
             .map(|time_after_das| time_after_das % arr == 0)
             .unwrap_or(false);
 
-        let drop_unlocked = self
-            .last_drop
-            .map(|last_drop| current_subframe - last_drop > settings.dcd)
-            .unwrap_or(true);
-
-        (das_charged && drop_unlocked).then_some(shift_size)
+        charged.then_some(shift_size)
     }
 
     /// Handles all passive effects which happen between events, such as auto-shift, gravity, and

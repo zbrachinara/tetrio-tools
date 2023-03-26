@@ -242,6 +242,7 @@ impl Board {
                 }
 
                 // activate garbage if ready
+                // TODO garbage cancellation
                 while let Some(garbage) = self.acknowledged_garbage.get(0) {
                     if garbage.received_frame + settings.garbage_speed - 1 <= frame {
                         self.queued_garbage

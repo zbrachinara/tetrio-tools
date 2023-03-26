@@ -50,17 +50,21 @@ pub struct Garbage {
 /// rotation) and which actions would happen as a consequence of previous actions (such as line
 /// clears).
 pub struct Board {
-    pub cells: BoardStorage<Cell>,
+    /// The double array representing the "board" part of the game, consisting of all the cells
+    /// which result from pieces having been locked down (does not include the *currently* active
+    /// piece).
+    pub matrix: BoardStorage<Cell>,
     pub queue: PieceQueue,
     pub active: Mino,
     /// A value signifying how much time has passed since the active piece has most recently fallen
     /// (by any amount). If this piece surpasses a certain threshold, the excess is used to
-    /// calculate how far this piece should fall, and/or whether or not it should lock in place
+    /// calculate how far this piece should fall, and whether or not it should lock in place.
     pub gravity_state: f64,
-    /// How many times the piece is able to avoid locking until it is forced to lock immediately
+    /// How many times the piece is able to avoid locking until it is forced to lock immediately.
     lock_count: i8,
-    /// The most recent subframe on which the active piece was dropped (specifically, the subframe
-    /// time of the latest call to `Board::drop_active`)
+    /// The most recent subframe the active piece was dropped on (specifically, the subframe time of
+    /// the latest call to `Board::drop_active`)
+    // TODO "latest call" is not necessarily true, see usages of `last_drop_needs_update`
     last_drop: Option<u32>,
     last_drop_needs_update: bool, // TODO way too hacky, redo api to fix this
     hold: Hold,
@@ -86,7 +90,7 @@ impl Board {
 
         (
             Self {
-                cells,
+                matrix: cells,
                 queue,
                 active,
                 gravity_state: 0.0,
@@ -188,7 +192,7 @@ impl Board {
         key_state: &State,
     ) -> Option<i8> {
         let (arr, shift_size) = if settings.arr == 0 {
-            (1, self.cells.num_columns().0 as i8)
+            (1, self.matrix.num_columns().0 as i8)
         } else {
             (settings.arr, 1)
         };
@@ -227,7 +231,7 @@ impl Board {
                 // TODO handle gravity acceleration
                 self.gravity_state += if key_state.soft_dropping {
                     if settings.sdf > 40 {
-                        self.cells.num_rows().0 as f64 * 10.
+                        self.matrix.num_rows().0 as f64 * 10.
                     } else {
                         let gravity_base = f64::max(settings.gravity, 0.05);
                         settings.sdf as f64 * gravity_base
@@ -407,7 +411,7 @@ impl Board {
 
     /// Apply one block of garbage
     fn apply_garbage(&mut self, garbage: Garbage) -> ActionKind {
-        self.cells.apply_garbage(garbage.column, garbage.amt);
+        self.matrix.apply_garbage(garbage.column, garbage.amt);
         ActionKind::Garbage {
             column: garbage.column,
             height: garbage.amt,
@@ -418,11 +422,11 @@ impl Board {
     /// just updated ones, because tetrio can behave like that (for example, on custom boards that
     /// init with some filled rows)
     fn clear_lines(&mut self) -> Vec<ActionKind> {
-        (0..self.cells.num_rows().0)
+        (0..self.matrix.num_rows().0)
             .scan(0, |real_row, _| {
                 Some(if self.is_filled(*real_row).unwrap() {
                     // clear the row
-                    self.cells.clear_line(*real_row as usize);
+                    self.matrix.clear_line(*real_row as usize);
 
                     Some(ActionKind::LineClear {
                         row: *real_row as u8,
@@ -479,7 +483,7 @@ impl Board {
     /// Tests if a row is filled, and therefore should be cleared. Returns `None` if the given row
     /// is invalid
     fn is_filled(&self, row: isize) -> Option<bool> {
-        self.cells
+        self.matrix
             .row(row)
             .ok()
             .map(|row| !row.iter().any(|cell| cell.is_empty()))
@@ -502,11 +506,11 @@ impl Board {
 
     /// Gets the cell at the given position (x: column, y: row)
     fn cell(&self, x: isize, y: isize) -> Option<&Cell> {
-        self.cells.get((Column(x), Row(y))).ok()
+        self.matrix.get((Column(x), Row(y))).ok()
     }
 
     fn cell_mut(&mut self, x: isize, y: isize) -> Option<&mut Cell> {
-        self.cells.get_mut((Column(x), Row(y))).ok()
+        self.matrix.get_mut((Column(x), Row(y))).ok()
     }
 }
 
@@ -525,7 +529,7 @@ mod test {
     impl Default for Board {
         fn default() -> Self {
             Self {
-                cells: BoardStorage::new_empty(),
+                matrix: BoardStorage::new_empty(),
                 queue: PieceQueue::meaningless(),
                 active: MinoVariant::T.into(),
                 gravity_state: 0.0,
@@ -591,7 +595,7 @@ mod test {
                 coord: (1, 2),
             },
             // the flat-top tki made with garbage cells built with tspin on the left
-            cells: board_from_string("___________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________###____#__####___#___########_#######"),
+            matrix: board_from_string("___________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________###____#__####___#___########_#######"),
             ..Default::default()
         };
 
@@ -599,7 +603,7 @@ mod test {
         assert_eq!(tki_board.active.coord, (2, 1));
 
         let mut tst_board = Board {
-            cells: board_from_string("__________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________#_______________####_#########__########_#####"),
+            matrix: board_from_string("__________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________#_______________####_#########__########_#####"),
             active: Mino {
                 variant: MinoVariant::T,
                 direction: Direction::Up,
@@ -620,7 +624,7 @@ mod test {
             let board_final = board_from_string("________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________#__########___#########__#____###___#__####______###_____#_##_#jjj__#_#_#_#j____#_###_#####___######____#####_###_####_#");
 
             let mut b = Board {
-                cells: board_initial,
+                matrix: board_initial,
                 active: Mino {
                     variant: MinoVariant::J,
                     direction: Direction::Down,
@@ -631,14 +635,14 @@ mod test {
 
             b.drop_active();
 
-            assert_eq!(b.cells, board_final, "messy board");
+            assert_eq!(b.matrix, board_final, "messy board");
 
             // drop that clears lines
             let board_initial = board_from_string("______________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________####_#####__________####_#####____________________");
             let board_final = board_from_string("______________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________tt________________________");
 
             let mut b = Board {
-                cells: board_initial,
+                matrix: board_initial,
                 active: Mino {
                     variant: MinoVariant::T,
                     direction: Direction::Right,
@@ -648,7 +652,7 @@ mod test {
             };
 
             println!("{:?}", b.drop_active());
-            assert_eq!(b.cells, board_final, "unnatural t skim")
+            assert_eq!(b.matrix, board_final, "unnatural t skim")
         }
     }
 }

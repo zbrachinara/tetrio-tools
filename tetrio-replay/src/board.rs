@@ -62,6 +62,9 @@ pub struct Board {
     pub gravity_state: f64,
     /// How many times the piece is able to avoid locking until it is forced to lock immediately.
     lock_count: i8,
+    /// How many subframes the active piece has remained in a locking position. Used to caclulate
+    /// whether a piece should lock due to the expiration of lock delay.
+    lock_timer: u32,
     /// The most recent subframe the active piece was dropped on (specifically, the subframe time of
     /// the latest call to `Board::drop_active`)
     // TODO "latest call" is not necessarily true, see usages of `last_drop_needs_update`
@@ -95,6 +98,7 @@ impl Board {
                 active,
                 gravity_state: 0.0,
                 lock_count: 16,
+                lock_timer: 0,
                 hold: Hold::Empty,
                 last_drop: None,
                 last_drop_needs_update: false,
@@ -275,6 +279,13 @@ impl Board {
                     out.extend(self.reposition(new_position))
                 }
 
+                if self.active_will_lock() {
+                    self.lock_timer += 1;
+                    if self.lock_timer >= 300 {
+                        out.extend(self.drop_active());
+                    }
+                }
+
                 out.into_iter()
                     .map(move |action| action.attach_frame(subframe / 10))
             })
@@ -330,6 +341,7 @@ impl Board {
         let mut out = vec![];
 
         if to != self.active {
+            self.lock_timer = 0;
             if self.active_will_lock() {
                 self.lock_count -= 1;
             }
@@ -346,6 +358,7 @@ impl Board {
     /// Drops the active tetromino in the usual way.
     pub fn drop_active(&mut self) -> Vec<ActionKind> {
         self.lock_count = 16;
+        self.lock_timer = 0;
         let dropping = self.cycle_piece();
         let kind: Cell = dropping.variant.into();
 
@@ -534,6 +547,7 @@ mod test {
                 active: MinoVariant::T.into(),
                 gravity_state: 0.0,
                 lock_count: 16,
+                lock_timer: 0,
                 hold: Hold::Empty,
                 last_drop: None,
                 last_drop_needs_update: false,

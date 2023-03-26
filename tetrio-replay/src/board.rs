@@ -42,12 +42,13 @@ pub struct Garbage {
     received_frame: u32,
 }
 
-/// Holds the state of the tetrio board, which can be updated through the issuing of commands.
-/// The board does not keep a buffer of the commands, but transforms the commands it is issued
-/// into actions, which are returned immediately. This is used to externally build up a sequence
-/// of actions while having a copy of the state with which to determine which actions are possible
-/// (such as the validity of rotation) and which actions would happen as a consequence of previous
-/// actions (such as line clears).
+/// Holds the state of the tetrio board, which can be updated through the issuing of commands. The
+/// board does not keep track of its own state over time. Instead, it transforms the commands it is
+/// issued into [Action]s (or [ActionKind]s, which can then be assigned frames), which are returned
+/// after each command. This is used to externally build up a sequence of actions while having a
+/// copy of the state with which to determine which actions are possible (such as the validity of
+/// rotation) and which actions would happen as a consequence of previous actions (such as line
+/// clears).
 pub struct Board {
     pub cells: BoardStorage<Cell>,
     pub queue: PieceQueue,
@@ -155,7 +156,7 @@ impl Board {
         }
     }
 
-    /// Holds a piece if that is possible.
+    /// Holds a piece, returning the proper actions depending on whether holding is possible or not.
     pub fn hold(&mut self) -> Vec<ActionKind> {
         match self.hold {
             Hold::Empty => {
@@ -178,8 +179,8 @@ impl Board {
     }
 
     /// Calculates whether or not DAS has been held long enough to shift the current piece (or, if a
-    /// piece has just been dropped, if auto-shift has been unlocked). If the piece is ready to
-    /// shfit, returns the strength of the shift.
+    /// piece has just been dropped, if das cut has been passed). If the piece is ready to shift,
+    /// returns the strength of the shift.
     fn auto_shift_charge(
         &self,
         current_subframe: u32,
@@ -209,9 +210,10 @@ impl Board {
             .then_some(shift_size)
     }
 
-    /// Handles all passive effects which happen between events, such as auto-shift, gravity, and
-    /// soft-drop. These effects must be handled together because each of them changes the position
-    /// of the mino, which in turn changes which shifts and drops are possible.
+    /// Handles effects that happen between keypresses, such as auto-shift, gravity, and soft drop.
+    /// These effects must be handled together because each of them changes the position of the
+    /// mino, which in turn changes which shifts and drops are possible.
+    // TODO The order in which effects are applied is not verified
     pub fn passive_effects(
         &mut self,
         current_subframe: u32,
@@ -278,7 +280,7 @@ impl Board {
     /// Tests for whether the active piece is about to lock -- that is, one of its cells is just
     /// above a filled cell. If this is the case, the tetromino will not be allowed to drop any
     /// farther.
-    pub fn active_will_lock(&self) -> bool {
+    fn active_will_lock(&self) -> bool {
         self.will_lock(self.active)
     }
 
@@ -290,9 +292,9 @@ impl Board {
             .any(|&(x, y)| self.cell(x, y).map(|c| !c.is_empty()).unwrap_or(true))
     }
 
-    /// Tests for whether the given mino is in a locking position -- that is, one of its cells is
-    /// just above a filled cell. If this is the case, the tetromino will not be allowed to drop any
-    /// farther, and, if not hard dropped, the locking countdown will begin.
+    /// Tests for whether the given mino is is just above a filled cell. If this is the case, the
+    /// tetromino will not be allowed to drop any farther, and, if not hard dropped, the locking
+    /// countdown will begin.
     fn will_lock(&self, mino: Mino) -> bool {
         mino.position().0.iter().any(|&(x, y)| {
             y.checked_sub(1)
@@ -319,6 +321,7 @@ impl Board {
             .unwrap() // valid if the mino's current position is guaranteed valid
     }
 
+    /// Repositions the piece to the given position, locking it if necessary.
     fn reposition(&mut self, to: Mino) -> Vec<ActionKind> {
         let mut out = vec![];
 
@@ -336,7 +339,7 @@ impl Board {
         out
     }
 
-    /// Drops the active tetromino into the lowest possible position within the columns it takes up.
+    /// Drops the active tetromino in the usual way.
     pub fn drop_active(&mut self) -> Vec<ActionKind> {
         self.lock_count = 16;
         let dropping = self.cycle_piece();
@@ -373,6 +376,9 @@ impl Board {
             .collect_vec()
     }
 
+    /// Add all garbage to the matrix which has been acknowledged and passed the necessary delay.
+    /// Also cuts off any blocks which exceeds the garbage cap, and may cut block in half if it is
+    /// necessary.
     fn apply_queued_garbage(&mut self) -> Vec<ActionKind> {
         let mut out = vec![];
         let mut counter = 0;
@@ -399,6 +405,7 @@ impl Board {
         out
     }
 
+    /// Apply one block of garbage
     fn apply_garbage(&mut self, garbage: Garbage) -> ActionKind {
         self.cells.apply_garbage(garbage.column, garbage.amt);
         ActionKind::Garbage {
@@ -469,8 +476,8 @@ impl Board {
             .unwrap_or(Vec::new())
     }
 
-    /// Tests if a row is filled, and therefore should be cleared. Returns `None` if the given
-    /// row is invalid
+    /// Tests if a row is filled, and therefore should be cleared. Returns `None` if the given row
+    /// is invalid
     fn is_filled(&self, row: isize) -> Option<bool> {
         self.cells
             .row(row)
@@ -479,8 +486,8 @@ impl Board {
     }
 
     /// Tests whether or not the positions passed in intersect with the wall or other filled cells
-    /// (which may, for example, imply they are available for a tetromino to rotate into) Also
-    /// tests within the buffer above the region in which it it legal to place tetrominos
+    /// (which may, for example, imply they are available for a tetromino to rotate into) Also tests
+    /// within the buffer above the region in which it it legal to place tetrominos
     fn test_empty<const N: usize>(&self, positions: &Positions<N>) -> bool {
         positions.iter().all(|&(x, y)| {
             // check the position is within the lower bounds of the board

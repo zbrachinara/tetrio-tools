@@ -71,7 +71,7 @@ impl PieceQueue {
     /// default custom games.
     pub fn standard(seed: u64) -> Self {
         use MinoVariant::*;
-        let base = vec![Z, L, O, S, I, J, T].into_boxed_slice();
+        let base = Box::new([Z, L, O, S, I, J, T]);
         Self::seeded_with_base(seed, base)
     }
 

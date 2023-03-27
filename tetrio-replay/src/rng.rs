@@ -35,50 +35,58 @@ impl Rng {
             });
     }
 
+    #[allow(dead_code)]
     fn shuffle_array<T, const N: usize>(&mut self, mut arr: [T; N]) -> [T; N] {
         self.shuffle_slice(&mut arr);
         arr
+    }
+
+    fn shuffle_boxed_slice<T>(&mut self, mut slice: Box<[T]>) -> Box<[T]> {
+        self.shuffle_slice(&mut slice);
+        slice
     }
 }
 
 /// A piece queue which uses the tetrio RNG strategy to generate new pieces.
 pub struct PieceQueue {
     window: VecDeque<MinoVariant>,
+    base: Box<[MinoVariant]>,
     rng: Rng,
 }
 
 impl PieceQueue {
-    /// Creates a dummy piecequeue that won't be used. Meant for usage in tests
+    /// Creates a `PieceQueue` which returns garbage. Meant for usage in tests.
     #[cfg(test)] // is meant for tests
     pub fn meaningless() -> Self {
-        Self::seeded(1)
+        Self::standard(1)
     }
 
-    /// Creates a new piece queue with a seed and a preview window size
-    pub fn seeded(seed: u64) -> Self {
-        let mut rng = Rng::seeded(seed);
-        let mut window = VecDeque::new();
+    fn seeded_with_base(seed: u64, base: Box<[MinoVariant]>) -> Self {
+        let rng = Rng::seeded(seed);
+        let window = VecDeque::new();
+        Self { rng, base, window }
+    }
 
+    /// Creates a piece queue with the given seed, equivalent to the ones used in multi games and
+    /// default custom games.
+    pub fn standard(seed: u64) -> Self {
         use MinoVariant::*;
-        window.extend(rng.shuffle_array([Z, L, O, S, I, J, T]));
-
-        Self { rng, window }
+        let base = vec![Z, L, O, S, I, J, T].into_boxed_slice();
+        Self::seeded_with_base(seed, base)
     }
 
     /// Return the next piece held in the queue and generate more pieces if necessary
     pub fn pop(&mut self) -> MinoVariant {
-        let ret = self.window.pop_front();
-        // self.fill();
         if self.window.is_empty() {
             self.generate();
         }
+        let ret = self.window.pop_front();
         ret.unwrap()
     }
 
     pub fn generate(&mut self) {
-        use MinoVariant::*;
         self.window
-            .extend(self.rng.shuffle_array([Z, L, O, S, I, J, T]))
+            .extend(self.rng.shuffle_boxed_slice(self.base.clone()).iter())
     }
 }
 

@@ -5,10 +5,15 @@ use std::fs::OpenOptions;
 use std::io::Write;
 use tetrio_replay::reconstruct;
 use ttrm::event::Event;
+use ttrm::GameType;
 use viewtris::action::Action;
 
-fn reconstruct_from_events(events: &[Event], write_to: &str) -> Result<(), Vec<Action>> {
-    let action_list = reconstruct(events).expect("Reconstruction step failed");
+fn reconstruct_from_events(
+    events: &[Event],
+    game_type: GameType,
+    write_to: &str,
+) -> Result<(), Vec<Action>> {
+    let action_list = reconstruct(game_type, events).expect("Reconstruction step failed");
 
     std::fs::create_dir_all("test_out").expect("Could not create the test output directory");
     OpenOptions::new()
@@ -40,7 +45,7 @@ macro_rules! ttrm_test {
                 for (j, replay) in data.replays.iter().enumerate() {
                     let write_to = format!(concat!("test_out/", stringify!($name), "_{}_{}.out"), i, j);
 
-                    if let Err(action_list) = reconstruct_from_events(&replay.events, &write_to) {
+                    if let Err(action_list) = reconstruct_from_events(&replay.events, ttr.game_type, &write_to) {
                         println!(concat!(
                             "Test ",
                             stringify!($name),

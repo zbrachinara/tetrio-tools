@@ -1,7 +1,9 @@
 pub mod event;
+mod game_type;
 mod ttr;
 mod ttrm;
 
+pub use game_type::*;
 pub use serde_json::Error;
 pub use ttr::*;
 pub use ttrm::*;

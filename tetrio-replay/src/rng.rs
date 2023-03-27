@@ -1,5 +1,6 @@
 use std::collections::VecDeque;
 
+use ttrm::GameType;
 use viewtris::tetromino::MinoVariant;
 
 /// The RNG used by tetrio to generate new pieces.
@@ -67,11 +68,25 @@ impl PieceQueue {
         Self { rng, base, window }
     }
 
+    pub fn from_game(game: GameType, seed: u64) -> Self {
+        match game {
+            GameType::FortyLine => Self::fortyline(seed),
+            GameType::League | GameType::Custom => Self::standard(seed),
+            _ => unimplemented!("It is not yet known what queue satisfies this game type"),
+        }
+    }
+
     /// Creates a piece queue with the given seed, equivalent to the ones used in multi games and
     /// default custom games.
     pub fn standard(seed: u64) -> Self {
         use MinoVariant::*;
         let base = Box::new([Z, L, O, S, I, J, T]);
+        Self::seeded_with_base(seed, base)
+    }
+
+    pub fn fortyline(seed: u64) -> Self {
+        use MinoVariant::*;
+        let base = Box::new([I, O, T, Z, J, L, S]);
         Self::seeded_with_base(seed, base)
     }
 

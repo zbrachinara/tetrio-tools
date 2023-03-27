@@ -23,7 +23,9 @@ fn open_file() -> Result<Selection, ()> {
             Some(x) if x.as_bytes() == b"ttr" => {
                 tetrio_replay::ttrm::ttr_from_slice(buf.as_slice())
                     .ok()
-                    .and_then(|ttr| tetrio_replay::reconstruct(ttr.data.events.as_slice()).ok())
+                    .and_then(|ttr| {
+                        tetrio_replay::reconstruct(ttr.game_type, ttr.data.events.as_slice()).ok()
+                    })
                     .map(|actions| Selection {
                         replays: vec![ReplayState::with_actions([actions])],
                         selected: 0,
@@ -41,7 +43,10 @@ fn open_file() -> Result<Selection, ()> {
                                 player
                                     .replays
                                     .iter()
-                                    .map(|replay| tetrio_replay::reconstruct(&replay.events).ok())
+                                    .map(|replay| {
+                                        tetrio_replay::reconstruct(ttrm.game_type, &replay.events)
+                                            .ok()
+                                    })
                                     .collect::<Option<Vec<_>>>()
                                     .map(ReplayState::with_actions)
                             })

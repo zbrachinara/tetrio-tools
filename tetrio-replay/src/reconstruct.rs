@@ -1,4 +1,7 @@
-use ttrm::event::{Event, EventData, EventFull, Game, GameOptions, Key, KeyEvent};
+use ttrm::{
+    event::{Event, EventData, EventFull, Game, GameOptions, Key, KeyEvent},
+    GameType,
+};
 use viewtris::{action::Action, tetromino::Spin};
 
 use crate::board::Board;
@@ -157,7 +160,7 @@ where
     It: Iterator<Item = &'a Event<'a>>,
 {
     /// Creates a controller from a series of tetrio events
-    fn read_game(mut game: It) -> Result<Self, &'static str> {
+    fn read_game(mut game: It, game_type: GameType) -> Result<Self, &'static str> {
         loop {
             let next = game.next();
 
@@ -171,7 +174,7 @@ where
                         game: Game { ref board, .. },
                         ..
                     } = **data;
-                    let (board, stream) = Board::new(options.seed, board);
+                    let (board, stream) = Board::new(options.seed, game_type, board);
                     break Some(Self {
                         events: game,
                         board,
@@ -227,6 +230,6 @@ where
     }
 }
 
-pub fn reconstruct(event_stream: &[Event]) -> Result<Vec<Action>, String> {
-    Controller::read_game(event_stream.iter())?.stream()
+pub fn reconstruct(game_type: GameType, event_stream: &[Event]) -> Result<Vec<Action>, String> {
+    Controller::read_game(event_stream.iter(), game_type)?.stream()
 }

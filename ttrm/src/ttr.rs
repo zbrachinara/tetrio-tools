@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Number;
 
-use crate::{Replay, User};
+use crate::{GameType, Replay, User};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Ttr<'a> {
@@ -13,7 +13,7 @@ pub struct Ttr<'a> {
     pub timestamp: &'a str,
     pub data: Replay<'a>,
     #[serde(rename = "gametype")]
-    pub game_type: &'a str,
+    pub game_type: GameType,
     #[serde(rename = "customtype")]
     pub custom_type: Option<&'a str>,
 }

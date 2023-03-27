@@ -4,7 +4,7 @@ use gridly::prelude::{Column, Grid, GridBounds, GridMut, Row};
 use if_chain::if_chain;
 use itertools::{Either, Itertools};
 use tap::Tap;
-use ttrm::event::InteractionData;
+use ttrm::{event::InteractionData, GameType};
 
 use crate::{
     reconstruct::{Settings, ShiftDirection, State},
@@ -80,8 +80,12 @@ impl Board {
     ///
     /// The format of the matrix is the same as the format found in ttr and ttrm files -- that is,
     /// as a two-dimensional matrix.
-    pub fn new(piece_seed: u64, game: &[Vec<Option<&str>>]) -> (Self, Vec<Action>) {
-        let mut queue = PieceQueue::standard(piece_seed);
+    pub fn new(
+        piece_seed: u64,
+        game_type: GameType,
+        game: &[Vec<Option<&str>>],
+    ) -> (Self, Vec<Action>) {
+        let mut queue = PieceQueue::from_game(game_type, piece_seed);
         let cells = BoardStorage::new_from_rows_unchecked(
             game.iter()
                 .map(|row| row.iter().map(|elem| Cell::from(*elem)).collect_vec())

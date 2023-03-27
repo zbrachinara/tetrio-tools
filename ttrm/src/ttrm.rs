@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Number;
 
-use crate::event;
+use crate::{event, GameType};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Ttrm<'a> {
@@ -11,7 +11,8 @@ pub struct Ttrm<'a> {
     pub data: Vec<ReplaySet<'a>>,
     #[serde(rename = "forcestyle")]
     pub force_style: &'a str,
-    pub gametype: &'a str,
+    #[serde(rename = "gametype")]
+    pub game_type: GameType,
     #[serde(rename = "ismulti")]
     pub is_multi: bool,
     #[serde(rename = "shortid")]

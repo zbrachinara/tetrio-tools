@@ -8,7 +8,8 @@ fn reconstruct_from_bytes(bytes: &[u8], write_to: &str) -> Result<(), Vec<Action
     let ttr = serde_json::from_slice::<ttrm::Ttr>(bytes)
         .expect("TTR parsing is not working correctly, check tests in ttr crate");
 
-    let action_list = reconstruct(&ttr.data.events).expect("Reconstruction step failed");
+    let action_list =
+        reconstruct(ttr.game_type, &ttr.data.events).expect("Reconstruction step failed");
 
     OpenOptions::new()
         .create(true)

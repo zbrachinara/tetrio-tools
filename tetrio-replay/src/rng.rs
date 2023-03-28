@@ -70,7 +70,8 @@ impl PieceQueue {
 
     pub fn from_game(game: GameType, seed: u64) -> Self {
         match game {
-            GameType::FortyLine => Self::fortyline(seed),
+            // GameType::FortyLine => Self::fortyline(seed),
+            GameType::FortyLine => Self::standard(seed),
             GameType::League | GameType::Custom => Self::standard(seed),
             _ => unimplemented!("It is not yet known what queue satisfies this game type"),
         }

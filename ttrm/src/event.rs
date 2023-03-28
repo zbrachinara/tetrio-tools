@@ -158,7 +158,7 @@ pub struct GameOptions<'a> {
     #[serde(rename = "fulloffset")]
     pub full_offset: Option<Number>,
     #[serde(rename = "g")]
-    pub gravity: f64,
+    pub gravity: Option<f32>,
     #[serde(rename = "garbagecap")]
     pub garbage_cap: u16,
     #[serde(rename = "garbagecapincrease")]
@@ -179,11 +179,11 @@ pub struct GameOptions<'a> {
     #[serde(rename = "ghostskin")]
     pub ghost_skin: &'a str,
     #[serde(rename = "gbase")]
-    pub gravity_base: Option<Number>,
+    pub gravity_base: Option<f32>,
     #[serde(rename = "gspeed")]
     pub gravity_speed: Option<Number>,
     #[serde(rename = "gincrease")]
-    pub gravity_increase: Option<f64>,
+    pub gravity_increase: Option<f32>,
     #[serde(rename = "gmargin")]
     pub gravity_margin: Option<Number>,
     pub handling: Option<Handling>,
@@ -266,7 +266,7 @@ pub struct GameOptions<'a> {
     #[serde(rename = "startinglevel")]
     pub starting_level: Option<Number>,
     #[serde(rename = "levelspeed")]
-    pub level_speed: Option<Number>,
+    pub level_speed: Option<f32>,
     #[serde(rename = "levelstatic")]
     pub level_static: Option<bool>,
     #[serde(rename = "levelstaticspeed")]

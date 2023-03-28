@@ -60,7 +60,7 @@ pub struct Board {
     /// A value signifying how much time has passed since the active piece has most recently fallen
     /// (by any amount). If this piece surpasses a certain threshold, the excess is used to
     /// calculate how far this piece should fall, and whether or not it should lock in place.
-    pub gravity_state: f64,
+    pub gravity_state: f32,
     settings: Settings,
     /// How many times the piece is able to avoid locking until it is forced to lock immediately.
     lock_count: i8,
@@ -237,15 +237,15 @@ impl Board {
                 let frame = subframe / 10;
 
                 // TODO handle gravity acceleration
+                let gravity_base = settings.gravity.current_gravity(0, subframe);
                 self.gravity_state += if key_state.soft_dropping {
                     if settings.sdf > 40 {
-                        self.matrix.num_rows().0 as f64 * 10.
+                        self.matrix.num_rows().0 as f32 * 10.
                     } else {
-                        let gravity_base = f64::max(settings.gravity, 0.05);
-                        settings.sdf as f64 * gravity_base
+                        settings.sdf as f32 * gravity_base
                     }
                 } else {
-                    settings.gravity
+                    gravity_base
                 } / 10.;
 
                 let mut out = Vec::new();

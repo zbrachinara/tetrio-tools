@@ -11,6 +11,7 @@ pub struct Settings {
     pub gravity_increase: f64,
     /// Measured in frames, not subframes
     pub garbage_speed: u32,
+    pub garbage_cap: u32,
     pub das: u32,
     pub arr: u32,
     pub sdf: u32,
@@ -24,6 +25,7 @@ impl Default for Settings {
             gravity: 0.01,
             gravity_increase: 0.0,
             garbage_speed: 20,
+            garbage_cap: 8,
             das: 100,
             arr: 20,
             sdf: 60,
@@ -40,6 +42,7 @@ impl<'a, 'b> From<&'a GameOptions<'b>> for Settings {
             gravity_increase: options.gravity_increase.unwrap_or(0.0),
             lock_delay: options.lock_time.unwrap_or(30),
             garbage_speed: options.garbage_speed,
+            garbage_cap: options.garbage_cap,
             ..Default::default()
         };
 

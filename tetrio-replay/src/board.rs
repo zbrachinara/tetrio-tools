@@ -7,7 +7,7 @@ use tap::Tap;
 use ttrm::{event::InteractionData, GameType};
 
 use crate::{
-    reconstruct::{Settings, ShiftDirection, State},
+    reconstruct::{ShiftDirection, State},
     rng::PieceQueue,
 };
 use viewtris::{
@@ -16,8 +16,9 @@ use viewtris::{
     tetromino::{Cell, Mino, MinoVariant, Spin},
 };
 
-use self::storage::BoardStorage;
+use self::{settings::Settings, storage::BoardStorage};
 
+pub mod settings;
 mod storage;
 
 pub enum Hold {
@@ -537,8 +538,8 @@ mod test {
 
     use itertools::Itertools;
 
-    use super::{storage::BoardStorage, Board, Hold};
-    use crate::{board::Cell, reconstruct::Settings, rng::PieceQueue};
+    use super::{settings::Settings, storage::BoardStorage, Board, Hold};
+    use crate::{board::Cell, rng::PieceQueue};
 
     use viewtris::tetromino::{Direction, Mino, MinoVariant, Spin};
 

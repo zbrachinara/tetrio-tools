@@ -69,7 +69,7 @@ pub enum ShiftDirection { #[default] None, Left, Right }
 struct Controller<It> {
     events: It,
     board: Board,
-    settings: Settings,
+    // settings: Settings,
     state: State,
     stream: Vec<Action>,
 }
@@ -94,14 +94,13 @@ impl State {
     fn handle_keys(
         &mut self,
         board: &mut Board,
-        settings: &Settings,
         stream: &mut Vec<Action>,
         event: &KeyEvent,
         down: bool,
         frame: u32,
     ) {
         let current_subframe = frame * 10 + (event.subframe.as_f64().unwrap() * 10.).round() as u32;
-        stream.extend(board.passive_effects(current_subframe + 1, settings, self));
+        stream.extend(board.passive_effects(current_subframe + 1, self));
 
         if down {
             match event.key {
@@ -177,11 +176,11 @@ where
                         game: Game { ref board, .. },
                         ..
                     } = **data;
-                    let (board, stream) = Board::new(options.seed, game_type, board);
+                    let (board, stream) =
+                        Board::new(options.seed, game_type, options.into(), board);
                     break Some(Self {
                         events: game,
                         board,
-                        settings: options.into(),
                         state: State::default(),
                         stream,
                     });
@@ -205,7 +204,7 @@ where
                 EventData::KeyDown { ref key_event } => {
                     self.state.handle_keys(
                         &mut self.board,
-                        &self.settings,
+                        // &self.settings,
                         &mut self.stream,
                         key_event,
                         true,
@@ -214,7 +213,6 @@ where
                 }
                 EventData::KeyUp { ref key_event } => self.state.handle_keys(
                     &mut self.board,
-                    &self.settings,
                     &mut self.stream,
                     key_event,
                     false,

@@ -60,6 +60,7 @@ pub struct Board {
     /// (by any amount). If this piece surpasses a certain threshold, the excess is used to
     /// calculate how far this piece should fall, and whether or not it should lock in place.
     pub gravity_state: f64,
+    settings: Settings,
     /// How many times the piece is able to avoid locking until it is forced to lock immediately.
     lock_count: i8,
     /// How many subframes the active piece has remained in a locking position. Used to caclulate
@@ -83,6 +84,7 @@ impl Board {
     pub fn new(
         piece_seed: u64,
         game_type: GameType,
+        settings: Settings,
         game: &[Vec<Option<&str>>],
     ) -> (Self, Vec<Action>) {
         let mut queue = PieceQueue::from_game(game_type, piece_seed);
@@ -101,6 +103,7 @@ impl Board {
                 queue,
                 active,
                 gravity_state: 0.0,
+                settings,
                 lock_count: 16,
                 lock_timer: 0,
                 hold: Hold::Empty,
@@ -226,14 +229,10 @@ impl Board {
     /// These effects must be handled together because each of them changes the position of the
     /// mino, which in turn changes which shifts and drops are possible.
     // TODO The order in which effects are applied is not verified
-    pub fn passive_effects(
-        &mut self,
-        current_subframe: u32,
-        settings: &Settings,
-        key_state: &State,
-    ) -> Vec<Action> {
+    pub fn passive_effects(&mut self, current_subframe: u32, key_state: &State) -> Vec<Action> {
         (key_state.last_subframe..current_subframe)
             .flat_map(|subframe| {
+                let settings = &self.settings;
                 let frame = subframe / 10;
 
                 // TODO handle gravity acceleration
@@ -539,7 +538,7 @@ mod test {
     use itertools::Itertools;
 
     use super::{storage::BoardStorage, Board, Hold};
-    use crate::{board::Cell, rng::PieceQueue};
+    use crate::{board::Cell, reconstruct::Settings, rng::PieceQueue};
 
     use viewtris::tetromino::{Direction, Mino, MinoVariant, Spin};
 
@@ -550,6 +549,7 @@ mod test {
                 queue: PieceQueue::meaningless(),
                 active: MinoVariant::T.into(),
                 gravity_state: 0.0,
+                settings: Settings::default(),
                 lock_count: 16,
                 lock_timer: 0,
                 hold: Hold::Empty,

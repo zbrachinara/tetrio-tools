@@ -51,3 +51,5 @@ ttr_test!(hahahaki);
 ttr_test!(garbage);
 
 ttr_test!(_40l);
+
+ttr_test!(blitz);

@@ -405,7 +405,7 @@ impl Board {
 
         while let Some(garbage) = self.queued_garbage.get(0) {
             // TODO get garbage cap from settings
-            if counter + garbage.amt > 8 {
+            if counter + garbage.amt > self.settings.garbage_cap {
                 let excess = counter + garbage.amt - 8;
                 let applied = garbage.amt - excess;
 

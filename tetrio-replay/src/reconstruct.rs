@@ -11,7 +11,7 @@ pub struct Settings {
     pub gravity_increase: f64,
     /// Measured in frames, not subframes
     pub garbage_speed: u32,
-    pub garbage_cap: u32,
+    pub garbage_cap: u16,
     pub das: u32,
     pub arr: u32,
     pub sdf: u32,

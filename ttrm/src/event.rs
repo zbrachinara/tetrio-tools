@@ -160,7 +160,7 @@ pub struct GameOptions<'a> {
     #[serde(rename = "g")]
     pub gravity: f64,
     #[serde(rename = "garbagecap")]
-    pub garbage_cap: u32,
+    pub garbage_cap: u16,
     #[serde(rename = "garbagecapincrease")]
     pub garbage_cap_increase: Option<Number>,
     #[serde(rename = "garbagecapmax")]

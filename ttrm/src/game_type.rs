@@ -8,4 +8,5 @@ pub enum GameType {
     FortyLine,
     League,
     Custom,
+    Blitz,
 }

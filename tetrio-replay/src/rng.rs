@@ -72,7 +72,7 @@ impl PieceQueue {
         match game {
             // GameType::FortyLine => Self::fortyline(seed),
             GameType::FortyLine => Self::standard(seed),
-            GameType::League | GameType::Custom => Self::standard(seed),
+            GameType::League | GameType::Custom | GameType::Blitz => Self::standard(seed),
             _ => unimplemented!("It is not yet known what queue satisfies this game type"),
         }
     }

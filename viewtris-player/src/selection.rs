@@ -5,6 +5,7 @@ use crate::state::ReplayState;
 #[derive(Default)]
 pub struct Selection {
     pub replays: Vec<ReplayState>,
+    pub camera: Camera2D,
     pub selected: usize,
     pub in_replay: bool,
 }

@@ -1,6 +1,11 @@
 use std::{fs, os::unix::prelude::OsStrExt};
 
 use itertools::Itertools;
+use macroquad::prelude::*;
+
+fn screen_rect() -> Rect {
+    Rect::new(0., 0., screen_width(), screen_height())
+}
 
 use crate::{selection::Selection, state::ReplayState};
 
@@ -29,6 +34,7 @@ fn read_ttr(buf: &[u8]) -> Option<Selection> {
         .and_then(|ttr| tetrio_replay::reconstruct(ttr.game_type, ttr.data.events.as_slice()).ok())
         .map(|actions| Selection {
             replays: vec![ReplayState::with_actions([actions])],
+            camera: Camera2D::from_display_rect(screen_rect()),
             selected: 0,
             in_replay: true,
         })
@@ -55,6 +61,7 @@ fn read_ttrm(buf: &[u8]) -> Option<Selection> {
 
             (!replays.is_empty()).then_some(Selection {
                 replays,
+                camera: Camera2D::from_display_rect(screen_rect()),
                 selected: 0,
                 in_replay: false,
             })

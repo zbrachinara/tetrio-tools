@@ -169,10 +169,18 @@ fn draw_cell(
 
 pub fn draw_board(board: &Board, legal_region: usize, scale: f32, center_x: f32, center_y: f32) {
     let cell_size = 30. * scale;
-
     let columns = board.cells[0].len();
+    let board_offset = cell_size;
+
+    super::grid::draw_grid(
+        columns,
+        legal_region,
+        scale,
+        center_x + board_offset,
+        center_y,
+    );
     let origin = (
-        center_x - (columns as f32 * cell_size / 2.),
+        center_x - (columns as f32 * cell_size / 2.) + board_offset,
         center_y + legal_region as f32 * cell_size / 2.,
     );
 
@@ -199,7 +207,10 @@ pub fn draw_board(board: &Board, legal_region: usize, scale: f32, center_x: f32,
             direction: Direction::Up,
             coord: (0, 0),
         };
-        let new_origin = (origin.0 - cell_size * 2.5, origin.1 - cell_size * 17.);
+        let new_origin = (
+            origin.0 - cell_size * 2.5 - board_offset,
+            origin.1 - cell_size * 17.,
+        );
         for (pos_x, pos_y) in held_piece.position().0 {
             draw_cell(
                 new_origin,

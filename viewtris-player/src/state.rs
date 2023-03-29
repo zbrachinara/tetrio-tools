@@ -62,7 +62,6 @@ impl Replay {
     }
 
     pub fn draw(&self, scale: f32, center_x: f32, center_y: f32) {
-        draw::grid::draw_grid(10, 20, scale, center_x, center_y);
         draw::board::draw_board(&self.board, 20, scale, center_x, center_y);
     }
 }
@@ -82,7 +81,7 @@ impl ReplayState {
         let left = -((self.concurrent_replays.len() - 1) as f32 / 2.);
 
         for (i, replay) in self.concurrent_replays.iter().enumerate() {
-            let x_width = 850.0;
+            let x_width = 900.0;
 
             replay.draw(
                 1.0,

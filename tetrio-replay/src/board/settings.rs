@@ -85,12 +85,21 @@ impl<'a, 'b> From<&'a GameOptions<'b>> for GravitySettings {
 }
 
 impl GravitySettings {
-    pub fn current_gravity(&self, level: u32, subframe: u32) -> f32 {
+    pub fn current_gravity(&self, lines_cleared: u32, subframe: u32) -> f32 {
         match self {
             GravitySettings::Leveled {
                 level_speed,
                 base_gravity,
-            } => todo!(),
+            } => {
+                let levels_up = (1..)
+                    .scan(0, |st, i| {
+                        *st += (5. * level_speed * (i as f32)).ceil() as u32;
+                        Some((1, *st))
+                    })
+                    .find_map(|(level, min_lines)| (lines_cleared >= min_lines).then_some(level))
+                    .unwrap_or(0); // an answer exists unless the player hasn't leveled up yet
+                todo!()
+            }
             GravitySettings::Continuous {
                 gravity,
                 gravity_increase,
